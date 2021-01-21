@@ -1,0 +1,61 @@
+<template>
+    <b-form-group class="category-group" label="Filter by Category:">
+        <b-form-checkbox-group 
+            id="checkbox-group-categories"
+            v-model="selected"
+            :options="categories"
+            :stacked="true"
+            size="lg"
+            name="category">
+        </b-form-checkbox-group>
+    </b-form-group>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+    name: 'MerchantCategories',
+    methods: {
+        getCategories: function() {
+            axios.get('/api/categories'
+            ).then(res => {
+                if (res.status != 200) {
+                    console.log('ERROR');
+                    throw new Error(res.statusText);
+                }
+                this.categories = res.data.categories.map((cat) => cat.category).filter((cat) => cat !== null).map((cat) => {let words = cat.split(" "); return words.map((word) => word[0].toUpperCase() + word.toLowerCase().substring(1)).join(" ")});
+            })
+            .catch(err => {
+                this.error = err;
+                if (err.json) {
+                    return err.json.then(json => {
+                        this.error.message = json.message;
+                    });
+                }
+            });
+        }
+    },
+    data: function() {
+        return {
+            selected: [],
+            categories: []
+        }
+    },
+    mounted: function() {
+        this.getCategories();
+    },
+    watch: {
+        "selected": function() {
+            this.$emit('categories',this.selected);
+        }
+    }
+}
+</script>
+
+<style scoped>
+.category-group {
+    text-align: left;
+    margin-top: 2rem;
+}
+</style>

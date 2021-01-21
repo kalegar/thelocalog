@@ -1,0 +1,13 @@
+services:
+  redis:
+    image: redis
+    container_name: cache
+  app:
+    build: ./
+    ports:
+      - 3000:3000
+    links:
+      - redis
+    command:
+      sh -c 'node ./api/server.js'
+  

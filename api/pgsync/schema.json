@@ -1,0 +1,24 @@
+[
+  {
+    "database": "merchantproto",
+    "index": "products",
+    "nodes": [
+      {
+        "table": "Merchants",
+        "columns": [
+          "title",
+          "description"
+        ],
+        "children": [
+          {
+            "table": "Products",
+            "columns": [
+              "title",
+              "description"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
