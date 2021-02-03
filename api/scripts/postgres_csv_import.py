@@ -2,6 +2,14 @@ import psycopg2, psycopg2.extras, csv, sys, uuid, datetime, os
 from os.path import join, dirname
 import usaddress
 from dotenv import load_dotenv
+import re
+urlregex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 if len(sys.argv) < 2:
     print('must specify filepath')
@@ -47,6 +55,9 @@ def parse_address(addr,postalcode,neighbourhood):
     country = u"CA"
     full = addr
     return (address1,address2,address3,city,province,country,postalcode,neighbourhood,full)
+
+def valid_url(url):
+    return re.match(urlregex, url) is not None
 
 with open(filepath, newline='') as csvfile:
     creader = csv.DictReader(csvfile, skipinitialspace=True)
@@ -114,6 +125,14 @@ with open(filepath, newline='') as csvfile:
             cur.execute(u"INSERT INTO \"MerchantContacts\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"ContactId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,contactid))
         else:
             print('Failed to insert contact: ' + row['Email'] + ', ' + row['Phone'])
+        # INSERT SOCIAL MEDIA LINKS
+        for social in [('Twitter',row['Twitter']),('Facebook',row['Facebook']),('Instagram',row['Instagram']),('Pinterest',row['Pinterest'])]:
+            if (social[1] == ''): 
+                continue
+            if valid_url(social[1]):
+                cur.execute(u"INSERT INTO \"SocialMediaLinks\" (\"MerchantId\",name,\"displayName\",url) VALUES(%s, UPPER(%s), %s, %s) ON CONFLICT DO NOTHING",(merchantid,social[0],social[0],social[1]))
+            else:
+                print('Failed to insert social media link for ' + social[0] + ', invalid url: ' + social[1])
     conn.commit()
 
 cur.close()

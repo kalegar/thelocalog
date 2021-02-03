@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Merchant.hasMany(models.Product);
+      Merchant.hasMany(models.SocialMediaLink);
       Merchant.belongsToMany(models.Tag, { through: 'MerchantTags' });
       Merchant.belongsToMany(models.Category, { through: 'MerchantCategories' });
       Merchant.Addresses = Merchant.belongsToMany(models.Address, { through: 'MerchantAddresses' });

@@ -31,6 +31,7 @@
                                             </p>
                                         </div>
                                     </div>
+                                    <SocialMediaLinks :links="merchant.SocialMediaLinks"/>
                                 </div>
                             </div>
                         </div>
@@ -48,6 +49,7 @@ import BasePage from './BasePage.vue';
 import BaseContent from './BaseContent.vue';
 import SearchBar from './SearchBar.vue';
 import GoogleMapsEmbed from './GoogleMapsEmbed.vue'
+import SocialMediaLinks from './SocialMediaLinks.vue'
 
 export default {
     name: 'MerchantDetail',
@@ -59,7 +61,8 @@ export default {
         BasePage,
         BaseContent,
         SearchBar,
-        GoogleMapsEmbed
+        GoogleMapsEmbed,
+        SocialMediaLinks
     },
     data: function() {
         return {
@@ -109,7 +112,7 @@ export default {
         axios.get(url, {
             params: {
                 'details': true,
-                'address': true
+                'include': 'address,social'
             }
         })
         .then(res => {
@@ -119,6 +122,7 @@ export default {
                 throw error;
             }
             this.merchant = res.data.merchant;
+            console.log(this.merchant);
             this.getBusinessHours();
         })
         .catch(err => {
@@ -170,5 +174,8 @@ h2 {
 .address p {
     margin-bottom: 0;
     margin-left: 1rem;
+}
+.social-media-links {
+    margin-top: 1rem;
 }
 </style>
