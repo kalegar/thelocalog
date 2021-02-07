@@ -83,6 +83,9 @@ with open(filepath, newline='') as csvfile:
                 result = cur.fetchone()
                 if (result != None):
                     cur.execute(u"INSERT INTO \"MerchantAddresses\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"AddressId\") VALUES (%s, %s, %s, %s)",(datetime.datetime.now(), datetime.datetime.now(),merchantid,result[0]))
+                    # INSERT CONTACT
+                    cur.execute(u"INSERT INTO \"Contacts\" (\"AddressId\",email,phone,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",(result[0],row["Email"],row["Phone"],datetime.datetime.now(), datetime.datetime.now()))
+        
         # INSERT TAGS
         tags = row['Keywords'].replace("\r\n"," ").replace(","," ").replace("\n"," ").split(" ")
         tags.extend(row['Name'].split(" "))
@@ -117,14 +120,6 @@ with open(filepath, newline='') as csvfile:
             else:
                 catid = result[0]
             cur.execute(u"INSERT INTO \"MerchantCategories\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"CategoryId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,catid))
-        # INSERT CONTACT
-        cur.execute(u"INSERT INTO \"Contacts\" (email,phone,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s) ON CONFLICT DO NOTHING RETURNING id",(row["Email"],row["Phone"],datetime.datetime.now(), datetime.datetime.now()))
-        result = cur.fetchone()
-        if (result != None):
-            contactid = result[0]
-            cur.execute(u"INSERT INTO \"MerchantContacts\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"ContactId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,contactid))
-        else:
-            print('Failed to insert contact: ' + row['Email'] + ', ' + row['Phone'])
         # INSERT SOCIAL MEDIA LINKS
         for social in [('Twitter',row['Twitter']),('Facebook',row['Facebook']),('Instagram',row['Instagram']),('Pinterest',row['Pinterest'])]:
             if (social[1] == ''): 
@@ -133,6 +128,20 @@ with open(filepath, newline='') as csvfile:
                 cur.execute(u"INSERT INTO \"SocialMediaLinks\" (\"MerchantId\",name,\"displayName\",url) VALUES(%s, UPPER(%s), %s, %s) ON CONFLICT DO NOTHING",(merchantid,social[0],social[0],social[1]))
             else:
                 print('Failed to insert social media link for ' + social[0] + ', invalid url: ' + social[1])
+        # INSERT LOGOS
+        cur.execute(u"SELECT i.id FROM \"MerchantImages\" mi JOIN \"Images\" i ON mi.\"ImageId\" = i.id WHERE mi.\"MerchantId\" = %s AND i.type = %s",(merchantid,'LOGO'))
+        result = cur.fetchone()
+        if (result == None):
+            try:
+                with open("./data/logos/"+row['Name']+".png", "rb") as f: 
+                    imagedata = psycopg2.Binary(f.read())
+                    cur.execute(u"INSERT INTO \"Images\" (title,type,image,\"createdAt\",\"updatedAt\") VALUES (%s,UPPER(%s),%s,%s,%s) RETURNING id",('Logo','LOGO',imagedata,datetime.datetime.now(),datetime.datetime.now()))
+                    result = cur.fetchone()
+                    if (result != None):
+                        cur.execute(u"INSERT INTO \"MerchantImages\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"ImageId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,result[0]))
+                        print('Inserted image for '+row['Name'])
+            except IOError:
+                print("Could not find '"+"./data/logos/"+row['Name']+".png'")
     conn.commit()
 
 cur.close()

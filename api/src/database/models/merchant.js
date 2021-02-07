@@ -13,10 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Merchant.hasMany(models.Product);
       Merchant.hasMany(models.SocialMediaLink);
+      Merchant.belongsToMany(models.Image, { through: 'MerchantImages' });
       Merchant.belongsToMany(models.Tag, { through: 'MerchantTags' });
       Merchant.belongsToMany(models.Category, { through: 'MerchantCategories' });
       Merchant.Addresses = Merchant.belongsToMany(models.Address, { through: 'MerchantAddresses' });
-      Merchant.belongsToMany(models.Contact, { through: 'MerchantContacts' });
     }
   };
   Merchant.init({

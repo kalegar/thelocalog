@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Address.belongsToMany(models.Merchant, { through: 'MerchantAddresses' });
+      Address.hasOne(models.Contact);
     }
   };
   Address.init({

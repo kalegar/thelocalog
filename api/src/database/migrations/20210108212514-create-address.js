@@ -32,6 +32,12 @@ module.exports = {
       },
       postalcode: {
         type: Sequelize.STRING(20)
+      },
+      neighbourhood: {
+        type: Sequelize.STRING(70)
+      },
+      full: {
+        type: Sequelize.STRING
       }
     });
   },

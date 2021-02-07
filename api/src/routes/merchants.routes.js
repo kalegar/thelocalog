@@ -2,13 +2,14 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
-import { Tag, Merchant, Address, SocialMediaLink } from '../database/models';
+import { Tag, Category, Merchant, Address, Contact, SocialMediaLink } from '../database/models';
 import productRouter from './products.routes.js';
 import merchantTagRouter from './merchants.tags.routes.js';
 import merchantAddressRouter from './merchants.addresses.routes.js';
 import merchantCategoryRouter from './merchants.categories.routes.js';
 import merchantHoursRouter from './merchants.hours.routes.js';
 import merchantSocialMediaRouter from './merchants.socialmedia.routes.js';
+import merchantImagesRouter from './merchants.images.routes.js';
 import { Op, QueryTypes } from 'sequelize';
 
 const handleValidationErrors = function(error,res) {
@@ -151,16 +152,25 @@ router.get("/:id", async (req, res) => {
 
         let includes = []
 
-        if (include && include.toLowerCase().indexOf("address") >= 0) {
-            includes.push( { model: Address, through: { attributes: [] } } );
-        }
-
-        if (include && include.toLowerCase().indexOf("tags") >= 0) {
-            includes.push( { model: Tag, attributes: ['tag'], through: { attributes: [] } } );
-        }
-
-        if (include && include.toLowerCase().indexOf("social") >= 0) {
-            includes.push( { model: SocialMediaLink });
+        if (include) {
+            const term = include.toLowerCase();
+            const all = term.indexOf("all") >= 0;
+            if (all || term.indexOf("address") >= 0) {
+                if (all || term.indexOf("contact") >= 0) {
+                    includes.push( { model: Address, through: { attributes: [] }, include: { model: Contact } } );
+                }else{
+                    includes.push( { model: Address, through: { attributes: [] } } );
+                }
+            }
+            if (all || term.indexOf("tags") >= 0) {
+                includes.push( { model: Tag, attributes: ['tag'], through: { attributes: [] } } );
+            }
+            if (all || term.indexOf("social") >= 0) {
+                includes.push( { model: SocialMediaLink });
+            }
+            if (all || term.indexOf("category") >= 0 || term.indexOf("categories") >= 0) {
+                includes.push( { model: Category, through: { attributes: [] } } );
+            }
         }
 
         if (includes.length > 0) {
@@ -227,5 +237,7 @@ router.use('/:merchantId/categories',merchantCategoryRouter);
 router.use('/:merchantId/hours',merchantHoursRouter);
 
 router.use('/:merchantId/socialmedia',merchantSocialMediaRouter);
+
+router.use('/:merchantId/images',merchantImagesRouter);
 
 export default router;
