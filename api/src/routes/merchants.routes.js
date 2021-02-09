@@ -91,6 +91,10 @@ router.get("/", async (req, res) => {
                     "SELECT mc.\"MerchantId\" as id "+
                     "FROM \"MerchantCategories\" mc join \"Categories\" c on mc.\"CategoryId\" = c.id " +
                     "WHERE c.category in " + searchArray + ") " +
+                "OR m.id in ("+ //Neighbourhood
+                    "SELECT ma.\"MerchantId\" as id "+
+                    "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
+                    "WHERE a.neighbourhood iLike '%" + search + "%') " +
                 "OR m.title iLike '%" + search + "%')";
             let q = "1=1 AND 2=2 AND 3=3 AND 4=4";
             if (search)        q = q.replace("1=1",filterSearch);

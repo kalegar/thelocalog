@@ -1,6 +1,6 @@
 <template>
     <div class="tag-div">
-        <label for="merchant-tags">Filter by keyword(s):</label>
+        <label for="merchant-tags">Filter by Keyword(s):</label>
         <b-form-tags input-id="merchant-tags" v-model="selected" separator=" ,;"></b-form-tags>
     </div>
 </template>

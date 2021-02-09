@@ -9,6 +9,7 @@
                     <div class="sidebar">
                         <MerchantTags v-on:tags="tags = $event; getMerchants()"/>
                         <MerchantCategories v-on:categories="categories = $event; getMerchants()"/>
+                        <MerchantNeighbourhood v-on:neighbourhood="neighbourhood = $event; getMerchants()"/>
                     </div>
                 </template>
                 <div class="row">
@@ -75,6 +76,7 @@ import BaseContent from './BaseContent.vue'
 import SearchBar from './SearchBar.vue'
 import MerchantCategories from './MerchantCategories.vue'
 import MerchantTags from './MerchantTags.vue'
+import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
 
 export default {
     name: 'Merchants',
@@ -92,7 +94,8 @@ export default {
         SearchBar,
         Loading,
         MerchantCategories,
-        MerchantTags
+        MerchantTags,
+        MerchantNeighbourhood
     },
     data: function() {
         return {
@@ -104,7 +107,8 @@ export default {
             perpage: 10,
             searchquery: '',
             categories: [],
-            tags: []
+            tags: [],
+            neighbourhood: ''
         }
     },
     methods: {
@@ -146,6 +150,10 @@ export default {
 
             if (this.categories && this.categories.length > 0) {
                 params.categories = this.categories.join("+");
+            }
+
+            if (this.neighbourhood && this.neighbourhood.length > 0) {
+                params.neighbourhood = this.neighbourhood;
             }
 
             if (this.searchquery) {
