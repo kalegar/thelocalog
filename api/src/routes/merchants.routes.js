@@ -47,7 +47,7 @@ router.post("/", async (req, res) => {
 // Retrieve all merchants
 router.get("/", async (req, res) => {
     try {
-        const {perpage,page,search,tags,categories} = req.query;
+        const {perpage,page,search,tags,categories,neighbourhood} = req.query;
 
         let query = {attributes: ['id','title','website','description']}
         let includes = []
@@ -62,7 +62,7 @@ router.get("/", async (req, res) => {
             query.offset = query.limit * (page-1);
         }
 
-        if (search || tags || categories) {
+        if (search || tags || categories || neighbourhood) {
             let searchArray = search ? "(\'" + search.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const tagArray = tags ? "(\'" + tags.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const categoryArray = categories ? "(\'" + categories.split("+").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
@@ -77,6 +77,11 @@ router.get("/", async (req, res) => {
                 "SELECT mc.\"MerchantId\" as id "+
                 "FROM \"MerchantCategories\" mc join \"Categories\" c on mc.\"CategoryId\" = c.id " +
                 "WHERE c.category in " + categoryArray + ")"
+            const filterNeighbourhood = 
+                "m.id in ("+ //Neighbourhood
+                "SELECT ma.\"MerchantId\" as id "+
+                "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
+                "WHERE a.neighbourhood iLike '%" + neighbourhood + "%')";    
             const filterSearch = 
                 "(m.id in ("+ //Tags
                     "SELECT mt.\"MerchantId\" as id "+
@@ -87,10 +92,11 @@ router.get("/", async (req, res) => {
                     "FROM \"MerchantCategories\" mc join \"Categories\" c on mc.\"CategoryId\" = c.id " +
                     "WHERE c.category in " + searchArray + ") " +
                 "OR m.title iLike '%" + search + "%')";
-            let q = "1=1 AND 2=2 AND 3=3";
-            if (search)     q = q.replace("1=1",filterSearch);
-            if (tags)       q = q.replace("2=2",filterTags);
-            if (categories) q = q.replace("3=3",filterCategories);
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4";
+            if (search)        q = q.replace("1=1",filterSearch);
+            if (tags)          q = q.replace("2=2",filterTags);
+            if (categories)    q = q.replace("3=3",filterCategories);
+            if (neighbourhood) q = q.replace("4=4",filterNeighbourhood);
             const countQuery = 
                 "SELECT COUNT(m.id) " +
                 "FROM \"Merchants\" m "+
