@@ -2,16 +2,14 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import axios from 'axios';
-import redis from 'redis';
 import { Router } from 'express';
 import { Merchant } from '../database/models';
+import redisClient from '../redis-client.js';
 
 const router = Router({mergeParams: true});
 
 const cachePrefix = 'HOURS/';
 const cacheDuration = 604800;
-
-const redisClient = redis.createClient({url: process.env.REDIS_URL || 'redis://localhost'});
 
 const getQueryFromAddress = function(title,address) {
     return (title+' '+address.address1 + 
@@ -48,9 +46,6 @@ router.get("/", async (req, res) => {
                     const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id`);
             
                     if (place.data && place.data.candidates) {
-                        console.log('Got response from Google Places Library:');
-                        console.log(place);
-                        console.log(place.data);
                         const placeid = place.data.candidates[0].place_id;
                         const placeDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${placeid}&fields=opening_hours`)
 

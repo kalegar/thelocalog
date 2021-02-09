@@ -17,7 +17,14 @@ module.exports = (sequelize, DataTypes) => {
   Image.init({
     title: {type: DataTypes.STRING, allowNull: false },
     type: {type: DataTypes.STRING, allowNull: false },
-    image: {type:DataTypes.BLOB('long'), allowNull: false }
+    image: {
+      type:DataTypes.BLOB('long'), 
+      allowNull: false,
+      get() {
+        const rawValue = this.getDataValue('image');
+        return rawValue ? rawValue.toString('base64') : null;
+      } 
+    }
   }, {
     sequelize,
     modelName: 'Image',

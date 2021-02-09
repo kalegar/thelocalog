@@ -1,5 +1,5 @@
 <template>
-    <div class="container-fluid header">
+    <div class="container-fluid header shadow-lg fixed-top">
         <div class="row mh-100">
             <div class="col">
                 <router-link to="/">
@@ -26,12 +26,17 @@ export default {
 .header {
   background-color: rgb(234,60,51);
   height: 80px;
-  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.349), 0 2px 8px 0 rgba(0, 0, 0, 0.486);
+  box-shadow: 0 8px 4px 0 rgba(0, 0, 0, 0.349), 0 2px 8px 0 rgba(0, 0, 0, 0.486);
 }
 img {
     max-height: 80px;
     float: left;
     margin-left: 24px;
+}
+@media only screen and (max-width: 600px) {
+    img {
+        margin-left: 0px;
+    }
 }
 .left {
     width: 150px;

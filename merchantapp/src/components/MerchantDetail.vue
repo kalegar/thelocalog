@@ -5,17 +5,29 @@
                 <SearchBar/>
             </template>
             <BaseContent>
-                    <div class="merchant" v-if="!loading && merchant">
-                        <h1>{{merchant.title}}</h1>
-                        <p>{{merchant.description}}</p>
-                        <a v-if="merchant.website" :href="merchant.website">{{merchant.website}}</a>
-                        <div class="addresses" v-if="merchant.Addresses">
+                    <div class="merchant container" v-if="!loading && merchant">
+                        <div class="row title">
+                            <div class="col my-auto">
+                                <h1>{{merchant.title}}</h1>
+                            </div>
+                            <div class="col" v-if="logo && logo.length">
+                                <img class="logo" :src="'data:image/png;base64,'+logo[0].image" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <p>{{merchant.description}}</p>
+                                <a v-if="merchant.website" :href="merchant.website">{{merchant.website}}</a>
+                            </div>
+                        </div>
+                        <div class="addresses row" v-if="merchant.Addresses">
+                            <div class="col">
                             <h2 v-if="merchant.Addresses.length > 1">Locations:</h2>
                             <h2 v-if="merchant.Addresses.length == 1">Location:</h2>
-                            <div class="addresscard card" v-for="(address, index) in merchant.Addresses" :key="address.id">
+                            <div class="addresscard card shadow" v-for="(address, index) in merchant.Addresses" :key="address.id">
                                 <GoogleMapsEmbed :mapParams="encodeAddress(merchant.title,address)"/>
                                 <div class="addressdetails container fluid">
-                                    <div class="row">
+                                    <div class="row d-block d-sm-flex">
                                         <div class="col address" align="justify-content-center">
                                         <h4>Address:</h4>
                                         <p>{{address.address1}}</p>
@@ -24,7 +36,7 @@
                                         <p>{{address.city}}, {{address.province}}, {{address.country}}</p>
                                         <p>{{address.postalcode}}</p>
                                         </div>
-                                        <div class="col hours" v-if="hours && hours.length">
+                                        <div class="col hours mt-3-xs" v-if="hours && hours.length">
                                             <h4>Hours:</h4>
                                             <p class="hour" v-for="hour in hours[index]" :key="hour">
                                                 {{hour}}
@@ -33,6 +45,7 @@
                                     </div>
                                     <SocialMediaLinks :links="merchant.SocialMediaLinks"/>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -69,6 +82,7 @@ export default {
             merchant: null,
             loading: false,
             hours: [],
+            logo: [],
             error: null
         }
     },
@@ -103,6 +117,21 @@ export default {
             .catch(err => {
                 console.log(err);
             })
+        },
+        getLogo: function() {
+            const url = `/api/merchants/${this.id}/images`
+            axios.get(url,{ params: { type: 'LOGO' }})
+            .then(res => {
+                if (res.status != 200) {
+                    console.log('Error retrieving logo');
+                    const error = new Error(res.statusText);
+                    throw error;
+                }
+                this.logo = res.data;
+            })
+            .catch(err => {
+                console.log(err);
+            })
         }
     },
     mounted: function() {
@@ -124,6 +153,7 @@ export default {
             this.merchant = res.data.merchant;
             console.log(this.merchant);
             this.getBusinessHours();
+            this.getLogo();
         })
         .catch(err => {
             this.error = err;
@@ -141,7 +171,7 @@ export default {
 </script>
 
 <style scoped>
-h2 {
+h2, h1 {
     text-align: left;
 }
 .addresses {
@@ -151,7 +181,7 @@ h2 {
     margin-top: 1rem;
 }
 .addresscard {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     margin-left: 1rem;
     margin-right: 1rem;
     padding-bottom: 1rem;
@@ -177,5 +207,12 @@ h2 {
 }
 .social-media-links {
     margin-top: 1rem;
+}
+.logo {
+    max-width: 12rem;
+    max-height: 12rem;
+}
+.title {
+    margin-bottom: 2.5rem;
 }
 </style>

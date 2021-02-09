@@ -12,10 +12,10 @@
                     </div>
                 </template>
                 <div class="row">
-                <div class="merchantlist" v-if="!$route.params.id">
+                <div class="merchantlist col" v-if="!$route.params.id">
                     <div v-if="!searchquery" class="row">
                         <div class="col">
-                        <h1>Merchants</h1>
+                        <h1>Local Shops</h1>
                         </div>
                     </div>
                     <div v-else class="row">
@@ -29,7 +29,7 @@
                     <Loading :loading="loading && !merchants && !merchants.length"/>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
                     <!--<b-list-group class="list-group" v-if="!loading && merchants && merchants.length">-->
-                        <transition-group name="list" tag="b-list-group">
+                        <transition-group name="list" tag="b-list-group" class="merchantitems shadow">
                             <b-list-group-item class="list-group-item list-item" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" v-for="merchant in merchants" :key="merchant.id">
                                 <h2><router-link :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">{{ merchant.title }}</router-link></h2>
                                 <p>{{ merchant.description }}</p>
@@ -218,6 +218,11 @@ h1,h3{
     margin-left: 2rem;
     margin-right: 2rem;
     width: 100%;
+}
+.merchantitems {
+    height: 74vh;
+    overflow-y: scroll;
+    overflow-x: clip;
 }
 .list-item {
   display: inline-block;
