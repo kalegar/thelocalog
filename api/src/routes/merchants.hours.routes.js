@@ -60,10 +60,10 @@ router.get("/", async (req, res) => {
                         if (placeDetails.data.status && placeDetails.data.status == "OK") {
                             if (placeDetails.data.result.business_status) {
                                 data.status = placeDetails.data.result.business_status;
-                                if (placeDetails.data.result.opening_hours) {
-                                    data.hours = placeDetails.data.result.opening_hours.weekday_text;
-                                    data.periods = placeDetails.data.result.opening_hours.periods;
-                                }
+                            }
+                            if (placeDetails.data.result.opening_hours) {
+                                data.hours = placeDetails.data.result.opening_hours.weekday_text;
+                                data.periods = placeDetails.data.result.opening_hours.periods;
                             }
                         }
                     }
