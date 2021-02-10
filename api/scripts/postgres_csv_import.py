@@ -33,7 +33,7 @@ cur = conn.cursor()
 psycopg2.extras.register_uuid()
 
 def parse_address(addr,postalcode,neighbourhood):
-    parsed = usaddress.tag(addr)
+    parsed = usaddress.tag(addr.replace("\r\n"," ").replace("\n"," "))
     print(addr)
     print(parsed)
     pd = parsed[0]

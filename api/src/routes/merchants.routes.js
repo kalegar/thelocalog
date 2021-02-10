@@ -108,7 +108,8 @@ router.get("/", async (req, res) => {
             const selectQuery =
                 "SELECT m.id,m.title,m.description,m.website " +
                 "FROM \"Merchants\" m "+
-                "WHERE " + q + 
+                "WHERE " + q +
+                " ORDER BY m.title ASC" + 
                 " LIMIT "+query.limit+" OFFSET "+query.offset+";";
 
             Merchant.sequelize.query(
@@ -138,6 +139,8 @@ router.get("/", async (req, res) => {
         if (includes.length > 0) {
             query.include = includes;
         }
+
+        query.order = [ ['title','ASC'] ];
 
         const merchants = await Merchant.findAndCountAll(query);
 

@@ -88,13 +88,15 @@ export default {
     },
     methods: {
         encodeAddress: function(title,address) {
-            return encodeURI('q=' + title+' '+address.address1 + 
+            const queryStr = 'q=' + title+' '+address.address1 + 
                 (address.address2 ? ' ' + address.address2 : '') +
                 (address.address3 ? ' '+ address.address3 : '') +
                 (address.city ? address.city + ' ' : '') +
                 (address.province ? address.province + ' ' : '') +
-                (address.postalcode ? address.postalcode + ' ' : '')
-            );
+                (address.postalcode ? address.postalcode + ' ' : '');
+
+            
+            return encodeURI(queryStr.replace('&','%26'));
         },
         getBusinessHours: function() {
             const url = `/api/merchants/${this.id}/hours`
