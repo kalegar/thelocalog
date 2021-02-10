@@ -38,9 +38,12 @@
                                         </div>
                                         <div class="col hours mt-3-xs" v-if="hours && hours.length">
                                             <h4>Hours:</h4>
-                                            <p class="hour" v-for="hour in hours[index]" :key="hour">
+                                            <p v-if="hours[index].status">{{hours[index].status}}</p>
+                                            <div v-if="hours[index].hours">
+                                            <p class="hour" v-for="hour in hours[index].hours" :key="hour">
                                                 {{hour}}
                                             </p>
+                                            </div>
                                         </div>
                                     </div>
                                     <SocialMediaLinks :links="merchant.SocialMediaLinks"/>
@@ -111,10 +114,18 @@ export default {
                     for (const address of this.merchant.Addresses) {
                         const hours = res.data.data.filter(e => e.address_id == address.id);
                         if (hours.length > 0) {
-                            this.hours.push(hours[0].hours);
+                            let business_status = '';
+                            switch (hours[0].status) {
+                                case "OPERATIONAL": business_status = ''; break;
+                                case "CLOSED_TEMPORARILY": business_status = 'Closed Temporarily'; break;
+                                case "CLOSED_PERMANENTLY": business_status = 'Closed Permanently'; break;
+                                case "NO_INFO": business_status = 'Not Available'; break;
+                            }
+                            this.hours.push({status: business_status, hours: hours[0].hours});
                         }
                     }
                 }
+                console.log(this.hours);
             })
             .catch(err => {
                 console.log(err);

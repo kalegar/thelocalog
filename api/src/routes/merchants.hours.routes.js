@@ -41,23 +41,33 @@ router.get("/", async (req, res) => {
                 
                 const dataArray = []
                 for (const address of addresses) {
+
+                    const data = {
+                        status: 'NO_INFO',
+                        address_id: address.id
+                    };
+
                     const query = getQueryFromAddress(merchant.title,address);
         
                     const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id`);
             
                     if (place.data && place.data.candidates) {
                         const placeid = place.data.candidates[0].place_id;
-                        const placeDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${placeid}&fields=opening_hours`)
+                        const placeDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${placeid}&fields=opening_hours,business_status`)
 
-                        const data = {
-                            address_id: address.id,
-                            place_id: placeid,
-                            hours: placeDetails.data.result.opening_hours.weekday_text,
-                            periods: placeDetails.data.result.opening_hours.periods
+                        data.place_id = placeid;
+
+                        if (placeDetails.data.status && placeDetails.data.status == "OK") {
+                            if (placeDetails.data.result.business_status) {
+                                data.status = placeDetails.data.result.business_status;
+                                if (placeDetails.data.result.opening_hours) {
+                                    data.hours = placeDetails.data.result.opening_hours.weekday_text;
+                                    data.periods = placeDetails.data.result.opening_hours.periods;
+                                }
+                            }
                         }
-
-                        dataArray.push(data);
                     }
+                    dataArray.push(data);  
                 }
 
                 if (dataArray.length > 0) {
