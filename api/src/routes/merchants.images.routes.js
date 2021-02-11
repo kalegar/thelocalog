@@ -26,7 +26,11 @@ router.get("/", async (req, res) => {
                 }
             }
         });
-        return res.status(200).json(merchant.Images);
+        if (merchant) {
+            return res.status(200).json(merchant.Images);
+        }else{
+            return res.status(200).json([]);
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
