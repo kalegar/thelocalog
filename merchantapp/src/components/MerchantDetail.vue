@@ -147,6 +147,9 @@ export default {
             })
         }
     },
+    updated: function() {
+        document.title = this.merchant.title ? this.merchant.title + ' - The Localog' : 'Local Shop - The Localog';
+    },
     mounted: function() {
         this.loading = true;
 

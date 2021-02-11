@@ -3,7 +3,7 @@
         <div class="row mh-100">
             <div class="col">
                 <router-link to="/">
-                <img alt="Vue logo" v-on:click="$emit('headerclicked')" src="../assets/logo.jpg"/>
+                <img alt="Localog Logo" v-on:click="$emit('headerclicked')" src="../assets/logo.svg"/>
                 </router-link>
             </div>
             <div class="col-6 align-self-center">
@@ -32,6 +32,7 @@ img {
     max-height: 80px;
     float: left;
     margin-left: 24px;
+    padding: 8px;
 }
 @media only screen and (max-width: 600px) {
     img {

@@ -198,6 +198,9 @@ export default {
             })
         }
     },
+    updated: function() {
+        document.title = 'Directory - The Localog';
+    },
     mounted: function() {
         this.getMerchants();
 
