@@ -72,6 +72,9 @@ with open(filepath, newline='') as csvfile:
             print(result[1])
         else:
             merchantid = uuid.uuid4()
+            website = row['Website']
+            if website == 'n/a':
+                website = None
             cur.execute(u"INSERT INTO \"Merchants\" (id,title,description,website,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s, %s)",(psycopg2.extras.UUID_adapter(merchantid),row['Name'], row['Description'], row['Website'], datetime.datetime.now(), datetime.datetime.now()))
         # INSERT ADDRESS
         if (row['Address'] != None and len(row['Address']) > 0):
