@@ -31,10 +31,26 @@
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
                     <!--<b-list-group class="list-group" v-if="!loading && merchants && merchants.length">-->
                         <transition-group name="list" tag="b-list-group" class="merchantitems shadow">
-                            <b-list-group-item class="list-group-item list-item" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" v-for="merchant in merchants" :key="merchant.id">
-                                <h2><router-link :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">{{ merchant.title }}</router-link></h2>
-                                <p>{{ merchant.description }}</p>
-                                <a v-if="merchant.website" :href="merchant.website">{{merchant.website}}</a>
+                            <b-list-group-item class="list-group-item list-item container"  v-for="merchant in merchants" :key="merchant.id">
+                                <div class="row shop-header">
+                                    <h2><router-link class="shop-header-link" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">{{ merchant.title }}</router-link></h2>
+                                </div>
+                                <div class="row shop-content">
+                                    <p>{{ merchant.description }}</p>
+                                </div>
+                                <div class="row shop-footer justify-content-between">
+                                    <div class="col-3">
+                                        <router-link :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">
+                                        <button type="button"  class="btn btn-outline-primary">Details</button>
+                                        </router-link>
+                                    </div>
+                                    <div class="col-3">
+                                        <a class="shop-link" v-if="merchant.website" :href="merchant.website" target="_blank">
+                                            <b-icon class="h2" icon="link45deg"></b-icon>
+                                            Visit Website
+                                        </a>
+                                    </div>
+                                </div>
                             </b-list-group-item>
                         </transition-group>
                     <!--</b-list-group>-->
@@ -220,6 +236,24 @@ export default {
 </script>
 
 <style scoped>
+.shop-header {
+    background-color: rgb(234,60,51);
+    padding-top: 1rem;
+}
+.shop-header-link {
+    color: white;
+    margin-left: 1rem;
+}
+.shop-content {
+    margin: 1rem;
+}
+.shop-link {
+    margin-left: 0.5rem;
+}
+.b-icon {
+    margin-top: auto;
+    margin-bottom: -0.3rem;
+}
 h1,h3{
   text-align: left;
   margin-bottom: 1rem;
@@ -238,6 +272,9 @@ h1,h3{
 .list-item {
   display: inline-block;
   text-align: left;
+  padding-top: 0;
+  padding-left: 0.9rem;
+  padding-right: 0;
 }
 .list-enter-active, .list-leave-active {
   transition: all 1s;

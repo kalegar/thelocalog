@@ -2,7 +2,8 @@
     <div class="input-group">
         <b-form-input v-model="searchquery" v-on:keyup="onKeyUp" class="form-control" type="text" placeholder="Search..."></b-form-input>
         <div class="input-group-append">
-            <button class="btn btn-primary" type="button" v-on:click="emitSearch()">Search</button>
+            <button class="btn btn-primary" type="button" v-on:click="emitSearch()">
+                <b-icon icon="search"></b-icon>Search</button>
         </div>
     </div>
 </template>
@@ -30,4 +31,7 @@ export default {
 </script>
 
 <style scoped>
+.b-icon {
+    margin-right: 0.5rem;
+}
 </style>

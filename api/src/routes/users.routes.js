@@ -3,7 +3,7 @@ import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
 import { Crypto } from 'crypto';
-import { User, Merchant } from '../database/models';
+import { User } from '../database/models';
 
 const router = Router();
 
