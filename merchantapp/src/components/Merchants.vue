@@ -30,8 +30,8 @@
                     <Loading :loading="loading && !merchants && !merchants.length"/>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
                     <!--<b-list-group class="list-group" v-if="!loading && merchants && merchants.length">-->
-                        <transition-group name="list" tag="b-list-group" class="merchantitems shadow">
-                            <b-list-group-item class="list-group-item list-item container"  v-for="merchant in merchants" :key="merchant.id">
+                        <!-- <transition-group name="list" tag="b-list-group"> -->
+                            <!-- <b-list-group-item class="list-group-item list-item container"  v-for="merchant in merchants" :key="merchant.id">
                                 <div class="row shop-header">
                                     <h2><router-link class="shop-header-link" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">{{ merchant.title }}</router-link></h2>
                                 </div>
@@ -51,11 +51,31 @@
                                         </a>
                                     </div>
                                 </div>
-                            </b-list-group-item>
-                        </transition-group>
+                            </b-list-group-item> -->
+                        <!-- <div v-for="chunkedMerchant in chunkedMerchants" :key="chunkedMerchant" class="row"> -->
+                            <!-- <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id"> -->
+                            <b-card-group columns>
+                                <!-- <transition-group name="list">     -->
+                                <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
+                                <b-card
+                                    :header="merchant.title"
+                                    header-bg-variant="secondary"
+                                    border-variant="primary"
+                                    text-variant="white"
+                                    :img-src="`/api/merchants/${merchant.id}/images/logo`"
+                                    img-alt=""
+                                    blank-src="../assets/logo.svg"
+                                    class="mb-3 shadow list-item w-100"
+                                    no-body
+                                >
+                                </b-card>
+                                </router-link>
+                                <!-- </transition-group> -->
+                            </b-card-group>
+                            <!-- </router-link> -->
+                        <!-- </div> -->
+                        <!-- </transition-group> -->
                     <!--</b-list-group>-->
-                    
-                    
                 </div>
                 </div>
                 <div class="row">
@@ -93,6 +113,7 @@ import SearchBar from './SearchBar.vue'
 import MerchantCategories from './MerchantCategories.vue'
 import MerchantTags from './MerchantTags.vue'
 import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
+import chunk from 'chunk';
 
 export default {
     name: 'Merchants',
@@ -125,6 +146,11 @@ export default {
             categories: [],
             tags: [],
             neighbourhood: ''
+        }
+    },
+    computed: {
+        chunkedMerchants() {
+            return chunk(this.merchants, 3)
         }
     },
     methods: {
@@ -185,20 +211,19 @@ export default {
                     const error = new Error(res.statusText);
                     throw error;
                 }
-                const tempMerchants = res.data.merchants.rows;
-                for (let i = this.merchants.length-1; i >= 0; i--) {
-                    if (tempMerchants.filter(e => e.id === this.merchants[i].id).length == 0) {
-                        this.merchants.splice(i,1);
-                    }
-                }
-                tempMerchants.map(e => {
-                    if (this.merchants.filter(m => m.id === e.id).length == 0) {
-                        this.merchants.push(e);
-                    }
-                })
+                // const tempMerchants = res.data.merchants.rows;
+                // for (let i = this.merchants.length-1; i >= 0; i--) {
+                //     if (tempMerchants.filter(e => e.id === this.merchants[i].id).length == 0) {
+                //         this.merchants.splice(i,1);
+                //     }
+                // }
+                // tempMerchants.map(e => {
+                //     if (this.merchants.filter(m => m.id === e.id).length == 0) {
+                //         this.merchants.push(e);
+                //     }
+                // })
 
-
-                //this.merchants = res.data.merchants.rows;
+                this.merchants = res.data.merchants.rows;
                 this.pages = Math.ceil(res.data.merchants.count / this.perpage);
             })
             .catch(err => {
@@ -237,7 +262,7 @@ export default {
 
 <style scoped>
 .shop-header {
-    background-color: rgb(234,60,51);
+    background-color: #004670;
     padding-top: 1rem;
 }
 .shop-header-link {
@@ -271,17 +296,16 @@ h1,h3{
 }
 .list-item {
   display: inline-block;
-  text-align: left;
-  padding-top: 0;
-  padding-left: 0.9rem;
-  padding-right: 0;
+  transition: opacity 0.5s
+}
+.list-item:hover {
+    opacity: 0.5;
 }
 .list-enter-active, .list-leave-active {
-  transition: all 1s;
+  transition: opacity 1s;
 }
 .list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
   opacity: 0;
-  transform: translateX(30px);
 }
 .sidebar {
     margin: 1rem 3rem 1rem 3rem;
