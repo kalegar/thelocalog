@@ -4,8 +4,16 @@ import "regenerator-runtime/runtime";
 import { Router } from 'express';
 import { Merchant, Image } from '../database/models';
 import { Op } from 'sequelize';
+import * as fs from 'fs';
 
 const router = Router({mergeParams: true});
+let placeholderImg = null;
+
+fs.readFile('./src/assets/placeholder.png', function(err, data) {
+    if (err) throw err;
+    placeholderImg = data;
+    console.log('Loaded placeholder logo successfully.')
+});
 
 // Retrieve all images for this merchant
 router.get("/", async (req, res) => {
@@ -55,9 +63,13 @@ router.get("/logo", async (req, res) => {
                 }
             }
         });
+        let img;
         if (merchant && merchant.Images && merchant.Images.length) {
             let data = merchant.Images[0].image;
-            let img = Buffer.from(data, 'base64');
+            img = Buffer.from(data, 'base64');
+        }else{
+            img = placeholderImg;
+        }
 
             res.writeHead(200, {
                 'Content-Type': 'image/png',
@@ -66,9 +78,6 @@ router.get("/logo", async (req, res) => {
             return res.end(img);
             //return res.status(200).send('data:image/png;base64,'+merchant.Images[0].image);
             //return res.status(200).send('<img src=\"data:image/png;base64,'+merchant.Images[0].image+'\">');
-        }else{
-            return res.status(200).json([]);
-        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

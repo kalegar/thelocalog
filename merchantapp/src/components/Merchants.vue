@@ -7,9 +7,9 @@
             <BaseContent>
                 <template v-slot:left>
                     <div class="sidebar">
-                        <MerchantTags v-on:tags="tags = $event; getMerchants()"/>
-                        <MerchantCategories v-on:categories="categories = $event; getMerchants()"/>
-                        <MerchantNeighbourhood v-on:neighbourhood="neighbourhood = $event; getMerchants()"/>
+                        <MerchantTags v-on:tags="tags = $event; gotoPage(1)"/>
+                        <MerchantCategories v-on:categories="categories = $event; gotoPage(1)"/>
+                        <MerchantNeighbourhood v-on:neighbourhood="neighbourhood = $event; gotoPage(1)"/>
                     </div>
                 </template>
                 <div class="row">
@@ -58,16 +58,19 @@
                                 <!-- <transition-group name="list">     -->
                                 <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
                                 <b-card
-                                    :header="merchant.title"
-                                    header-bg-variant="secondary"
+                                    :footer="merchant.title"
+                                    footer-bg-variant="secondary"
                                     border-variant="primary"
                                     text-variant="white"
-                                    :img-src="`/api/merchants/${merchant.id}/images/logo`"
                                     img-alt=""
                                     blank-src="../assets/logo.svg"
                                     class="mb-3 shadow list-item w-100"
                                     no-body
                                 >
+                                <b-card-img
+                                    :src="`/api/merchants/${merchant.id}/images/logo`"
+                                >
+                                </b-card-img>
                                 </b-card>
                                 </router-link>
                                 <!-- </transition-group> -->
@@ -113,7 +116,6 @@ import SearchBar from './SearchBar.vue'
 import MerchantCategories from './MerchantCategories.vue'
 import MerchantTags from './MerchantTags.vue'
 import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
-import chunk from 'chunk';
 
 export default {
     name: 'Merchants',
@@ -148,11 +150,6 @@ export default {
             neighbourhood: ''
         }
     },
-    computed: {
-        chunkedMerchants() {
-            return chunk(this.merchants, 3)
-        }
-    },
     methods: {
         merchantClick: function(id) {
             this.$router.push({ path: `/merchants/${id}`});
@@ -176,6 +173,15 @@ export default {
             this.page = 1;
             this.searchquery = '';
             this.getMerchants();
+        },
+        getLogo: function(id) {
+            axios.get(`/api/merchants/${id}/images/logo`)
+            .then(res => {
+                if (res.status != 200) {
+                    return '../assets/placeholder.png';
+                }
+                return `/api/merchants/${id}/images/logo`;
+            });
         },
         getMerchants: function() {
             this.loading = true;
@@ -222,7 +228,8 @@ export default {
                 //         this.merchants.push(e);
                 //     }
                 // })
-
+                //const tempMerchants = res.data.merchants.rows;
+                //this.merchants = tempMerchants.map(m => m.nologo = false);
                 this.merchants = res.data.merchants.rows;
                 this.pages = Math.ceil(res.data.merchants.count / this.perpage);
             })

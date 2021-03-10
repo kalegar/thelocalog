@@ -24,7 +24,8 @@ module.exports = (sequelize, DataTypes) => {
     country: DataTypes.STRING(2),
     postalcode: DataTypes.STRING(20),
     neighbourhood: DataTypes.STRING(70),
-    full: DataTypes.STRING
+    full: DataTypes.STRING,
+    geom: DataTypes.GEOMETRY('POINT')
   }, {
     sequelize,
     modelName: 'Address',
