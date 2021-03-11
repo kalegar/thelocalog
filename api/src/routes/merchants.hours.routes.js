@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
             
                     if (place.data && place.data.candidates) {
                         const placeid = place.data.candidates[0].place_id;
-                        const placeDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${placeid}&fields=opening_hours,business_status`)
+                        const placeDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${placeid}&fields=opening_hours,business_status,geometry`)
 
                         data.place_id = placeid;
 
@@ -64,6 +64,12 @@ router.get("/", async (req, res) => {
                             if (placeDetails.data.result.opening_hours) {
                                 data.hours = placeDetails.data.result.opening_hours.weekday_text;
                                 data.periods = placeDetails.data.result.opening_hours.periods;
+                            }
+                            if (placeDetails.data.result.geometry && placeDetails.data.result.geometry.location) {
+                                address.geom = { type: 'Point', coordinates: [placeDetails.data.result.geometry.location.lat,placeDetails.data.result.geometry.location.lng]};
+                                console.log('Address geom was updated. Saving...');
+                                await address.save({fields: ['geom']});
+                                console.log('Saved!');
                             }
                         }
                     }

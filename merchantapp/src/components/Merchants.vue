@@ -10,6 +10,7 @@
                         <MerchantTags v-on:tags="tags = $event; gotoPage(1)"/>
                         <MerchantCategories v-on:categories="categories = $event; gotoPage(1)"/>
                         <MerchantNeighbourhood v-on:neighbourhood="neighbourhood = $event; gotoPage(1)"/>
+                        <b-form-checkbox v-model="useGeoLocation" switch size="lg">Near Me</b-form-checkbox>
                     </div>
                 </template>
                 <div class="row">
@@ -125,6 +126,13 @@ export default {
         "perpage": function(newVal) {
             localStorage.merchantsPerPage = newVal;
             this.getMerchants();
+        },
+        useGeoLocation: function() {
+            if (this.useGeoLocation) {
+                this.getGeoLocation();
+            }else{
+                this.refreshScreen();
+            }
         }
     },
     components: {
@@ -147,7 +155,9 @@ export default {
             searchquery: '',
             categories: [],
             tags: [],
-            neighbourhood: ''
+            neighbourhood: '',
+            geolocation: {},
+            useGeoLocation: false
         }
     },
     methods: {
@@ -183,6 +193,16 @@ export default {
                 return `/api/merchants/${id}/images/logo`;
             });
         },
+        getGeoLocation : function() {
+            if (navigator.geolocation) {  
+                navigator.geolocation.getCurrentPosition(this.setGeoLocation);  
+            }
+        },
+        setGeoLocation : function(position) {
+            console.log(position.coords.latitude, position.coords.longitude);  
+            this.geolocation = position.coords;
+            this.gotoPage(1);
+        },
         getMerchants: function() {
             this.loading = true;
 
@@ -206,6 +226,11 @@ export default {
 
             if (this.searchquery) {
                 params.search = this.searchquery;
+            }
+
+            if (this.useGeoLocation && this.geolocation.latitude && this.geolocation.longitude) {
+                params.lat = this.geolocation.latitude;
+                params.lon = this.geolocation.longitude;
             }
 
             axios.get('/api/merchants', {

@@ -2,7 +2,7 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
-import { Tag, Category, Merchant, Address, Contact, SocialMediaLink } from '../database/models';
+import { Tag, Category, Merchant, Address, Contact, SocialMediaLink, sequelize } from '../database/models';
 import productRouter from './products.routes.js';
 import merchantTagRouter from './merchants.tags.routes.js';
 import merchantAddressRouter from './merchants.addresses.routes.js';
@@ -47,7 +47,7 @@ router.post("/", async (req, res) => {
 // Retrieve all merchants
 router.get("/", async (req, res) => {
     try {
-        const {perpage,page,search,tags,categories,neighbourhood} = req.query;
+        const {perpage,page,search,tags,categories,neighbourhood,lat,lon,radius} = req.query;
 
         let query = {attributes: ['id','title','website','description']}
         let includes = []
@@ -62,21 +62,26 @@ router.get("/", async (req, res) => {
             query.offset = query.limit * (page-1);
         }
 
-        if (search || tags || categories || neighbourhood) {
+        if (search || tags || categories || neighbourhood || (lat && lon)) {
             let searchArray = search ? "(\'" + search.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const tagArray = tags ? "(\'" + tags.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const categoryArray = categories ? "(\'" + categories.split("+").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             let count = 0;
+            const filterNearby =
+                "m.id in ("+ //Filter Nearby
+                "SELECT ma.\"MerchantId\" as id "+
+                "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id "+
+                "WHERE ST_DWithin(a.geom, ST_MakePoint(:lat, :lon)::geography, :radius) )";
             const filterTags = 
                 "m.id in ("+ //Filter Tags
                 "SELECT mt.\"MerchantId\" as id "+
                 "FROM \"MerchantTags\" mt join \"Tags\" t on mt.\"TagId\" = t.id " +
-                "WHERE t.tag in " + tagArray + ")"
+                "WHERE t.tag in " + tagArray + ")";
             const filterCategories = 
                 "m.id in ("+ //Categories
                 "SELECT mc.\"MerchantId\" as id "+
                 "FROM \"MerchantCategories\" mc join \"Categories\" c on mc.\"CategoryId\" = c.id " +
-                "WHERE c.category in " + categoryArray + ")"
+                "WHERE c.category in " + categoryArray + ")";
             const filterNeighbourhood = 
                 "m.id in ("+ //Neighbourhood
                 "SELECT ma.\"MerchantId\" as id "+
@@ -96,11 +101,19 @@ router.get("/", async (req, res) => {
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                     "WHERE a.neighbourhood iLike '%" + search + "%') " +
                 "OR m.title iLike '%" + search + "%')";
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4";
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5";
+            let replacements = {};
             if (search)        q = q.replace("1=1",filterSearch);
             if (tags)          q = q.replace("2=2",filterTags);
             if (categories)    q = q.replace("3=3",filterCategories);
             if (neighbourhood) q = q.replace("4=4",filterNeighbourhood);
+            if (lon && lat) {
+                q = q.replace("5=5",filterNearby);
+                replacements.lat = lat;
+                replacements.lon = lon,
+                replacements.radius =  radius > 0 && radius < 50000 ? radius : 10000;
+                console.log(replacements);
+            }
             const countQuery = 
                 "SELECT COUNT(m.id) " +
                 "FROM \"Merchants\" m "+
@@ -114,7 +127,7 @@ router.get("/", async (req, res) => {
 
             Merchant.sequelize.query(
                 countQuery,
-                { type: QueryTypes.SELECT, raw: true }
+                { type: QueryTypes.SELECT, raw: true, replacements }
             ).then(result => {
                 if (result && Array.isArray(result) && result.length > 0) {
                     count = Number(result[0].count);
@@ -124,7 +137,8 @@ router.get("/", async (req, res) => {
                         selectQuery,
                         {
                             model: Merchant,
-                            mapToModel: true
+                            mapToModel: true,
+                            replacements
                         }
                     ).then(merchants => {
                         return res.status(200).json({ merchants: { count, rows: merchants }});
