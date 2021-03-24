@@ -7,10 +7,10 @@
             <BaseContent>
                 <template v-slot:left>
                     <div class="sidebar">
+                        <MyLocation v-on:location="setGeoLocation($event);"/>
                         <MerchantTags v-on:tags="tags = $event; gotoPage(1)"/>
                         <MerchantCategories v-on:categories="categories = $event; gotoPage(1)"/>
                         <MerchantNeighbourhood v-on:neighbourhood="neighbourhood = $event; gotoPage(1)"/>
-                        <b-form-checkbox v-model="useGeoLocation" switch size="lg">Near Me</b-form-checkbox>
                     </div>
                 </template>
                 <div class="row">
@@ -59,8 +59,6 @@
                                 <!-- <transition-group name="list">     -->
                                 <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
                                 <b-card
-                                    :footer="merchant.title"
-                                    footer-bg-variant="secondary"
                                     border-variant="primary"
                                     text-variant="white"
                                     img-alt=""
@@ -72,6 +70,7 @@
                                     :src="`/api/merchants/${merchant.id}/images/logo`"
                                 >
                                 </b-card-img>
+                                <b-card-footer>{{merchant.title}}</b-card-footer>
                                 </b-card>
                                 </router-link>
                                 <!-- </transition-group> -->
@@ -117,6 +116,7 @@ import SearchBar from './SearchBar.vue'
 import MerchantCategories from './MerchantCategories.vue'
 import MerchantTags from './MerchantTags.vue'
 import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
+import MyLocation from './MyLocation.vue'
 
 export default {
     name: 'Merchants',
@@ -126,13 +126,6 @@ export default {
         "perpage": function(newVal) {
             localStorage.merchantsPerPage = newVal;
             this.getMerchants();
-        },
-        useGeoLocation: function() {
-            if (this.useGeoLocation) {
-                this.getGeoLocation();
-            }else{
-                this.refreshScreen();
-            }
         }
     },
     components: {
@@ -142,7 +135,8 @@ export default {
         Loading,
         MerchantCategories,
         MerchantTags,
-        MerchantNeighbourhood
+        MerchantNeighbourhood,
+        MyLocation
     },
     data: function() {
         return {
@@ -156,7 +150,8 @@ export default {
             categories: [],
             tags: [],
             neighbourhood: '',
-            geolocation: {},
+            geoLocation: {},
+            geoRadius: 10000,
             useGeoLocation: false
         }
     },
@@ -193,14 +188,14 @@ export default {
                 return `/api/merchants/${id}/images/logo`;
             });
         },
-        getGeoLocation : function() {
-            if (navigator.geolocation) {  
-                navigator.geolocation.getCurrentPosition(this.setGeoLocation);  
+        setGeoLocation : function(location) {
+            const { enabled, position, radius } = location;
+            this.useGeoLocation = enabled;
+            if (enabled) {
+                console.log(position.coords.latitude, position.coords.longitude);  
+                this.geoLocation = position.coords;
+                this.geoRadius = radius * 1000;
             }
-        },
-        setGeoLocation : function(position) {
-            console.log(position.coords.latitude, position.coords.longitude);  
-            this.geolocation = position.coords;
             this.gotoPage(1);
         },
         getMerchants: function() {
@@ -228,9 +223,12 @@ export default {
                 params.search = this.searchquery;
             }
 
-            if (this.useGeoLocation && this.geolocation.latitude && this.geolocation.longitude) {
-                params.lat = this.geolocation.latitude;
-                params.lon = this.geolocation.longitude;
+            if (this.useGeoLocation && this.geoLocation.latitude && this.geoLocation.longitude) {
+                params.lat = this.geoLocation.latitude;
+                params.lon = this.geoLocation.longitude;
+                if (this.geoRadius) {
+                    params.radius = this.geoRadius;
+                }
             }
 
             axios.get('/api/merchants', {
@@ -293,9 +291,9 @@ export default {
 </script>
 
 <style scoped>
-.shop-header {
-    background-color: #004670;
-    padding-top: 1rem;
+.card-footer {
+    background-color: #001E48 !important;
+    font-size: 24px;
 }
 .shop-header-link {
     color: white;

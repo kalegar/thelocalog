@@ -22,6 +22,8 @@ const handleValidationErrors = function(error,res) {
 
 const router = Router();
 
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
 // Create a new Merchant
 router.post("/", async (req, res) => {
     try {
@@ -111,7 +113,7 @@ router.get("/", async (req, res) => {
                 q = q.replace("5=5",filterNearby);
                 replacements.lat = lat;
                 replacements.lon = lon,
-                replacements.radius =  radius > 0 && radius < 50000 ? radius : 10000;
+                replacements.radius = radius ? clamp(radius,1000,100000) : 10000;
                 console.log(replacements);
             }
             const countQuery = 

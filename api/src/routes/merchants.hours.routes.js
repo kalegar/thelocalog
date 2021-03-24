@@ -50,8 +50,10 @@ router.get("/", async (req, res) => {
                     const query = getQueryFromAddress(merchant.title,address);
         
                     const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id`);
-            
-                    if (place.data && place.data.candidates) {
+
+                    if (place && place.data && place.data.candidates) {
+                        if (place.data.status == 'ZERO_RESULTS')
+                            continue;
                         const placeid = place.data.candidates[0].place_id;
                         const placeDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${placeid}&fields=opening_hours,business_status,geometry`)
 
@@ -80,7 +82,7 @@ router.get("/", async (req, res) => {
                     redisClient.setex(cachePrefix+merchantId, cacheDuration, JSON.stringify(dataArray));
                     return res.status(200).json({data: dataArray, cache: false});
                 }else {
-                    return res.status(500).json(place);
+                    return res.status(500).json({data: dataArray, cache: false});
                 }
             }
         })

@@ -1,0 +1,67 @@
+<template>
+    <div class="location-div">
+        <b-form-checkbox id="geo-location-switch" v-model="enabled" switch size="lg">Use My Location</b-form-checkbox>
+        <div class="geo-radius" v-if="enabled">
+            <label for="geo-location-radius">Radius: {{radius}} km</label>
+            <b-form-input id="geo-location-radius" v-model="radius" type="range" size="lg" min="1" max="100" :disabled="!enabled"></b-form-input>
+        </div>
+    </div>
+</template>
+
+<script>
+import _debounce from 'lodash/debounce';
+
+export default {
+  name: 'MyLocation',
+  data: function() {
+      return {
+          enabled: false,
+          location: {},
+          radius: 10
+      }
+  },
+  watch: {
+      enabled: function() {
+            if (this.enabled) {
+                if (navigator.geolocation) {  
+                    navigator.geolocation.getCurrentPosition(this.setGeoLocation);  
+                }
+            }else{
+                this.location = {};
+                this.emitLocation();
+            }
+        },
+      radius: _debounce(function() {
+          if (this.enabled) {
+              this.emitLocation();
+          }
+      }, 500)  
+  },
+  methods: {
+      onKeyUp: function(e) {
+          if (e.keyCode == 13) {
+              this.emitSearch();
+          }
+      },
+      setGeoLocation : function(position) {
+          this.location = position;
+          this.emitLocation();
+      },
+      emitLocation: function() {
+          this.$emit('location',{ enabled: this.enabled, position: this.location, radius: this.radius});
+      }
+  }
+}
+</script>
+
+<style scoped>
+.location-div {
+    margin-top: 1rem;
+}
+label {
+    text-align: left;
+}
+.geo-radius {
+    width: 60%;
+}
+</style>
