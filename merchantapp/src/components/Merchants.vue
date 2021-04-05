@@ -17,7 +17,13 @@
                 <div class="merchantlist col" v-if="!$route.params.id">
                     <div v-if="!searchquery" class="row">
                         <div class="col">
-                        <h1>Local Shops</h1>
+                            <h1>Local Shops</h1>
+                        </div>
+                        <div class="col-2">
+                            <b-button-group>
+                                <b-button :pressed="merchantLayout == 0" v-on:click="merchantLayout = 0"><b-icon icon="list-ul" ></b-icon></b-button>
+                                <b-button :pressed="merchantLayout == 1" v-on:click="merchantLayout = 1"><b-icon icon="columns-gap"></b-icon></b-button>
+                            </b-button-group>
                         </div>
                     </div>
                     <div v-else class="row">
@@ -30,55 +36,39 @@
                     </div>
                     <Loading :loading="loading && !merchants && !merchants.length"/>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
-                    <!--<b-list-group class="list-group" v-if="!loading && merchants && merchants.length">-->
-                        <!-- <transition-group name="list" tag="b-list-group"> -->
-                            <!-- <b-list-group-item class="list-group-item list-item container"  v-for="merchant in merchants" :key="merchant.id">
-                                <div class="row shop-header">
-                                    <h2><router-link class="shop-header-link" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">{{ merchant.title }}</router-link></h2>
-                                </div>
-                                <div class="row shop-content">
-                                    <p>{{ merchant.description }}</p>
-                                </div>
-                                <div class="row shop-footer justify-content-between">
-                                    <div class="col-3">
-                                        <router-link :to="{ name: 'MerchantDetail', params: { id: merchant.id }}">
-                                        <button type="button"  class="btn btn-outline-primary">Details</button>
-                                        </router-link>
-                                    </div>
-                                    <div class="col-3">
-                                        <a class="shop-link" v-if="merchant.website" :href="merchant.website" target="_blank">
-                                            <b-icon class="h2" icon="link45deg"></b-icon>
-                                            Visit Website
-                                        </a>
-                                    </div>
-                                </div>
-                            </b-list-group-item> -->
-                        <!-- <div v-for="chunkedMerchant in chunkedMerchants" :key="chunkedMerchant" class="row"> -->
-                            <!-- <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id"> -->
-                            <b-card-group columns>
-                                <!-- <transition-group name="list">     -->
+                            <b-card-group columns v-if="merchantLayout == 1">
                                 <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
-                                <b-card
-                                    border-variant="primary"
-                                    text-variant="white"
-                                    img-alt=""
-                                    blank-src="../assets/logo.svg"
-                                    class="mb-3 shadow list-item w-100"
-                                    no-body
-                                >
-                                <b-card-img
-                                    :src="`/api/merchants/${merchant.id}/images/logo`"
-                                >
-                                </b-card-img>
-                                <b-card-footer>{{merchant.title}}</b-card-footer>
-                                </b-card>
+                                    <b-card
+                                        border-variant="primary"
+                                        text-variant="white"
+                                        img-alt=""
+                                        blank-src="../assets/logo.svg"
+                                        class="mb-3 shadow list-item w-100"
+                                        no-body
+                                    >
+                                    <b-card-img
+                                        :src="`/api/merchants/${merchant.id}/images/logo`"
+                                    >
+                                    </b-card-img>
+                                    <b-card-footer>{{merchant.title}}</b-card-footer>
+                                    </b-card>
                                 </router-link>
-                                <!-- </transition-group> -->
                             </b-card-group>
-                            <!-- </router-link> -->
-                        <!-- </div> -->
-                        <!-- </transition-group> -->
-                    <!--</b-list-group>-->
+                            <b-list-group v-else>
+                                <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">
+                                    <b-list-group-item>
+                                        <div class="row merchant-list-row">
+                                        <div class="col-2 merchant-list-logo-div">
+                                            <img class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
+                                        </div>
+                                        <div class="col">
+                                            <h5 class="merchant-list">{{merchant.title}}</h5>
+                                            <p class="merchant-list">{{merchant.description}}</p>
+                                        </div>
+                                        </div>
+                                    </b-list-group-item>
+                                </router-link>
+                            </b-list-group>        
                 </div>
                 </div>
                 <div class="row">
@@ -152,7 +142,8 @@ export default {
             neighbourhood: '',
             geoLocation: {},
             geoRadius: 10000,
-            useGeoLocation: false
+            useGeoLocation: false,
+            merchantLayout: 0
         }
     },
     methods: {
@@ -305,10 +296,6 @@ export default {
 .shop-link {
     margin-left: 0.5rem;
 }
-.b-icon {
-    margin-top: auto;
-    margin-bottom: -0.3rem;
-}
 h1,h3{
   text-align: left;
   margin-bottom: 1rem;
@@ -339,5 +326,16 @@ h1,h3{
 }
 .sidebar {
     margin: 1rem 3rem 1rem 3rem;
+}
+.merchant-list-logo {
+    max-width: 128px;
+    float: left;
+}
+.merchant-list-row {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+h5.merchant-list, p.merchant-list {
+    text-align: left;
 }
 </style>
