@@ -9,7 +9,16 @@
             <div class="col-6 align-self-center">
                 <slot></slot>
             </div>
-            <div class="col">
+            <div class="col align-self-center">
+                <div class="auth" v-if="!$auth.loading">
+                    <b-button variant="primary" v-if="!$auth.isAuthenticated" v-on:click="login()">Log In</b-button>
+                    <b-button-group v-else>
+                        <b-button variant="primary" to="profile"><b-icon icon="person-circle"></b-icon> Profile</b-button>
+                        <b-dropdown right variant="primary">
+                            <b-dropdown-item v-on:click="logout()">Log Out</b-dropdown-item>
+                        </b-dropdown>
+                    </b-button-group>
+                </div>
             </div>
         </div>
     </div>
@@ -18,7 +27,17 @@
 <script>
 
 export default {
-  name: 'Header'
+  name: 'Header',
+  methods: {
+      login: function() {
+          this.$auth.loginWithRedirect();
+      },
+      logout: function() {
+          this.$auth.logout({
+            returnTo: window.location.origin
+          });
+      }
+  }
 }
 </script>
 
@@ -55,5 +74,9 @@ img {
     text-align: right;
     margin-right: 24px;
     width: 150px;
+}
+.auth {
+    float: right;
+    margin-right: 1rem;
 }
 </style>

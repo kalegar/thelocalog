@@ -62,7 +62,7 @@
                                             <img class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
                                         </div>
                                         <div class="col">
-                                            <h5 class="merchant-list">{{merchant.title}}</h5>
+                                            <h4 class="merchant-list">{{merchant.title}}</h4>
                                             <p class="merchant-list">{{merchant.description}}</p>
                                         </div>
                                         </div>
@@ -335,7 +335,7 @@ h1,h3{
     padding-top: 8px;
     padding-bottom: 8px;
 }
-h5.merchant-list, p.merchant-list {
+h4.merchant-list, p.merchant-list {
     text-align: left;
 }
 </style>

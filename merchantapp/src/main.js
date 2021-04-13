@@ -6,7 +6,9 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
 import './app.scss'
 
-Vue.config.productionTip = false
+import { domain, clientId } from "../auth_config.json";
+
+import { Auth0Plugin, authGuard } from "./auth";
 
 Vue.use(VueRouter);
 // Make BootstrapVue available throughout your project
@@ -16,16 +18,31 @@ Vue.use(IconsPlugin);
 
 import Merchants from './components/Merchants.vue'
 import MerchantDetail from './components/MerchantDetail.vue'
+import Profile from './components/Profile.vue';
 
 const routes = [
   { path: '/', redirect: '/merchants' },
   { path: '/merchants', component: Merchants },
-  { path: '/merchants/:id', component: MerchantDetail, name: 'MerchantDetail', props: true }
+  { path: '/merchants/:id', component: MerchantDetail, name: 'MerchantDetail', props: true },
+  { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard}
 ]
 
 const router = new VueRouter({
   routes
 });
+
+// Use Auth0Plugin
+Vue.use(Auth0Plugin, {
+  domain,
+  clientId,
+  onRedirectCallback: appState => {
+    router.push(
+      appState && appState.targetUrl ? appState.targetUrl : window.location.pathname
+    );
+  }
+});
+
+Vue.config.productionTip = false
 
 new Vue({
   render: h => h(App),
