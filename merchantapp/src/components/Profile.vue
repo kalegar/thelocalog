@@ -32,12 +32,43 @@
 <script>
 import BasePage from './BasePage.vue';
 import BaseContent from './BaseContent.vue';
+import axios from 'axios';
 
 export default {
     name: 'Profile',
     components: {
         BasePage,
         BaseContent
+    },
+    mounted: function() {
+
+        console.log(this.$auth.user);
+
+        this.$auth.getIdTokenClaims().then((results) => {
+            console.log(results);
+        })
+
+        this.$auth.getTokenSilently().then((authToken) => {
+            console.log(authToken);
+            axios.get('/api/user/merchants', {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    console.log('ERROR');
+                    const error = new Error(res.statusText);
+                    throw error;
+                }
+            })
+            .catch(err => {
+                if (err.json) {
+                    console.log(err.json);
+                }
+            });
+        });
+        
     }
 }
 </script>

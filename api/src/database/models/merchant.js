@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       Merchant.belongsToMany(models.Image, { through: 'MerchantImages' });
       Merchant.belongsToMany(models.Tag, { through: 'MerchantTags' });
       Merchant.belongsToMany(models.Category, { through: 'MerchantCategories' });
+      Merchant.belongsToMany(models.User, { through: 'MerchantOwners' });
       Merchant.Addresses = Merchant.belongsToMany(models.Address, { through: 'MerchantAddresses' });
     }
   };
@@ -23,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     id: { type: DataTypes.UUID, allowNull: false, primaryKey: true, validate: { notNull: true }, defaultValue: Sequelize.UUIDV4 },
     title: { type: DataTypes.STRING, allowNull: false},
     website: DataTypes.STRING,
+    type: DataTypes.STRING,
     description: DataTypes.TEXT
   }, {
     sequelize,

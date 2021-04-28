@@ -6,7 +6,7 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
 import './app.scss'
 
-import { domain, clientId } from "../auth_config.json";
+import { domain, clientId, audience } from "../auth_config.json";
 
 import { Auth0Plugin, authGuard } from "./auth";
 
@@ -35,6 +35,7 @@ const router = new VueRouter({
 Vue.use(Auth0Plugin, {
   domain,
   clientId,
+  audience,
   onRedirectCallback: appState => {
     router.push(
       appState && appState.targetUrl ? appState.targetUrl : window.location.pathname

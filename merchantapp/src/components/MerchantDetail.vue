@@ -17,7 +17,7 @@
                         <div class="row">
                             <div class="col">
                                 <p>{{merchant.description}}</p>
-                                <a v-if="merchant.website" :href="merchant.website">{{merchant.website}}</a>
+                                <a v-if="merchant.website" :href="merchant.website" target="_blank">{{merchant.website}}</a>
                             </div>
                         </div>
                         <div class="addresses row" v-if="merchant.Addresses">
