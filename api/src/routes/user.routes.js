@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { Merchant, User, sequelize } from '../database/models';
 import { QueryTypes } from 'sequelize';
 import jwtAuthz from 'express-jwt-authz';
+import * as authService from '../auth0-service.js';
 
 
 const router = Router({mergeParams: true});
@@ -31,11 +32,32 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.patch('/profile', async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const {name, email, picture} = req.body;
+
+        const body = {};
+        if (name) {
+            body.name = name;
+        }
+        if (email) {
+            body.email = email;
+        }
+        if (picture) {
+            body.picture = picture;
+        }
+        const result = await authService.updateUserProfile(userId,body);
+        console.log(result);
+        return res.status(result.status).json(result.data);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+});
+
 router.get('/merchants', async (req, res) => {
     try {
         const userId = req.user.sub;
-
-        console.log(req.user);
 
         const sql = 
                 "SELECT m.id,m.title,m.description,m.website " +
@@ -64,7 +86,7 @@ router.get('/merchants', async (req, res) => {
 });
 
 const addOwnerScope = jwtAuthz([ 'create:my-merchants' ]);
-router.post('/api/user/merchants', addOwnerScope, async (req, res) => {
+router.post('/merchants', addOwnerScope, async (req, res) => {
     try {
         const { userId, merchantId } = req.body;
 

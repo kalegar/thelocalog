@@ -2,6 +2,7 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import axios from 'axios';
+import { response } from "express";
 
 
 ////////////////////////////////////////////////
@@ -73,3 +74,25 @@ export const getUserMetadata = async function(id) {
         }
     });
 };
+
+export const updateUserProfile = async function(id,profile) {
+
+    const authToken = await getAccessToken();
+    const options = {
+        headers: {
+            Authorization: `Bearer ${authToken.access_token}`
+        }
+    }
+    let response;
+    await axios.patch(auth0Url + `/api/v2/users/${id}`,profile,options).then(function (res) {
+        response = {status: res.status, data: res.data};
+    }).catch(function(error) {
+        if (error.response) {
+            response = error.response;
+        }else{
+            console.log('Error', error.message);
+        }
+    });
+    return response;
+
+}

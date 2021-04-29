@@ -16,15 +16,17 @@ Vue.use(BootstrapVue);
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin);
 
-import Merchants from './components/Merchants.vue'
-import MerchantDetail from './components/MerchantDetail.vue'
+import Merchants from './components/Merchants.vue';
+import MerchantDetail from './components/MerchantDetail.vue';
 import Profile from './components/Profile.vue';
+import MerchantClaim from './components/MerchantClaim.vue';
 
 const routes = [
   { path: '/', redirect: '/merchants' },
   { path: '/merchants', component: Merchants },
   { path: '/merchants/:id', component: MerchantDetail, name: 'MerchantDetail', props: true },
-  { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard}
+  { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard},
+  { path: '/claim/:id', component: MerchantClaim, name: 'MerchantClaim', beforeEnter: authGuard, props: true}
 ]
 
 const router = new VueRouter({

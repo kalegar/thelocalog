@@ -51,6 +51,12 @@
                             </div>
                             </div>
                         </div>
+                        <div class="merchant-footer row align-items-center">
+                            <div class="col">
+                                
+                            <p class="text-muted">Do you own this business? Click <router-link :to="{ name: 'MerchantClaim', params: { id: merchant.id }}">here</router-link> to claim it.</p>
+                            </div>
+                        </div>
                     </div>
                     <Loading :loading="loading"/>
             </BaseContent>
