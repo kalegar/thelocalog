@@ -5,9 +5,11 @@ import cors from 'cors';
 import merchantRoutes from './routes/merchants.routes.js';
 import categoryRoutes from './routes/categories.routes.js';
 import nearbyRoutes from './routes/nearby.routes.js';
-import userRoutes from './routes/user.routes';
+import userRoutes from './routes/user.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import checkJwt from './middleware/authentication.js';
 import jwtAuthz from 'express-jwt-authz';
+import adminRole from './middleware/admin.auth.js';
 
 const app = express();
 
@@ -33,6 +35,8 @@ app.get('/api/user/testscopes', checkJwt, checkScopes, function(req, res) {
       message: 'This is a private scoped endpoint!'
    });
 });
+
+app.use('/api/admin', checkJwt, adminRole, adminRoutes);
 
 app.use(function (err, req, res, next) {
    if (err.name === 'UnauthorizedError') {

@@ -10,6 +10,8 @@ import merchantCategoryRouter from './merchants.categories.routes.js';
 import merchantHoursRouter from './merchants.hours.routes.js';
 import merchantSocialMediaRouter from './merchants.socialmedia.routes.js';
 import merchantImagesRouter from './merchants.images.routes.js';
+import merchantClaimsRouter from './merchants.claims.routes.js';
+import checkJwt from '../middleware/authentication.js';
 import { Op, QueryTypes } from 'sequelize';
 
 const handleValidationErrors = function(error,res) {
@@ -268,5 +270,8 @@ router.use('/:merchantId/hours',merchantHoursRouter);
 router.use('/:merchantId/socialmedia',merchantSocialMediaRouter);
 
 router.use('/:merchantId/images',merchantImagesRouter);
+
+//Merchant claims. Must be logged in.
+router.use('/:merchantId/claims', checkJwt, merchantClaimsRouter);
 
 export default router;

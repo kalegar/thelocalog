@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     try {
         
         const userId = req.user.sub;
-
+        
         const [user, created] = await User.findOrCreate({
             where: { id: userId },
             defaults: {
@@ -58,7 +58,7 @@ router.patch('/profile', async (req, res) => {
 router.get('/merchants', async (req, res) => {
     try {
         const userId = req.user.sub;
-
+        console.log(req.user);
         const sql = 
                 "SELECT m.id,m.title,m.description,m.website " +
                 "FROM \"Merchants\" m "+

@@ -6,7 +6,7 @@
             <BaseContent>
             <div class="container mt-3">
                 <div class="row">
-                    <div class="col" v-if="merchant">
+                    <div class="col" v-if="merchant && !submitted">
                         <h1>Claim {{merchant.title}}</h1>
                         <img class="logo" :src="'data:image/png;base64,'+logo[0].image" v-if="logo && logo.length"/>
                         <b-form @submit="onSubmit" @reset="onReset" class="claim-form">
@@ -46,10 +46,24 @@
                             </div>
                             <div class="row">
                                 <div class="col">
+                                    <b-form-textarea
+                                        id="textarea"
+                                        v-model="form.text"
+                                        placeholder="Please provide details of your proof of ownership"
+                                        rows="3"
+                                        max-rows="6">
+                                    </b-form-textarea>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
                                     <b-button type="submit" variant="primary">Submit Claim</b-button>
                                 </div>
                             </div>
                         </b-form>
+                    </div>
+                    <div class="col" v-if="submitted">
+                        <p>Your claim has been submitted!</p>
                     </div>
                 </div>
             </div>
@@ -79,18 +93,39 @@ export default {
                 email: '',
                 name: ''
             },
-            logo: []
+            logo: [],
+            submitted: false
         }
     },
     methods: {
         onSubmit: function() {
-
+            event.preventDefault();
+            const url = `/api/merchants/${this.id}/claims`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.post(url, { text: this.form.text }, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    this.submitted = true;
+                    if (res.status != 201) {
+                        console.log('Error creating claim');
+                        const error = new Error(res.statusText);
+                        throw error;
+                    }
+                    console.log(res.data);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+            });
         },
         onReset: function() {
 
         },
         getLogo: function() {
-            const url = `/api/merchants/${this.id}/images`
+            const url = `/api/merchants/${this.id}/images`;
             axios.get(url,{ params: { type: 'LOGO' }})
             .then(res => {
                 if (res.status != 200) {
@@ -103,7 +138,7 @@ export default {
             })
             .catch(err => {
                 console.log(err);
-            })
+            });
         }
     },
     updated: function() {

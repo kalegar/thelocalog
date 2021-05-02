@@ -55,7 +55,7 @@
                                 <h2>{{ $auth.user.name }}</h2>
                                 <p class="lead text-muted">{{ $auth.user.email }}</p>
                             </div> -->
-                            </b-form>
+                        </b-form>
                         <div class="row mt-3" v-if="myMerchants && myMerchants.length">
                             <h1>My Merchants</h1>
                             <!-- <highlightjs autodetect :code="JSON.stringify($auth.user, null, 2)" class="rounded w-100" /> -->
@@ -119,6 +119,7 @@ export default {
         this.canEditProfile = this.$auth.user.sub.startsWith('auth0|');
 
         this.$auth.getTokenSilently().then((authToken) => {
+            console.log(this.$auth.user);
             axios.get('/api/user/merchants', {
                 headers: {
                     Authorization: `Bearer ${authToken}`

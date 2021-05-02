@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Merchant.hasMany(models.Product);
       Merchant.hasMany(models.SocialMediaLink);
+      Merchant.hasMany(models.MerchantClaim);
       Merchant.belongsToMany(models.Image, { through: 'MerchantImages' });
       Merchant.belongsToMany(models.Tag, { through: 'MerchantTags' });
       Merchant.belongsToMany(models.Category, { through: 'MerchantCategories' });
