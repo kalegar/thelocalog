@@ -8,6 +8,36 @@
                 <div class="row">
                     <div class="col">
                         <h1>Admin</h1>
+                        <div class="row claims">
+                            <div class="col">
+                            <h3>Claims</h3>
+                            <div class="claims" v-if="claims && claims.length">
+                                <b-list-group>
+                                <b-list-group-item v-for="claim in claims" :to="{ name: 'ClaimDetail', params: { id: claim.id }}" :key="claim.id">
+                                    <!-- <b-list-group-item> -->
+                                        <div class="row ml-3">
+                                            <h4 class="merchant-list">{{claim.Merchant.title}}</h4>
+                                            
+                                        </div>
+                                        <div class="row ml-3">
+                                            <div class="col">
+                                                <h5 class="text-left claim-email" v-if="claim.email">Sent By: {{claim.email}}</h5>
+                                                <p class="text-left claim-text">{{claim.text}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mr-3 justify-content-end">
+                                            <p class="claim-created-date">{{claim.createdAt}}</p>
+                                        </div>
+                                        
+                                    <!-- </b-list-group-item> -->
+                                </b-list-group-item>
+                                </b-list-group>
+                            </div>
+                            <div class="no-claims" v-else>
+                                <p>There are no claims.</p>
+                            </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,7 +78,9 @@ export default {
                         const error = new Error(res.statusText);
                         throw error;
                     }
-                    console.log(res.data);
+                    if (res.data.claims) {
+                        this.claims = res.data.claims;
+                    }
                 })
                 .catch(err => {
                     this.error = err;

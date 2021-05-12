@@ -27,7 +27,8 @@ export const useAuth0 = ({
         user: {},
         auth0Client: null,
         popupOpen: false,
-        error: null
+        error: null,
+        rolesKey: null
       };
     },
     methods: {
@@ -96,6 +97,7 @@ export const useAuth0 = ({
         redirect_uri: redirectUri
       });
 
+      this.rolesKey = options.audience + "/roles";
       try {
         // If the user is returning to the app after authentication..
         if (

@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
   MerchantClaim.init({
     MerchantId: {type: DataTypes.UUID, allowNull: false},  
     UserId: {type: DataTypes.STRING, allowNull: false},
+    email: {type: DataTypes.STRING},
     text: {type: DataTypes.STRING}
   }, {
     sequelize,

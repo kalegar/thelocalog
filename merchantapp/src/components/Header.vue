@@ -16,6 +16,7 @@
                         <b-button variant="primary" to="profile"><b-icon icon="person-circle"></b-icon> Profile</b-button>
                         <b-dropdown right variant="primary">
                             <b-dropdown-item v-on:click="logout()">Log Out</b-dropdown-item>
+                            <b-dropdown-item v-if="isAdmin" to="admin">Admin</b-dropdown-item>
                         </b-dropdown>
                     </b-button-group>
                 </div>
@@ -28,6 +29,16 @@
 
 export default {
   name: 'Header',
+  data: function() {
+      return {
+          showAdminLink: false
+      }
+  },
+  computed: {
+      isAdmin: function() {
+          return this.$auth.user[this.$auth.rolesKey] && this.$auth.user[this.$auth.rolesKey].includes('admin');
+      }
+  },
   methods: {
       login: function() {
           this.$auth.loginWithRedirect();

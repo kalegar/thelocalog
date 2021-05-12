@@ -102,7 +102,7 @@ export default {
             event.preventDefault();
             const url = `/api/merchants/${this.id}/claims`;
             this.$auth.getTokenSilently().then((authToken) => {
-                axios.post(url, { text: this.form.text }, {
+                axios.post(url, { text: this.form.text, email: this.form.email }, {
                     headers: {
                         Authorization: `Bearer ${authToken}`
                     }

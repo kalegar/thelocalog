@@ -14,7 +14,12 @@ router.get("/", async(req, res) => {
 // Retrieve all Merchant Claims
 router.get("/claims", async (req, res) => {
     try {
-        const claims = await MerchantClaim.findAll();
+        const claims = await MerchantClaim.findAll({
+            include: [{
+                model: Merchant,
+                attributes: ['title']
+            }]
+        });
         // const tags = await merchant.getTags({through: {attributes: []}});
         return res.status(200).json({ claims });
     } catch (error) {

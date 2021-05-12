@@ -264,6 +264,7 @@ export default {
         document.title = 'Directory - The Localog';
     },
     mounted: function() {
+
         this.getMerchants();
 
         if (localStorage.merchantsPerPage) {

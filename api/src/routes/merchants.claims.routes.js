@@ -11,7 +11,7 @@ const router = Router({mergeParams: true});
 router.post("/", async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
-        const { text } = req.body;
+        const { email, text } = req.body;
         const userId = req.user.sub;
   
         const merchant = await Merchant.findOne({
@@ -28,6 +28,7 @@ router.post("/", async (req, res) => {
         }
         const merchantClaim = await MerchantClaim.create({
             text,
+            email,
             MerchantId : merchant.id,
             UserId: user.id
         });
