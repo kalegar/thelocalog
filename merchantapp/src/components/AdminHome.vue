@@ -38,6 +38,15 @@
                             </div>
                             </div>
                         </div>
+                        <div class="row tools">
+                            <div class="col">
+                            <h3>Tools</h3>
+                            <b-button v-on:click="populateGeometry()">Populate Geometry</b-button>
+                            <b-modal id="modal-populate-geo" title="Populate Geometry">
+                                <p class="my-4">{{populateGeoResponse}}</p>
+                            </b-modal>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -60,7 +69,8 @@ export default {
     data: function() {
         return {
             claims: [],
-            isAdmin: false
+            isAdmin: false,
+            populateGeoResponse: ''
         }
     },
     methods: {
@@ -81,6 +91,33 @@ export default {
                     if (res.data.claims) {
                         this.claims = res.data.claims;
                     }
+                })
+                .catch(err => {
+                    this.error = err;
+                    if (err.json) {
+                        return err.json.then(json => {
+                            this.error.message = json.message;
+                        });
+                    }
+                });
+            });
+        },
+        populateGeometry: function() {
+            const url = `/api/admin/populategeo`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        console.log('ERROR');
+                        const error = new Error(res.statusText);
+                        throw error;
+                    }
+                    this.populateGeoResponse = res.data.message;
+                    this.$bvModal.show("modal-populate-geo");
                 })
                 .catch(err => {
                     this.error = err;

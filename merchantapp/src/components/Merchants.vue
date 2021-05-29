@@ -15,23 +15,18 @@
                 </template>
                 <div class="row">
                 <div class="merchantlist col" v-if="!$route.params.id">
-                    <div v-if="!searchFilters.searchquery" class="row">
-                        <div class="col">
+                    <div  class="row">
+                        <div v-if="!searchFilters.searchquery" class="col">
                             <h1>Local Shops</h1>
+                        </div>
+                        <div v-else class="col">
+                            <h1>Results for '<em>{{searchFilters.searchquery}}</em>'</h1>
                         </div>
                         <div class="col-2">
                             <b-button-group>
                                 <b-button :pressed="merchantLayout == 0" v-on:click="merchantLayout = 0"><b-icon icon="list-ul" ></b-icon></b-button>
                                 <b-button :pressed="merchantLayout == 1" v-on:click="merchantLayout = 1"><b-icon icon="columns-gap"></b-icon></b-button>
                             </b-button-group>
-                        </div>
-                    </div>
-                    <div v-else class="row">
-                        <div class="col">
-                            <h1>Results for '<em>{{searchFilters.searchquery}}</em>'</h1>
-                        </div>
-                        <div class="col" align="right">
-                            <b-button v-on:click="searchFilters.searchquery = ''; getMerchants()">Reset Search</b-button>
                         </div>
                     </div>
                     <Loading :loading="loading && !merchants && !merchants.length"/>
