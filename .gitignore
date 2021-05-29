@@ -7,3 +7,7 @@
 
 /docker-compose-azure.yml
 *.gitpat
+
+/build/localog
+
+*.env

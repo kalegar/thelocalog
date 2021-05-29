@@ -37,6 +37,9 @@ export default {
           }
       }, 500)  
   },
+  mounted: function() {
+      this.loadFromLocalStorage();
+  },
   methods: {
       onKeyUp: function(e) {
           if (e.keyCode == 13) {
@@ -49,6 +52,23 @@ export default {
       },
       emitLocation: function() {
           this.$emit('location',{ enabled: this.enabled, position: this.location, radius: this.radius});
+          this.saveToLocalStorage();
+      },
+      saveToLocalStorage: function() {
+          localStorage.useGeoLocation = this.enabled ? 'true' : 'false';
+          localStorage.geoLocation = this.location;
+          localStorage.geoRadius = this.radius;
+      },
+      loadFromLocalStorage: function() {
+          if (localStorage.useGeoLocation) {
+            this.enabled = (localStorage.useGeoLocation === 'true');
+          }
+          if (localStorage.geoLocation) {
+            this.location = localStorage.geoLocation;
+          }
+          if (localStorage.geoRadius) {
+            this.radius = localStorage.geoRadius;
+          }
       }
   }
 }

@@ -12,6 +12,7 @@ import merchantSocialMediaRouter from './merchants.socialmedia.routes.js';
 import merchantImagesRouter from './merchants.images.routes.js';
 import merchantClaimsRouter from './merchants.claims.routes.js';
 import checkJwt from '../middleware/authentication.js';
+import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
 
 const handleValidationErrors = function(error,res) {
@@ -23,8 +24,6 @@ const handleValidationErrors = function(error,res) {
 }
 
 const router = Router();
-
-const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
 // Create a new Merchant
 router.post("/", async (req, res) => {
@@ -60,10 +59,10 @@ router.get("/", async (req, res) => {
         query.limit = 2;
 
         if (perpage) {
-            query.limit = perpage;
+            query.limit = Utils.clamp(perpage,0,50);
         }
         if (page) {
-            query.offset = query.limit * (page-1);
+            query.offset = Math.max(0,query.limit * (page-1));
         }
 
         if (search || tags || categories || neighbourhood || (lat && lon)) {
@@ -115,20 +114,13 @@ router.get("/", async (req, res) => {
                 q = q.replace("5=5",filterNearby);
                 replacements.lat = lat;
                 replacements.lon = lon,
-                replacements.radius = radius ? clamp(radius,1000,100000) : 10000;
+                replacements.radius = radius ? Utils.clamp(radius,1000,100000) : 10000;
                 console.log(replacements);
             }
             const countQuery = 
                 "SELECT COUNT(m.id) " +
                 "FROM \"Merchants\" m "+
                 "WHERE " + q + ";";
-            const selectQuery =
-                "SELECT m.id,m.title,m.description,m.website " +
-                "FROM \"Merchants\" m "+
-                "WHERE " + q +
-                " ORDER BY m.title ASC" + 
-                " LIMIT "+query.limit+" OFFSET "+query.offset+";";
-
             Merchant.sequelize.query(
                 countQuery,
                 { type: QueryTypes.SELECT, raw: true, replacements }
@@ -137,6 +129,15 @@ router.get("/", async (req, res) => {
                     count = Number(result[0].count);
                 }
                 if (count > 0) {
+                    if (query.offset > count) {
+                        query.offset = 0;
+                    }
+                    const selectQuery =
+                    "SELECT m.id,m.title,m.description,m.website " +
+                    "FROM \"Merchants\" m "+
+                    "WHERE " + q +
+                    " ORDER BY m.title ASC" + 
+                    " LIMIT "+query.limit+" OFFSET "+query.offset+";";
                     Merchant.sequelize.query(
                         selectQuery,
                         {

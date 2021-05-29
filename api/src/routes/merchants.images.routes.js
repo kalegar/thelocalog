@@ -9,8 +9,12 @@ import * as fs from 'fs';
 const router = Router({mergeParams: true});
 let placeholderImg = null;
 
-fs.readFile('./src/assets/placeholder.png', function(err, data) {
-    if (err) throw err;
+const assetsDir = process.env.ASSETS_DIR ? process.env.ASSETS_DIR : '/src/assets';
+
+fs.readFile(process.cwd() + assetsDir + '/placeholder.png', function(err, data) {
+    if (err) {
+        throw err;
+    }
     placeholderImg = data;
     console.log('Loaded placeholder logo successfully.')
 });

@@ -1,13 +1,25 @@
 'use strict';
+require('dotenv').config();
 
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-console.log('env: ' + env);
+if (env === 'development') {
+   console.log('<><><><><><><><><><><><><><><>')
+   console.log('<>WARNING: DEVELOPMENT BUILD<>');
+   console.log('<><><><><><><><><><><><><><><>');
+}
 const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
+
+const logging = env === 'production' ? false : console.log;
+config.logging = logging;
+
+if (!logging) {
+  console.log('Sequelize logging disabled.');
+}
 
 let sequelize;
 if (config.use_env_variable) {

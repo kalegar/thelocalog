@@ -1,0 +1,3 @@
+Run build.sh
+Run copy-to-pi.sh
+SSH into raspberrypi4 and run /home/pi/localog-restart.sh

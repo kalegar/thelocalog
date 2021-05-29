@@ -131,7 +131,6 @@ export default {
                         }
                     }
                 }
-                console.log(this.hours);
             })
             .catch(err => {
                 console.log(err);
@@ -154,7 +153,7 @@ export default {
         }
     },
     updated: function() {
-        document.title = this.merchant.title ? this.merchant.title + ' - The Localog' : 'Local Shop - The Localog';
+        document.title = (this.merchant && this.merchant.title) ? this.merchant.title + ' - The Localog' : 'Local Shop - The Localog';
     },
     mounted: function() {
         this.loading = true;
@@ -173,7 +172,6 @@ export default {
                 throw error;
             }
             this.merchant = res.data.merchant;
-            console.log(this.merchant);
             this.getBusinessHours();
             this.getLogo();
         })

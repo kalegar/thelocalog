@@ -47,11 +47,17 @@ export default {
         }
     },
     mounted: function() {
+
+        if (localStorage.selectedMerchantCategories) {
+            this.selected = localStorage.selectedMerchantCategories.split(';');
+        }
+
         this.getCategories();
     },
     watch: {
         "selected": function() {
             this.$emit('categories',this.selected);
+            localStorage.selectedMerchantCategories = this.selected.join(';');
         }
     }
 }

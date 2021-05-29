@@ -68,7 +68,8 @@ router.get("/", async (req, res) => {
                                 data.periods = placeDetails.data.result.opening_hours.periods;
                             }
                             if (placeDetails.data.result.geometry && placeDetails.data.result.geometry.location) {
-                                address.geom = { type: 'Point', coordinates: [placeDetails.data.result.geometry.location.lat,placeDetails.data.result.geometry.location.lng]};
+                                //Need to specify SRID for compat with PostGIS < 3.0.0
+                                address.geom = { type: 'Point', coordinates: [placeDetails.data.result.geometry.location.lat,placeDetails.data.result.geometry.location.lng], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
                                 console.log('Address geom was updated. Saving...');
                                 await address.save({fields: ['geom']});
                                 console.log('Saved!');

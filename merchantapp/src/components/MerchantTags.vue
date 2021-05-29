@@ -16,6 +16,12 @@ export default {
     watch: {
         "selected": function() {
             this.$emit('tags',this.selected);
+            localStorage.selectedMerchantTags = this.selected.join(';');
+        }
+    },
+    mounted: function() {
+        if (localStorage.selectedMerchantTags) {
+            this.selected = localStorage.selectedMerchantTags.split(';');
         }
     }
 }

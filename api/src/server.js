@@ -19,6 +19,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 const env = process.env.NODE_ENV || 'development';
+console.log('environment: ' + env);
 const baseURL = env === 'development' ? '../../' : '../';
 
 app.use(express.static(path.join(__dirname, `${baseURL}merchantapp/dist`)));

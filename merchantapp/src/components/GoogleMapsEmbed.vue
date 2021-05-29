@@ -34,7 +34,6 @@ export default {
         }
     },
     mounted: async function() {
-        console.log('MAP MOUNTED')
         // const google = await gplacesInit(process.env.VUE_APP_GOOGLE_PLACES_API_KEY);
 
         // let map = new google.maps.Map(this.$refs.map);

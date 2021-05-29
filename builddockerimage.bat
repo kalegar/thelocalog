@@ -1,2 +1,2 @@
-docker build -t kalegar/merchantapp .
+docker build -t localog:latest .
 pause

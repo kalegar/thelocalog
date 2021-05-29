@@ -18,7 +18,13 @@ export default {
     watch: {
         "selected": _debounce(function() {
             this.$emit('neighbourhood',this.selected);
+            localStorage.selectedMerchantNeighbourhood = this.selected;
         }, 500)
+    },
+    mounted: function() {
+        if (localStorage.selectedMerchantNeighbourhood) {
+            this.selected = localStorage.selectedMerchantNeighbourhood;
+        }
     }
 }
 </script>

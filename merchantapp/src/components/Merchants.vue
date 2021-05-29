@@ -2,20 +2,20 @@
     <div class="merchants">
         <BasePage v-on:headerclicked="refreshScreen()">
             <template v-slot:header>
-                <SearchBar v-on:search="searchquery = $event; getMerchants()"/>
+                <SearchBar v-on:search="searchFilters.searchquery = $event; getMerchants()"/>
             </template>
             <BaseContent>
                 <template v-slot:left>
                     <div class="sidebar">
                         <MyLocation v-on:location="setGeoLocation($event);"/>
-                        <MerchantTags v-on:tags="tags = $event; gotoPage(1)"/>
-                        <MerchantCategories v-on:categories="categories = $event; gotoPage(1)"/>
-                        <MerchantNeighbourhood v-on:neighbourhood="neighbourhood = $event; gotoPage(1)"/>
+                        <MerchantTags v-on:tags="searchFilters.tags = $event"/>
+                        <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
+                        <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
                     </div>
                 </template>
                 <div class="row">
                 <div class="merchantlist col" v-if="!$route.params.id">
-                    <div v-if="!searchquery" class="row">
+                    <div v-if="!searchFilters.searchquery" class="row">
                         <div class="col">
                             <h1>Local Shops</h1>
                         </div>
@@ -28,10 +28,10 @@
                     </div>
                     <div v-else class="row">
                         <div class="col">
-                            <h1>Results for '<em>{{searchquery}}</em>'</h1>
+                            <h1>Results for '<em>{{searchFilters.searchquery}}</em>'</h1>
                         </div>
                         <div class="col" align="right">
-                            <b-button v-on:click="searchquery = ''; getMerchants()">Reset Search</b-button>
+                            <b-button v-on:click="searchFilters.searchquery = ''; getMerchants()">Reset Search</b-button>
                         </div>
                     </div>
                     <Loading :loading="loading && !merchants && !merchants.length"/>
@@ -106,7 +106,8 @@ import SearchBar from './SearchBar.vue'
 import MerchantCategories from './MerchantCategories.vue'
 import MerchantTags from './MerchantTags.vue'
 import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
-import MyLocation from './MyLocation.vue'
+import MyLocation from './MyLocation.vue';
+import { Utils } from '../utils/util.js';
 
 export default {
     name: 'Merchants',
@@ -114,8 +115,31 @@ export default {
     },
     watch: {
         "perpage": function(newVal) {
+            if (newVal !== this.perpage) {
+               this.getMerchants();
+            }
             localStorage.merchantsPerPage = newVal;
-            this.getMerchants();
+        },
+        "page": function(newVal) {
+            localStorage.merchantsCurrentPage = newVal;
+        },
+        "searchFilters.categories": function(newVal) {
+            if (newVal !== this['searchFilters.categories']) {
+                this.page = 1;
+                this.getMerchants();
+            }
+        },
+        "searchFilters.tags": function(newVal) {
+            if (newVal !== this['searchFilters.tags']) {
+                this.page = 1;
+                this.getMerchants();
+            }
+        },
+        "searchFilters.neighbourhood": function(newVal) {
+            if (newVal !== this['searchFilters.neighbourhood']) {
+                this.page = 1;
+                this.getMerchants();
+            }
         }
     },
     components: {
@@ -136,14 +160,16 @@ export default {
             page: 1,
             pages: 1,
             perpage: 10,
-            searchquery: '',
-            categories: [],
-            tags: [],
-            neighbourhood: '',
-            geoLocation: {},
             geoRadius: 10000,
             useGeoLocation: false,
-            merchantLayout: 0
+            geoLocation: {},
+            merchantLayout: 0,
+            searchFilters: {
+                searchquery: '',
+                categories: [],
+                tags: [],
+                neighbourhood: ''
+            }
         }
     },
     methods: {
@@ -166,8 +192,8 @@ export default {
             this.getMerchants();
         },
         refreshScreen: function() {
-            this.page = 1;
-            this.searchquery = '';
+            //this.page = 1;
+            this.searchFilters.searchquery = '';
             this.getMerchants();
         },
         getLogo: function(id) {
@@ -182,15 +208,25 @@ export default {
         setGeoLocation : function(location) {
             const { enabled, position, radius } = location;
             this.useGeoLocation = enabled;
-            if (enabled) {
-                console.log(position.coords.latitude, position.coords.longitude);  
+            if (enabled === true) { 
                 this.geoLocation = position.coords;
                 this.geoRadius = radius * 1000;
             }
             this.gotoPage(1);
         },
+        saveSearchFiltersToLocalStorage: function() {
+            let data = {
+            searchquery:    this.searchFilters.searchquery,
+            categories:     this.searchFilters.categories,
+            tags:           this.searchFilters.tags,
+            neighbourhood:  this.searchFilters.neighbourhood
+            }
+            localStorage.searchFilters = data;
+        },
         getMerchants: function() {
             this.loading = true;
+
+            this.page = Utils.clamp(this.page,1,Math.max(this.pages,1));
 
             let params = {
                 'details': true,
@@ -198,23 +234,23 @@ export default {
                 'perpage': this.perpage
             }
 
-            if (this.tags && this.tags.length > 0) {
-                params.tags = this.tags.join(" ");
+            if (this.searchFilters.tags && this.searchFilters.tags.length > 0) {
+                params.tags = this.searchFilters.tags.join(" ");
             }
 
-            if (this.categories && this.categories.length > 0) {
-                params.categories = this.categories.join("+");
+            if (this.searchFilters.categories && this.searchFilters.categories.length > 0) {
+                params.categories = this.searchFilters.categories.join("+");
             }
 
-            if (this.neighbourhood && this.neighbourhood.length > 0) {
-                params.neighbourhood = this.neighbourhood;
+            if (this.searchFilters.neighbourhood && this.searchFilters.neighbourhood.length > 0) {
+                params.neighbourhood = this.searchFilters.neighbourhood;
             }
 
-            if (this.searchquery) {
-                params.search = this.searchquery;
+            if (this.searchFilters.searchquery) {
+                params.search = this.searchFilters.searchquery;
             }
 
-            if (this.useGeoLocation && this.geoLocation.latitude && this.geoLocation.longitude) {
+            if (this.useGeoLocation && this.geoLocation) {
                 params.lat = this.geoLocation.latitude;
                 params.lon = this.geoLocation.longitude;
                 if (this.geoRadius) {
@@ -246,6 +282,11 @@ export default {
                 //this.merchants = tempMerchants.map(m => m.nologo = false);
                 this.merchants = res.data.merchants.rows;
                 this.pages = Math.ceil(res.data.merchants.count / this.perpage);
+                if (this.pages <= 1) {
+                    this.page = 1;
+                } else if (this.page > this.pages) {
+                    this.page = (this.pages - 1);
+                }
             })
             .catch(err => {
                 this.error = err;
@@ -265,11 +306,15 @@ export default {
     },
     mounted: function() {
 
-        this.getMerchants();
-
         if (localStorage.merchantsPerPage) {
             this.perpage = localStorage.merchantsPerPage;
         }
+
+        if (localStorage.merchantsCurrentPage) {
+            this.page = localStorage.merchantsCurrentPage;
+        }
+
+        this.getMerchants();
 
         let vm = this;
 
@@ -331,6 +376,12 @@ h1,h3{
 .merchant-list-logo {
     max-width: 128px;
     float: left;
+    vertical-align: middle;
+}
+.merchant-list-logo-div {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
 }
 .merchant-list-row {
     padding-top: 8px;
