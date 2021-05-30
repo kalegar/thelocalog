@@ -5,6 +5,10 @@ import { Router } from 'express';
 import { Merchant, Image } from '../database/models';
 import { Op } from 'sequelize';
 import * as fs from 'fs';
+import checkJwt from '../middleware/authentication.js';
+import adminRole from '../middleware/admin.auth.js';
+import multer from 'multer';
+const upload = multer({ storage: multer.memoryStorage(), limits: {fileSize: 5000000, files: 1, fields: 10} });
 
 const router = Router({mergeParams: true});
 let placeholderImg = null;
@@ -82,6 +86,61 @@ router.get("/logo", async (req, res) => {
             return res.end(img);
             //return res.status(200).send('data:image/png;base64,'+merchant.Images[0].image);
             //return res.status(200).send('<img src=\"data:image/png;base64,'+merchant.Images[0].image+'\">');
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.post("/logo", checkJwt, adminRole, upload.single('logo'), async(req, res) => {
+    try {
+        const  img = req.file;
+
+        if (img.mimetype !== 'image/png') {
+            return res.status(400).json({ message: 'Must be image/png.'});
+        }
+
+        const merchant = await Merchant.findOne({
+            where: {
+                id: req.params.merchantId
+            },
+            include: {
+                model: Image,
+                where: {
+                    type: {
+                        [Op.iLike]: '%LOGO%'
+                    }
+                },
+                required: false,
+                through: {
+                    attributes: []
+                }
+            }
+        });
+
+        if (!merchant) {
+            return res.status(404).json({ message: 'Merchant not found.'});
+        }
+
+        let image = null;
+        if (merchant.Images && merchant.Images.length) {
+            image = merchant.Images[0];
+            image.image = img.buffer;
+            await image.save({ fields: ['image']});
+        }else{
+            image = await Image.create({
+                title: 'Logo',
+                type: 'LOGO',
+                image: img.buffer
+            });
+            if (image)
+                image.addMerchant(merchant);
+        }
+        if (!image) {
+            return res.status(400).json({ message: 'Invalid img data.'});
+        }
+
+        return res.status(201).json({ image });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

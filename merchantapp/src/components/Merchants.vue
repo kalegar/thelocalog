@@ -6,7 +6,7 @@
             </template>
             <BaseContent>
                 <template v-slot:left>
-                    <div class="sidebar">
+                    <div class="row mt-3 sidebar">
                         <MyLocation v-on:location="setGeoLocation($event);"/>
                         <MerchantTags v-on:tags="searchFilters.tags = $event"/>
                         <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
@@ -53,8 +53,10 @@
                                 <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">
                                     <b-list-group-item>
                                         <div class="row merchant-list-row">
-                                        <div class="col-2 merchant-list-logo-div">
-                                            <img class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
+                                        <div class="col-2">
+                                            <div class="merchant-list-logo-frame">
+                                                <img class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
+                                            </div>
                                         </div>
                                         <div class="col">
                                             <h4 class="merchant-list">{{merchant.title}}</h4>
@@ -80,7 +82,7 @@
                 </p>
                 <template v-slot:right>
                     <div class="dropdown sidebar">
-                        <b-dropdown id="itemsperpage" :text="perpage + ' Results Per Page'" class="m-md-2">
+                        <b-dropdown id="itemsperpage" :text="perpage + ' Results Per Page'" class="m-md-3">
                             <b-dropdown-item v-on:click="perpage = 10">10</b-dropdown-item>
                             <b-dropdown-item v-on:click="perpage = 25">25</b-dropdown-item>
                             <b-dropdown-item v-on:click="perpage = 50">50</b-dropdown-item>
@@ -369,14 +371,21 @@ h1,h3{
     margin: 1rem 3rem 1rem 3rem;
 }
 .merchant-list-logo {
-    max-width: 128px;
-    float: left;
-    vertical-align: middle;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
 }
-.merchant-list-logo-div {
-    display: inline-block;
-    height: 100%;
-    vertical-align: middle;
+.merchant-list-logo-frame {
+    position: relative;
+    height: 128px;
+    width: 128px;
 }
 .merchant-list-row {
     padding-top: 8px;

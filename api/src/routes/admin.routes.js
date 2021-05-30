@@ -2,7 +2,6 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import axios from 'axios';
-import { worker } from 'worker_threads';
 import { Router } from 'express';
 import { Op } from 'sequelize';
 import { Merchant, MerchantClaim, User, Address } from '../database/models';
@@ -113,6 +112,6 @@ router.get("/populategeo", async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-})
+});
 
 export default router;

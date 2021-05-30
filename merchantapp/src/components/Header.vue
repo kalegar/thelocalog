@@ -13,10 +13,10 @@
                 <div class="auth" v-if="!$auth.loading">
                     <b-button variant="primary" v-if="!$auth.isAuthenticated" v-on:click="login()">Log In</b-button>
                     <b-button-group v-else>
-                        <b-button variant="primary" to="profile"><b-icon icon="person-circle"></b-icon> Profile</b-button>
+                        <b-button variant="primary" :to="{ name: 'profile' }"><b-icon icon="person-circle"></b-icon> Profile</b-button>
                         <b-dropdown right variant="primary">
                             <b-dropdown-item v-on:click="logout()">Log Out</b-dropdown-item>
-                            <b-dropdown-item v-if="isAdmin" to="admin">Admin</b-dropdown-item>
+                            <b-dropdown-item v-if="isAdmin" :to="{ name: 'AdminHome' }">Admin</b-dropdown-item>
                         </b-dropdown>
                     </b-button-group>
                 </div>

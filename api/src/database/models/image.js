@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       get() {
         const rawValue = this.getDataValue('image');
         return rawValue ? rawValue.toString('base64') : null;
-      } 
+      }
     }
   }, {
     sequelize,

@@ -41,9 +41,21 @@
                         <div class="row tools">
                             <div class="col">
                             <h3>Tools</h3>
-                            <b-button v-on:click="populateGeometry()">Populate Geometry</b-button>
+                            <b-button class="m-1" v-on:click="populateGeometry()">Populate Geometry</b-button>
                             <b-modal id="modal-populate-geo" title="Populate Geometry">
                                 <p class="my-4">{{populateGeoResponse}}</p>
+                            </b-modal>
+                            <b-button class="m-1" v-on:click="$bvModal.show('modal-upload-logo')">Upload Logo</b-button>
+                            <b-modal id="modal-upload-logo" title="Upload Logo" @ok="uploadLogo()">
+                                <b-form-input class="mb-2" v-model="uploadedLogoMerchantId" placeholder="Merchant ID"></b-form-input>
+                                <b-form-file
+                                    v-model="uploadedLogo"
+                                    :state="Boolean(uploadedLogo)"
+                                    accept="image/png"
+                                    placeholder="Choose an image or drop it here..."
+                                    drop-placeholder="Drop image here..."
+                                ></b-form-file>
+                                <div class="mt-3" v-if="Boolean(uploadedLogo)">Selected file: {{ uploadedLogo ? uploadedLogo.name : '' }}</div>
                             </b-modal>
                             </div>
                         </div>
@@ -70,7 +82,10 @@ export default {
         return {
             claims: [],
             isAdmin: false,
-            populateGeoResponse: ''
+            populateGeoResponse: '',
+            uploadLogoResponse: '',
+            uploadedLogo: null,
+            uploadedLogoMerchantId: ''
         }
     },
     methods: {
@@ -128,6 +143,38 @@ export default {
                     }
                 });
             });
+        },
+        uploadLogo: function() {
+            const url = `/api/merchants/${this.uploadedLogoMerchantId}/images/logo`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                let formData = new FormData();
+                formData.append('logo',this.uploadedLogo);
+                axios.post(url, formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+                .then(res => {
+                    if (res.status != 201) {
+                        console.log('ERROR');
+                        const error = new Error(res.statusText);
+                        throw error;
+                    }
+                    this.makeToast('Upload Logo','Uploaded Logo Successfully!');
+                })
+                .catch(err => {
+                    this.makeToast('Upload Logo',`Error uploading logo: ${err}`);
+                });
+            });
+        },
+        makeToast: function(title,text, append = false) {
+            this.$bvToast.toast(text, {
+                title: title,
+                autoHideDelay: 5000,
+                appendToast: append
+            })
         }
     },
     updated: function() {
