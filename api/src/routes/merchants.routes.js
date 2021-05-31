@@ -104,7 +104,7 @@ router.get("/", async (req, res) => {
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                     "WHERE a.neighbourhood iLike '%" + search + "%') " +
                 "OR m.title iLike '%" + search + "%')";
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5";
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND (m.\"deletedAt\" is NULL)";
             let replacements = {};
             if (search)        q = q.replace("1=1",filterSearch);
             if (tags)          q = q.replace("2=2",filterTags);
