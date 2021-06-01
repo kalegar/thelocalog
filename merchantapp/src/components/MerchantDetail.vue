@@ -5,7 +5,23 @@
                 <SearchBar/>
             </template>
             <BaseContent>
-                    <div class="merchant container" v-if="!loading && merchant">
+                <transition name="fade" mode="out-in">
+                    <div v-if="loading" key="skeleton">
+                        <div class="container" style="text-align:left;margin-top:2em;">
+                            <b-skeleton class="mt-3" width="20%" height="2.5em"></b-skeleton>
+                            <b-card class="mt-2">
+                            <b-skeleton width="85%"></b-skeleton>
+                            <b-skeleton width="55%"></b-skeleton>
+                            <b-skeleton width="70%"></b-skeleton>
+                            </b-card>
+                            <b-skeleton class="mt-3" width="20%" height="2em"></b-skeleton>
+                            <b-card class="mt-2">
+                                <b-skeleton-img>
+                                </b-skeleton-img>
+                            </b-card>
+                        </div>
+                    </div>
+                    <div class="merchant container" v-if="!loading && merchant" key="merchant">
                         <div class="row title">
                             <div class="col my-auto">
                                 <h1>{{merchant.title}}</h1>
@@ -16,8 +32,10 @@
                         </div>
                         <div class="row">
                             <div class="col">
+                                <b-card>
                                 <p>{{merchant.description}}</p>
                                 <a v-if="merchant.website" :href="merchant.website" target="_blank">{{merchant.website}}</a>
+                                </b-card>
                             </div>
                         </div>
                         <div class="addresses row" v-if="merchant.Addresses">
@@ -58,6 +76,7 @@
                             </div>
                         </div>
                     </div>
+                </transition>
                     <Loading :loading="loading"/>
             </BaseContent>
         </BasePage>
@@ -185,12 +204,15 @@ export default {
         })
         .then(() => {
             this.loading = false;
-        })
+        });
     }
 }
 </script>
 
 <style scoped>
+b-skeleton {
+    text-align: left;
+}
 h2, h1 {
     text-align: left;
 }
@@ -233,6 +255,13 @@ h2, h1 {
     max-height: 12rem;
 }
 .title {
-    margin-bottom: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .25s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 </style>

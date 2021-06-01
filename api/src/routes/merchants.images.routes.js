@@ -95,6 +95,10 @@ router.post("/logo", checkJwt, adminRole, upload.single('logo'), async(req, res)
     try {
         const  img = req.file;
 
+        if (!img) {
+            return res.status(400).json({ message: 'No image uploaded.'});
+        }
+
         if (img.mimetype !== 'image/png') {
             return res.status(400).json({ message: 'Must be image/png.'});
         }
@@ -142,6 +146,9 @@ router.post("/logo", checkJwt, adminRole, upload.single('logo'), async(req, res)
         return res.status(201).json({ image });
 
     } catch (error) {
+        if (error.message.startsWith("invalid input syntax for type uuid")) {
+            res.status(404).json({ message: 'Merchant not found.'});
+        }
         res.status(500).json({ message: error.message });
     }
 });

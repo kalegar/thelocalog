@@ -6,7 +6,7 @@
             </template>
             <BaseContent>
                 <template v-slot:left>
-                    <div class="row mt-3 sidebar">
+                    <div class="mt-3 sidebar">
                         <MyLocation v-on:location="setGeoLocation($event);"/>
                         <MerchantTags v-on:tags="searchFilters.tags = $event"/>
                         <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
@@ -14,7 +14,7 @@
                     </div>
                 </template>
                 <div class="row">
-                <div class="merchantlist col" v-if="!$route.params.id">
+                <div class="merchantlist col">
                     <div  class="row">
                         <div v-if="!searchFilters.searchquery" class="col">
                             <h1>Local Shops</h1>
@@ -29,54 +29,98 @@
                             </b-button-group>
                         </div>
                     </div>
-                    <Loading :loading="loading && !merchants && !merchants.length"/>
+                    <Loading :loading="loading && 1==2"/>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
-                            <b-card-group columns v-if="merchantLayout == 1">
-                                <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
-                                    <b-card
-                                        border-variant="primary"
-                                        text-variant="white"
-                                        img-alt=""
-                                        blank-src="../assets/logo.svg"
-                                        class="mb-3 shadow list-item w-100"
-                                        no-body
-                                    >
-                                    <b-card-img
-                                        :src="`/api/merchants/${merchant.id}/images/logo`"
-                                    >
-                                    </b-card-img>
-                                    <b-card-footer>{{merchant.title}}</b-card-footer>
-                                    </b-card>
-                                </router-link>
+                    <div v-if="merchantLayout == 1">
+                        <transition name="fade" mode="out-in">
+                        <div v-if="loading" key="skeleton">
+                            <b-card-group columns>
+                            <b-card v-for="n in 12" v-bind:key="n" border-variant="primary"
+                                    text-variant="white" no-body img-top>
+                                <b-skeleton-img animation="fade" card-img="top" no-aspect :id="n" :height="((n % 3) * 64 + 64).toString() +  'px'"></b-skeleton-img>
+                                <b-card-body>
+                                    <b-skeleton width="90%" height="2em"></b-skeleton>
+                                </b-card-body>
+                            </b-card>
                             </b-card-group>
-                            <b-list-group v-else>
-                                <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">
-                                    <b-list-group-item>
-                                        <div class="row merchant-list-row">
-                                        <div class="col-2">
-                                            <div class="merchant-list-logo-frame">
-                                                <img class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <h4 class="merchant-list">{{merchant.title}}</h4>
-                                            <p class="merchant-list">{{merchant.description}}</p>
-                                        </div>
-                                        </div>
-                                    </b-list-group-item>
-                                </router-link>
-                            </b-list-group>        
-                </div>
-                </div>
-                <div class="row">
-                    <div class="col" align="center">
-                    <ul class="pagination justify-content-center mt-2" v-if="pages > 1">
-                        <li class="page-item" v-bind:class="{ disabled: page == 1 }"><a class="page-link" href="#" v-on:click="prevPage()">Previous</a></li>
-                        <li class="page-item" v-for="n in parseInt(pages)" :key="n" v-bind:class="{ active: page == n }"><a class="page-link" href="#" v-on:click="gotoPage(n)">{{n}}</a></li>
-                        <li class="page-item" v-bind:class="{ disabled: page == pages }"><a class="page-link" href="#" v-on:click="nextPage()">Next</a></li>
-                    </ul>
+                        </div>
+                        <div v-else key="merchants">
+                        <b-card-group columns >
+                            <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
+                                <b-card
+                                    border-variant="primary"
+                                    text-variant="white"
+                                    img-alt=""
+                                    blank-src="../assets/logo.svg"
+                                    class="mb-3 shadow list-item w-100"
+                                    no-body
+                                >
+                                <b-card-img
+                                    :src="`/api/merchants/${merchant.id}/images/logo`"
+                                >
+                                </b-card-img>
+                                <b-card-footer>{{merchant.title}}</b-card-footer>
+                                </b-card>
+                            </router-link>
+                        </b-card-group>
+                        </div>
+                        </transition>
                     </div>
+                    <div v-if="merchantLayout == 0">
+                        <transition name="fade" mode="out-in">
+                        <div v-if="loading" key="list-skeleton">
+                            <b-card v-for="n in 3" v-bind:key="n">
+                                <b-row>
+                                    <b-col cols="2">
+                                        <b-skeleton-img no-aspect width="128px" height="128px" :id="n"></b-skeleton-img>
+                                    </b-col>
+                                    <b-col>
+                                        <div style="text-align:left;">
+                                        <b-skeleton animation="fade" width="20%" height="1.5em"></b-skeleton>
+                                        <b-skeleton animation="fade" width="55%"></b-skeleton>
+                                        <b-skeleton animation="fade" width="70%"></b-skeleton>
+                                        <b-skeleton animation="fade" width="60%"></b-skeleton>
+                                        <b-skeleton animation="fade" width="45%"></b-skeleton>
+                                        </div>
+                                    </b-col>
+                                </b-row>
+                            </b-card>
+                        </div>
+                        <div v-else key="list-merchants">
+                        <b-list-group>
+                            <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">
+                                <b-list-group-item>
+                                    <div class="row merchant-list-row">
+                                    <div class="col-2">
+                                        <div class="merchant-list-logo-frame">
+                                            <b-img-lazy class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h4 class="merchant-list">{{merchant.title}}</h4>
+                                        <p class="merchant-list">{{merchant.description}}</p>
+                                    </div>
+                                    </div>
+                                </b-list-group-item>
+                            </router-link>
+                        </b-list-group>
+                        </div>
+                        </transition>  
+                    </div>  
+                       
                 </div>
+                </div>
+                <transition name="fade" mode="out-in">
+                    <div class="row" v-if="!loading" key="footer">
+                        <div class="col" align="center">
+                        <ul class="pagination justify-content-center mt-2" v-if="pages > 1">
+                            <li class="page-item" v-bind:class="{ disabled: page == 1 }"><a class="page-link" href="#" v-on:click="prevPage()">Previous</a></li>
+                            <li class="page-item" v-for="n in parseInt(pages)" :key="n" v-bind:class="{ active: page == n }"><a class="page-link" href="#" v-on:click="gotoPage(n)">{{n}}</a></li>
+                            <li class="page-item" v-bind:class="{ disabled: page == pages }"><a class="page-link" href="#" v-on:click="nextPage()">Next</a></li>
+                        </ul>
+                        </div>
+                    </div>
+                </transition>
                 <p v-if="error">
                     An error occurred.
                 </p>
@@ -112,9 +156,7 @@ export default {
     },
     watch: {
         "perpage": function(newVal) {
-            if (newVal !== this.perpage) {
-               this.getMerchants();
-            }
+            this.getMerchants();
             localStorage.merchantsPerPage = newVal;
         },
         "page": function(newVal) {
@@ -192,15 +234,6 @@ export default {
             //this.page = 1;
             this.searchFilters.searchquery = '';
             this.getMerchants();
-        },
-        getLogo: function(id) {
-            axios.get(`/api/merchants/${id}/images/logo`)
-            .then(res => {
-                if (res.status != 200) {
-                    return '../assets/placeholder.png';
-                }
-                return `/api/merchants/${id}/images/logo`;
-            });
         },
         setGeoLocation : function(location) {
             const { enabled, position, radius } = location;
@@ -393,5 +426,15 @@ h1,h3{
 }
 h4.merchant-list, p.merchant-list {
     text-align: left;
+}
+
+.fade-enter-active {
+  transition: opacity .5s;
+}
+.fade-leave-active {
+  transition: opacity .25s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 </style>

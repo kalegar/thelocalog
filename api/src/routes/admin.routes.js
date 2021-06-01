@@ -57,6 +57,10 @@ router.get("/populategeo", async (req, res) => {
             },
             limit: 10
         });
+
+        if (req.query.count) {
+            return res.status(200).json({ count: queryResult.count });
+        }
         const addresses = queryResult.rows;
         if (queryResult.count == 0) {
             return res.status(200).json({ message: 'All addresses have geometry. '});
@@ -80,12 +84,11 @@ router.get("/populategeo", async (req, res) => {
                 }
             }else {
                 const merchants = await address.getMerchants({attributes: ['title']});
-                const query = Utils.getQueryFromAddress(merchants[0].title,address);
-                const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id,geometry`);
+                const place = await getPlace(merchants[0].title,address);
                 console.log('PLACE: ' +place);
                 if (place && place.data && place.data.candidates) {
                     if (place.data.status == 'ZERO_RESULTS') {
-                        responseMessage = responseMessage + `Skipped address id ${address.id}, no results found. \n`;
+                        responseMessage = responseMessage + `Skipped address id ${address.id} (${merchants[0].title}, ${address.full}), no results found. \n`;
                         continue;
                     }
                     const candidate = place.data.candidates[0];
@@ -113,5 +116,24 @@ router.get("/populategeo", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+const getPlace = async function(merchantTitle, address) {
+    let query = Utils.getQueryFromAddress(merchantTitle,address);
+    let place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id,geometry`);
+    if (place) {
+        if (place.data.status == 'ZERO_RESULTS') {
+            query = Utils.getQueryFromAddress('',address);
+            place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id,geometry`);
+            if (place){
+                if (place.data.status == 'ZERO_RESULTS') {
+                    return null;
+                }
+                return place;
+            }
+        }
+        return place;
+    }
+    return null;
+}
 
 export default router;

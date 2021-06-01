@@ -41,12 +41,12 @@
                         <div class="row tools">
                             <div class="col">
                             <h3>Tools</h3>
-                            <b-button class="m-1" v-on:click="populateGeometry()">Populate Geometry</b-button>
+                            <b-button class="m-1" :disabled="populateGeoLoading === true" v-on:click="populateGeometry()" v-b-tooltip.hover.bottom title="Populate addresses with geolocation data from Google Places API"><b-icon v-if="populateGeoLoading" icon="arrow-clockwise" animation="spin"></b-icon>Populate Geometry <b-badge v-if="populateGeoCount > 0" variant="light">{{populateGeoCount}}</b-badge></b-button>
                             <b-modal id="modal-populate-geo" title="Populate Geometry">
                                 <p class="my-4">{{populateGeoResponse}}</p>
                             </b-modal>
-                            <b-button class="m-1" v-on:click="$bvModal.show('modal-upload-logo')">Upload Logo</b-button>
-                            <b-modal id="modal-upload-logo" title="Upload Logo" @ok="uploadLogo()">
+                            <b-button class="m-1" :disabled="uploadLogoLoading === true" v-on:click="$bvModal.show('modal-upload-logo')"><b-icon v-if="uploadLogoLoading" icon="arrow-clockwise" animation="spin"></b-icon>Upload Logo</b-button>
+                            <b-modal id="modal-upload-logo" title="Upload Logo" @ok="uploadLogo()" @show="resetUploadLogoModal">
                                 <b-form-input class="mb-2" v-model="uploadedLogoMerchantId" placeholder="Merchant ID"></b-form-input>
                                 <b-form-file
                                     v-model="uploadedLogo"
@@ -83,7 +83,9 @@ export default {
             claims: [],
             isAdmin: false,
             populateGeoResponse: '',
-            uploadLogoResponse: '',
+            populateGeoLoading: false,
+            populateGeoCount: 0,
+            uploadLogoLoading: false,
             uploadedLogo: null,
             uploadedLogoMerchantId: ''
         }
@@ -117,8 +119,9 @@ export default {
                 });
             });
         },
-        populateGeometry: function() {
-            const url = `/api/admin/populategeo`;
+        getPopulateGeometryCount: function() {
+            const url = `/api/admin/populategeo?count=true`;
+            this.populateGeoCount = 0;
             this.$auth.getTokenSilently().then((authToken) => {
                 axios.get(url, {
                     headers: {
@@ -127,24 +130,42 @@ export default {
                 })
                 .then(res => {
                     if (res.status != 200) {
-                        console.log('ERROR');
-                        const error = new Error(res.statusText);
-                        throw error;
+                        return;
                     }
-                    this.populateGeoResponse = res.data.message;
-                    this.$bvModal.show("modal-populate-geo");
+                    this.populateGeoCount = res.data.count;
+                })
+                .catch(() => {
+                    this.populateGeoCount = 0;
+                });
+            });
+        },
+        populateGeometry: function() {
+            const url = `/api/admin/populategeo`;
+            this.populateGeoLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    this.populateGeoLoading = false;
+                    if (res.status != 200) {
+                        this.makeToast('Populate Geometry',res.statusText,false,'danger');
+                        return;
+                    }
+                    this.makeToast('Populate Geometry',res.data.message,false,'success');
+                    this.getPopulateGeometryCount();
                 })
                 .catch(err => {
-                    this.error = err;
-                    if (err.json) {
-                        return err.json.then(json => {
-                            this.error.message = json.message;
-                        });
-                    }
+                    this.populateGeoLoading = false;
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast('Populate Geometry',`${err}${msg}`,false,'danger');
                 });
             });
         },
         uploadLogo: function() {
+            this.uploadLogoLoading = true;
             const url = `/api/merchants/${this.uploadedLogoMerchantId}/images/logo`;
             this.$auth.getTokenSilently().then((authToken) => {
                 let formData = new FormData();
@@ -157,23 +178,29 @@ export default {
                     },
                 })
                 .then(res => {
+                    this.uploadLogoLoading = false;
                     if (res.status != 201) {
-                        console.log('ERROR');
-                        const error = new Error(res.statusText);
-                        throw error;
+                        this.makeToast('Upload Logo',`Error uploading logo: ${res.statusText} ${res.data.message}`,false,'danger');
                     }
-                    this.makeToast('Upload Logo','Uploaded Logo Successfully!');
+                    this.makeToast('Upload Logo','Uploaded Logo Successfully!',false,'success');
                 })
                 .catch(err => {
-                    this.makeToast('Upload Logo',`Error uploading logo: ${err}`);
+                    this.uploadLogoLoading = false;
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast('Upload Logo',`Error uploading logo: ${err}${msg}`,false,'danger');
                 });
             });
         },
-        makeToast: function(title,text, append = false) {
+        resetUploadLogoModal: function() {
+            this.uploadedLogoMerchantId = '';
+            this.uploadedLogo = null;
+        },
+        makeToast: function(title,text, append = false, variant = null) {
             this.$bvToast.toast(text, {
                 title: title,
                 autoHideDelay: 5000,
-                appendToast: append
+                appendToast: append,
+                variant: variant
             })
         }
     },
@@ -202,6 +229,7 @@ export default {
                 this.$router.push('Merchants');
             });
         });
+        this.getPopulateGeometryCount();
     }
 }
 </script>

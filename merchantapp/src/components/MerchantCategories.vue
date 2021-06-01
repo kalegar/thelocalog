@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-if="categories.length">
     <b-button class="clear-categories" v-if="selected.length" v-on:click="selected = [];">Clear Categories</b-button>
     <b-form-group class="category-group" label="Filter by Category:">
         <b-form-checkbox-group 
