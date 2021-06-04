@@ -45,7 +45,15 @@ export default {
 </script>
 
 <style scoped>
-.b-icon {
-    margin-right: 0.5rem;
+@media (max-width: 599.98px) {
+    .b-icon {
+        margin-right: 0px;
+    }
 }
+@media (min-width: 600px) {
+    .b-icon {
+        margin-right: 0.5rem;
+    }
+}
+
 </style>

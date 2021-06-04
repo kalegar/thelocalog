@@ -22,7 +22,7 @@
                         <div v-else class="col">
                             <h1>Results for '<em>{{searchFilters.searchquery}}</em>'</h1>
                         </div>
-                        <div class="col-2">
+                        <div class="d-none d-sm-block col-sm-2">
                             <b-button-group>
                                 <b-button :pressed="merchantLayout == 0" v-on:click="merchantLayout = 0"><b-icon icon="list-ul" ></b-icon></b-button>
                                 <b-button :pressed="merchantLayout == 1" v-on:click="merchantLayout = 1"><b-icon icon="columns-gap"></b-icon></b-button>
@@ -45,7 +45,7 @@
                             </b-card-group>
                         </div>
                         <div v-else key="merchants">
-                        <b-card-group columns >
+                        <b-card-group columns>
                             <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
                                 <b-card
                                     border-variant="primary"
@@ -91,15 +91,15 @@
                             <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">
                                 <b-list-group-item>
                                     <div class="row merchant-list-row">
-                                    <div class="col-2">
-                                        <div class="merchant-list-logo-frame">
-                                            <b-img-lazy class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
+                                        <div class="col-4 col-xl-3">
+                                            <div class="merchant-list-logo-frame">
+                                                <b-img-lazy class="merchant-list-logo" :src="`/api/merchants/${merchant.id}/images/logo`"/>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col">
-                                        <h4 class="merchant-list">{{merchant.title}}</h4>
-                                        <p class="merchant-list">{{merchant.description}}</p>
-                                    </div>
+                                        <div class="col">
+                                            <h4 class="merchant-list">{{merchant.title}}</h4>
+                                            <p class="merchant-list">{{merchant.description}}</p>
+                                        </div>
                                     </div>
                                 </b-list-group-item>
                             </router-link>
@@ -112,12 +112,14 @@
                 </div>
                 <transition name="fade" mode="out-in">
                     <div class="row" v-if="!loading" key="footer">
-                        <div class="col" align="center">
-                        <ul class="pagination justify-content-center mt-2" v-if="pages > 1">
-                            <li class="page-item" v-bind:class="{ disabled: page == 1 }"><a class="page-link" href="#" v-on:click="prevPage()">Previous</a></li>
-                            <li class="page-item" v-for="n in parseInt(pages)" :key="n" v-bind:class="{ active: page == n }"><a class="page-link" href="#" v-on:click="gotoPage(n)">{{n}}</a></li>
-                            <li class="page-item" v-bind:class="{ disabled: page == pages }"><a class="page-link" href="#" v-on:click="nextPage()">Next</a></li>
-                        </ul>
+                        <div class="col align-self-center" align="center">
+                            <b-pagination
+                                v-model="page"
+                                :total-rows="pages"
+                                per-page=1
+                                first-number
+                                last-number
+                            ></b-pagination>
                         </div>
                     </div>
                 </transition>
@@ -126,7 +128,7 @@
                 </p>
                 <template v-slot:right>
                     <div class="dropdown sidebar">
-                        <b-dropdown id="itemsperpage" :text="perpage + ' Results Per Page'" class="m-md-3">
+                        <b-dropdown id="itemsperpage" :text="perpage + ' Results Per Page'" class="mt-3">
                             <b-dropdown-item v-on:click="perpage = 10">10</b-dropdown-item>
                             <b-dropdown-item v-on:click="perpage = 25">25</b-dropdown-item>
                             <b-dropdown-item v-on:click="perpage = 50">50</b-dropdown-item>
@@ -149,6 +151,7 @@ import MerchantTags from './MerchantTags.vue'
 import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
 import MyLocation from './MyLocation.vue';
 import { Utils } from '../utils/util.js';
+import _throttle from 'lodash/debounce';
 
 export default {
     name: 'Merchants',
@@ -160,6 +163,7 @@ export default {
             localStorage.merchantsPerPage = newVal;
         },
         "page": function(newVal) {
+            this.getMerchants();
             localStorage.merchantsCurrentPage = newVal;
         },
         "searchFilters.categories": function(newVal) {
@@ -226,10 +230,6 @@ export default {
             this.page -=1;
             this.getMerchants();
         },
-        gotoPage: function(pagenum) {
-            this.page = pagenum;
-            this.getMerchants();
-        },
         refreshScreen: function() {
             //this.page = 1;
             this.searchFilters.searchquery = '';
@@ -242,7 +242,7 @@ export default {
                 this.geoLocation = position.coords;
                 this.geoRadius = radius * 1000;
             }
-            this.gotoPage(1);
+            this.page = 1;
         },
         saveSearchFiltersToLocalStorage: function() {
             let data = {
@@ -253,6 +253,16 @@ export default {
             }
             localStorage.searchFilters = data;
         },
+        onResize : _throttle(function() {
+            const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+
+            console.log(vw);
+
+            if (vw < 576) {
+                this.merchantLayout = 1;
+            }
+
+        },250,{leading: true}),
         getMerchants: function() {
             this.loading = true;
 
@@ -353,11 +363,36 @@ export default {
                 vm.selected = event.state.selected;
             }
         }
+    },
+    created: function() {
+        window.addEventListener("resize", this.onResize);
+        this.onResize();
+    },
+    destroyed: function() {
+        window.removeEventListener("resize", this.onResize);
     }
 }
 </script>
 
 <style scoped>
+
+@media (max-width: 649.98px) { 
+    .card-columns {
+        column-count: 1; 
+    }
+}
+
+@media (min-width: 650px) { 
+    .card-columns {
+        column-count: 2;
+    } 
+}
+
+@media (min-width: 1150px) {
+    .card-columns {
+        column-count: 3;
+    }
+}
 .card-footer {
     background-color: #001E48 !important;
     font-size: 24px;
@@ -389,7 +424,8 @@ h1,h3{
 }
 .list-item {
   display: inline-block;
-  transition: opacity 0.5s
+  transition: opacity 0.5s;
+  max-width: 350px;
 }
 .list-item:hover {
     opacity: 0.5;
@@ -401,7 +437,7 @@ h1,h3{
   opacity: 0;
 }
 .sidebar {
-    margin: 1rem 3rem 1rem 3rem;
+    margin: 1rem 1rem 1rem 1rem;
 }
 .merchant-list-logo {
     max-width: 100%;
@@ -418,7 +454,7 @@ h1,h3{
 .merchant-list-logo-frame {
     position: relative;
     height: 128px;
-    width: 128px;
+    max-width: 128px;
 }
 .merchant-list-row {
     padding-top: 8px;
@@ -436,5 +472,8 @@ h4.merchant-list, p.merchant-list {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
+}
+.pagination {
+    justify-content: center;
 }
 </style>

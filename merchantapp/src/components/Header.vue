@@ -1,15 +1,15 @@
 <template>
     <div class="container-fluid header shadow-lg fixed-top">
         <div class="row mh-100">
-            <div class="col">
+            <div class="col-4 align-self-center">
                 <router-link to="/">
                 <img alt="Localog Logo" v-on:click="$emit('headerclicked')" src="../assets/logo.svg"/>
                 </router-link>
             </div>
-            <div class="col-6 align-self-center">
+            <div class="col-8 col-md-6 mt-3">
                 <slot></slot>
             </div>
-            <div class="col align-self-center">
+            <div class="d-none d-md-block col mt-3">
                 <div class="auth" v-if="!$auth.loading">
                     <b-button variant="primary" v-if="!$auth.isAuthenticated" v-on:click="login()">Log In</b-button>
                     <b-button-group v-else>
@@ -64,27 +64,10 @@ img {
     margin-left: 24px;
     padding: 8px;
 }
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 800px) {
     img {
         margin-left: 0px;
     }
-}
-.left {
-    width: 150px;
-    margin-left: 24px;
-    text-align: left; 
-}
-.center {
-  max-width: 600px;
-  height: 80px;
-  margin: auto auto;
-  flex-grow: 2;
-  align-self: center;
-}
-.right {
-    text-align: right;
-    margin-right: 24px;
-    width: 150px;
 }
 .auth {
     float: right;
