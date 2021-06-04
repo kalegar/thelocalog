@@ -12,6 +12,7 @@ import merchantSocialMediaRouter from './merchants.socialmedia.routes.js';
 import merchantImagesRouter from './merchants.images.routes.js';
 import merchantClaimsRouter from './merchants.claims.routes.js';
 import checkJwt from '../middleware/authentication.js';
+import adminRole from '../middleware/admin.auth.js';
 import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
 
@@ -26,7 +27,7 @@ const handleValidationErrors = function(error,res) {
 const router = Router();
 
 // Create a new Merchant
-router.post("/", async (req, res) => {
+router.post("/", checkJwt, adminRole, async (req, res) => {
     try {
         const { title, description, website } = req.body;
         const merchant = await Merchant.create({title,description,website});
@@ -50,7 +51,9 @@ router.post("/", async (req, res) => {
 // Retrieve all merchants
 router.get("/", async (req, res) => {
     try {
-        const {perpage,page,search,tags,categories,neighbourhood,lat,lon,radius} = req.query;
+        const {perpage,page,search,tags,categories,neighbourhood,lat,lon,radius,deleted} = req.query;
+
+        console.log(deleted);
 
         let query = {attributes: ['id','title','website','description']}
         let includes = []
@@ -104,7 +107,7 @@ router.get("/", async (req, res) => {
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                     "WHERE a.neighbourhood iLike '%" + search + "%') " +
                 "OR m.title iLike '%" + search + "%')";
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND (m.\"deletedAt\" is NULL)";
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6";
             let replacements = {};
             if (search)        q = q.replace("1=1",filterSearch);
             if (tags)          q = q.replace("2=2",filterTags);
@@ -117,6 +120,7 @@ router.get("/", async (req, res) => {
                 replacements.radius = radius ? Utils.clamp(radius,1000,100000) : 10000;
                 console.log(replacements);
             }
+            if (deleted !== true)      q = q.replace("6=6","(m.\"deletedAt\" is NULL)");
             const countQuery = 
                 "SELECT COUNT(m.id) " +
                 "FROM \"Merchants\" m "+
@@ -161,6 +165,10 @@ router.get("/", async (req, res) => {
 
         query.order = [ ['title','ASC'] ];
 
+        if (deleted) {
+            query.paranoid = false;
+        }
+
         const merchants = await Merchant.findAndCountAll(query);
 
         return res.status(200).json({ merchants });
@@ -175,7 +183,8 @@ router.get("/:id", async (req, res) => {
         const {details,include} = req.query;
 
         let query = {
-            where: { id: req.params.id }
+            where: { id: req.params.id },
+            paranoid: false
         }
 
         if (!details) {
@@ -222,15 +231,16 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update a merchant by id
-router.put("/:id", async (req, res) => {
+router.put("/:id", checkJwt, adminRole, async (req, res) => {
     try {
-        const { title, description, website } = req.body;
+        const { title, description, website, deletedAt } = req.body;
 
         const merchants = await Merchant.update(
-        { title, description, website },
+        { title, description, website, deletedAt },
         {
             returning: true,
-            where: { id: req.params.id }
+            where: { id: req.params.id },
+            paranoid: false
         }
         );
     
@@ -246,7 +256,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete a merchant by id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkJwt, adminRole, async (req, res) => {
     try {
         const merchant = await Merchant.destroy({ where: { id: req.params.id } });
         if (!merchant)

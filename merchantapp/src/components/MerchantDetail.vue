@@ -5,6 +5,16 @@
                 <SearchBar/>
             </template>
             <BaseContent>
+                <template v-slot:left v-if="$auth.isAuthenticated && !loading && merchant">
+                    <div class="mt-4 sidebar">
+                        <h4>Admin Tools</h4>
+                        <b-button class="m-1" v-if="!merchant.deletedAt" :disabled="deleteMerchantLoading === true" v-on:click="deleteMerchant()"><b-icon v-if="deleteMerchantLoading" icon="arrow-clockwise" animation="spin"></b-icon>Delete Merchant</b-button>
+                        <b-button class="m-1" v-else :disabled="saveMerchantLoading === true" v-on:click="merchant.deletedAt = null; saveMerchant()"><b-icon v-if="saveMerchantLoading" icon="arrow-clockwise" animation="spin"></b-icon>Restore Merchant</b-button>
+                        <b-button class="m-1" v-if="!editing" v-on:click="editing = true"><b-icon class="mr-1" icon="pencil-square"></b-icon>Edit Merchant</b-button>
+                        <b-button class="m-1" v-if="editing" :disabled="saveMerchantLoading === true" v-on:click="saveMerchant()"><b-icon v-if="saveMerchantLoading" icon="arrow-clockwise" animation="spin"></b-icon>Save</b-button>
+                        <b-button class="m-1" v-if="editing" v-on:click="editing = false; getMerchant()">Cancel</b-button>
+                    </div>
+                </template>
                 <transition name="fade" mode="out-in">
                     <div v-if="loading" key="skeleton">
                         <div class="container" style="text-align:left;margin-top:2em;">
@@ -24,7 +34,8 @@
                     <div class="merchant container" v-if="!loading && merchant" key="merchant">
                         <div class="row title">
                             <div class="col my-auto">
-                                <h1>{{merchant.title}}</h1>
+                                <h1 v-if="!editing">{{merchant.title}}</h1>
+                                <b-form-input v-else v-model="merchant.title" placeholder="Merchant Title"></b-form-input>
                             </div>
                             <div class="col" v-if="logo && logo.length">
                                 <img class="logo" :src="'data:image/png;base64,'+logo[0].image" />
@@ -33,8 +44,12 @@
                         <div class="row">
                             <div class="col">
                                 <b-card>
-                                <p>{{merchant.description}}</p>
-                                <a v-if="merchant.website" :href="merchant.website" target="_blank">{{merchant.website}}</a>
+                                <p v-if="!editing">{{merchant.description}}</p>
+                                <b-form-textarea v-else v-model="merchant.description" placeholder="Description" rows="3" max-rows="10"></b-form-textarea>
+                                <div v-if="merchant.website">
+                                    <a v-if="!editing" :href="merchant.website" target="_blank">{{merchant.website}}</a>
+                                    <b-form-input v-else class="mt-2" v-model="merchant.website" placeholder="Website"></b-form-input>
+                                </div>
                                 </b-card>
                             </div>
                         </div>
@@ -72,7 +87,7 @@
                         <div class="merchant-footer row align-items-center">
                             <div class="col">
                                 
-                            <p class="text-muted">Do you own this business? Click <router-link :to="{ name: 'MerchantClaim', params: { id: merchant.id }}">here</router-link> to claim it.</p>
+                            <p>Do you own this business? Click <router-link class="claim-link" :to="{ name: 'MerchantClaim', params: { id: merchant.id }}">here</router-link> to claim it.</p>
                             </div>
                         </div>
                     </div>
@@ -111,7 +126,10 @@ export default {
             loading: false,
             hours: [],
             logo: [],
-            error: null
+            error: null,
+            deleteMerchantLoading: false,
+            saveMerchantLoading: false,
+            editing: false
         }
     },
     methods: {
@@ -169,42 +187,119 @@ export default {
             .catch(err => {
                 console.log(err);
             })
+        },
+        saveMerchant: function() {
+            this.saveMerchantLoading = true;
+            const url = `/api/merchants/${this.id}`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.put(url, this.merchant,
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        this.makeToast('Update Merchant',`Error updating merchant: ${res.statusText} ${res.data.message}`,false,'danger');
+                    }else{
+                        this.makeToast('Update Merchant','Updated!',false,'success');
+                    }
+                })
+                .catch(err => {
+                    const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast('Update Merchant',`Error updating merchant: ${err}${msg}`,false,'danger');
+                })
+                .then(() => {this.saveMerchantLoading = false; this.editing = false; this.getMerchant()});
+            });
+        },
+        deleteMerchant: function() {
+            this.deleteMerchantLoading = true;
+            this.$bvModal.msgBoxConfirm('Are you sure you want to soft-delete this merchant?', {
+                title: 'Confirm Deletion',
+                size: 'sm',
+                okVariant: 'danger',
+                okTitle: 'Yes',
+                cancelTitle: 'No'
+            })
+            .then(value => {
+                if (value === true) {
+                    const url = `/api/merchants/${this.id}`;
+                    this.$auth.getTokenSilently().then((authToken) => {
+                        axios.delete(url,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${authToken}`
+                            },
+                        })
+                        .then(res => {
+                            if (res.status != 200) {
+                                this.makeToast('Delete Merchant',`Error deleting merchant: ${res.statusText} ${res.data.message}`,false,'danger');
+                            } else {
+                                this.makeToast('Delete Merchant','Soft-deleted Merchant!',false,'success');
+                                this.getMerchant();
+                            }
+                        })
+                        .catch(err => {
+                            const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                            this.makeToast('Delete Merchant',`Error deleting merchant: ${err}${msg}`,false,'danger');
+                        })
+                        .then(() => this.deleteMerchantLoading = false);
+                    });
+                }else{
+                    this.deleteMerchantLoading = false;
+                }
+            })
+            .catch(() => {
+                this.makeToast('Delete Merchant',`Error deleting merchant.`,false,'danger');
+                this.deleteMerchantLoading = false;
+            })
+        },
+        makeToast: function(title,text, append = false, variant = null) {
+            this.$bvToast.toast(text, {
+                title: title,
+                autoHideDelay: 5000,
+                appendToast: append,
+                variant: variant
+            })
+        },
+        getMerchant: function() {
+            this.loading = true;
+            this.merchant = null;
+            const url = `/api/merchants/${this.id}`
+            axios.get(url, {
+                params: {
+                    'details': true,
+                    'include': 'address,social'
+                }
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    console.log('ERROR');
+                    const error = new Error(res.statusText);
+                    throw error;
+                }
+                this.merchant = res.data.merchant;
+                this.getBusinessHours();
+                this.getLogo();
+            })
+            .catch(err => {
+                this.error = err;
+                if (err.json) {
+                    return err.json.then(json => {
+                        this.error.message = json.message;
+                    });
+                }
+            })
+            .then(() => {
+                this.loading = false;
+            });
         }
     },
     updated: function() {
         document.title = (this.merchant && this.merchant.title) ? this.merchant.title + ' - The Localog' : 'Local Shop - The Localog';
     },
     mounted: function() {
-        this.loading = true;
-
-        const url = `/api/merchants/${this.id}`
-        axios.get(url, {
-            params: {
-                'details': true,
-                'include': 'address,social'
-            }
-        })
-        .then(res => {
-            if (res.status != 200) {
-                console.log('ERROR');
-                const error = new Error(res.statusText);
-                throw error;
-            }
-            this.merchant = res.data.merchant;
-            this.getBusinessHours();
-            this.getLogo();
-        })
-        .catch(err => {
-            this.error = err;
-            if (err.json) {
-                return err.json.then(json => {
-                    this.error.message = json.message;
-                });
-            }
-        })
-        .then(() => {
-            this.loading = false;
-        });
+        this.getMerchant();
     }
 }
 </script>
@@ -224,8 +319,6 @@ h2, h1 {
 }
 .addresscard {
     margin-bottom: 1.5rem;
-    margin-left: 1rem;
-    margin-right: 1rem;
     padding-bottom: 1rem;
 }
 .merchant {
@@ -263,5 +356,8 @@ h2, h1 {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
+}
+.claim-link {
+    font-weight: bold;
 }
 </style>

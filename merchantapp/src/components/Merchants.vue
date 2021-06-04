@@ -134,6 +134,9 @@
                             <b-dropdown-item v-on:click="perpage = 50">50</b-dropdown-item>
                         </b-dropdown>
                     </div>
+                    <div class="admin-filters" v-if="$auth.isAuthenticated">
+                        <b-form-checkbox size="lg" v-model="searchFilters.includeDeleted" v-on:change="getMerchants()">Include Deleted Merchants</b-form-checkbox>
+                    </div>
                 </template>
             </BaseContent>
         </BasePage>
@@ -211,7 +214,8 @@ export default {
                 searchquery: '',
                 categories: [],
                 tags: [],
-                neighbourhood: ''
+                neighbourhood: '',
+                includeDeleted: false
             }
         }
     },
@@ -288,6 +292,10 @@ export default {
 
             if (this.searchFilters.searchquery) {
                 params.search = this.searchFilters.searchquery;
+            }
+
+            if (this.searchFilters.includeDeleted) {
+                params.deleted = 'true';
             }
 
             if (this.useGeoLocation && this.geoLocation) {
