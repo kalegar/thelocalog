@@ -55,7 +55,7 @@
                                     </b-form-textarea>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row mt-1">
                                 <div class="col">
                                     <b-button type="submit" variant="primary">Submit Claim</b-button>
                                 </div>

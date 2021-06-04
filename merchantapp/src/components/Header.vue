@@ -1,7 +1,7 @@
 <template>
     <div class="container-fluid header shadow-lg fixed-top">
         <div class="row mh-100">
-            <div class="col-4 align-self-center">
+            <div class="col-4 col-xl-3 align-self-center">
                 <router-link to="/">
                 <img alt="Localog Logo" v-on:click="$emit('headerclicked')" src="../assets/logo.svg"/>
                 </router-link>

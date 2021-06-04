@@ -41,11 +41,6 @@ export default {
       this.loadFromLocalStorage();
   },
   methods: {
-      onKeyUp: function(e) {
-          if (e.keyCode == 13) {
-              this.emitSearch();
-          }
-      },
       setGeoLocation : function(position) {
           this.location = position;
           this.emitLocation();

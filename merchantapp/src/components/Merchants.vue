@@ -247,6 +247,7 @@ export default {
                 this.geoRadius = radius * 1000;
             }
             this.page = 1;
+            this.getMerchants();
         },
         saveSearchFiltersToLocalStorage: function() {
             let data = {
@@ -259,8 +260,6 @@ export default {
         },
         onResize : _throttle(function() {
             const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-
-            console.log(vw);
 
             if (vw < 576) {
                 this.merchantLayout = 1;
@@ -483,5 +482,6 @@ h4.merchant-list, p.merchant-list {
 }
 .pagination {
     justify-content: center;
+    margin-top: 1rem;
 }
 </style>

@@ -68,7 +68,9 @@ router.get("/", async (req, res) => {
             query.offset = Math.max(0,query.limit * (page-1));
         }
 
-        if (search || tags || categories || neighbourhood || (lat && lon)) {
+        const sortByDistance = (lat && lon);
+
+        if (search || tags || categories || neighbourhood || sortByDistance) {
             let searchArray = search ? "(\'" + search.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const tagArray = tags ? "(\'" + tags.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const categoryArray = categories ? "(\'" + categories.split("+").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
@@ -107,24 +109,36 @@ router.get("/", async (req, res) => {
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                     "WHERE a.neighbourhood iLike '%" + search + "%') " +
                 "OR m.title iLike '%" + search + "%')";
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6";
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5";
             let replacements = {};
-            if (search)        q = q.replace("1=1",filterSearch);
-            if (tags)          q = q.replace("2=2",filterTags);
-            if (categories)    q = q.replace("3=3",filterCategories);
-            if (neighbourhood) q = q.replace("4=4",filterNeighbourhood);
-            if (lon && lat) {
-                q = q.replace("5=5",filterNearby);
+            if (search)            q = q.replace("1=1",filterSearch);
+            if (tags)              q = q.replace("2=2",filterTags);
+            if (categories)        q = q.replace("3=3",filterCategories);
+            if (neighbourhood)     q = q.replace("4=4",filterNeighbourhood);
+            if (deleted !== true)  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
+            let countQuery = '';
+            if (sortByDistance) {
                 replacements.lat = lat;
                 replacements.lon = lon,
                 replacements.radius = radius ? Utils.clamp(radius,1000,100000) : 10000;
-                console.log(replacements);
-            }
-            if (deleted !== true)      q = q.replace("6=6","(m.\"deletedAt\" is NULL)");
-            const countQuery = 
+                
+                countQuery = 
+                "SELECT COUNT(m.id) " +
+                "FROM ("+
+                " SELECT DISTINCT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance "+
+                " FROM \"MerchantAddresses\" ma JOIN "+
+                " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
+                " (SELECT ST_MakePoint(:lat,:lon)::geography as ref_geom) AS r "+
+                " WHERE ST_DWithin(a.geom, ref_geom, :radius) ) as d "+
+                "JOIN \"Merchants\" m on d.id = m.id "+
+                "WHERE " + q + ";";
+            } else {
+                countQuery = 
                 "SELECT COUNT(m.id) " +
                 "FROM \"Merchants\" m "+
                 "WHERE " + q + ";";
+            }
+            
             Merchant.sequelize.query(
                 countQuery,
                 { type: QueryTypes.SELECT, raw: true, replacements }
@@ -136,12 +150,28 @@ router.get("/", async (req, res) => {
                     if (query.offset > count) {
                         query.offset = 0;
                     }
-                    const selectQuery =
-                    "SELECT m.id,m.title,m.description,m.website " +
-                    "FROM \"Merchants\" m "+
-                    "WHERE " + q +
-                    " ORDER BY m.title ASC" + 
-                    " LIMIT "+query.limit+" OFFSET "+query.offset+";";
+                    let selectQuery = '';
+                    if (sortByDistance) {
+                        selectQuery = 
+                        "SELECT m.id,m.title,m.description,m.website " +
+                        "FROM ("+
+                        " SELECT DISTINCT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance "+
+                        " FROM \"MerchantAddresses\" ma JOIN "+
+                        " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
+                        " (SELECT ST_MakePoint(:lat,:lon)::geography as ref_geom) AS r "+
+                        " WHERE ST_DWithin(a.geom, ref_geom, :radius) ) as d "+
+                        "JOIN \"Merchants\" m on d.id = m.id "+
+                        "WHERE " + q +
+                        " ORDER BY d.distance " +
+                        " LIMIT "+query.limit+" OFFSET "+query.offset+";";
+                    } else {
+                        selectQuery =
+                        "SELECT m.id,m.title,m.description,m.website " +
+                        "FROM \"Merchants\" m "+
+                        "WHERE " + q +
+                        " ORDER BY m.title ASC" + 
+                        " LIMIT "+query.limit+" OFFSET "+query.offset+";";
+                    }
                     Merchant.sequelize.query(
                         selectQuery,
                         {

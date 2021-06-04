@@ -71,24 +71,29 @@ def parse_csv(path):
             # INSERT MERCHANT
             if len(row['Name']) == 0:
                 continue
-            cur.execute(u"SELECT id,description FROM \"Merchants\" WHERE title iLike %s",(row['Name'],))
+            cur.execute(u"SELECT id FROM \"Merchants\" WHERE title iLike %s",(row['Name'],))
             merchantid = None
             result = cur.fetchone()
+            update = False
             if (result != None):
                 merchantid = result[0]
-                print(clean_string(result[1]))
+                update = True
             else:
                 merchantid = uuid.uuid4()
-                website = row['Website']
-                if website == 'n/a':
-                    website = None
-                elif len(website) == 0:
-                    website = None
-                elif website.find('http') == -1:
-                    website = 'https://' + website
-                merchant_type = None
-                if 'Type' in row:
-                    merchant_type = row['Type']
+            website = row['Website']
+            if website == 'n/a':
+                website = None
+            elif len(website) == 0:
+                website = None
+            elif website.find('http') == -1:
+                website = 'https://' + website
+            merchant_type = None
+            if 'Type' in row:
+                merchant_type = row['Type']
+            if (update):
+                print('UPDATE ' + str(merchantid) + " - " + row['Name'])
+                cur.execute(u"UPDATE \"Merchants\" SET (title,description,type,website,\"createdAt\",\"updatedAt\") = (%s, %s, %s, %s, %s, %s) WHERE id = %s",(clean_string(row['Name']), clean_string(row['Description']), merchant_type, website, datetime.datetime.now(), datetime.datetime.now(),psycopg2.extras.UUID_adapter(merchantid)))
+            else:
                 cur.execute(u"INSERT INTO \"Merchants\" (id,title,description,type,website,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s, %s, %s)",(psycopg2.extras.UUID_adapter(merchantid),clean_string(row['Name']), clean_string(row['Description']), merchant_type, website, datetime.datetime.now(), datetime.datetime.now()))
             # INSERT ADDRESS
             if (row['Address'] != None and len(row['Address']) > 0):
