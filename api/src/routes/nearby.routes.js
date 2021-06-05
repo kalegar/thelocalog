@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     try {
         const {lat,lon,radius} = req.query;
 
-        const merchants = await sequelize.query(`SELECT m.* FROM "Merchants" m join "MerchantAddresses" ma on m.id = ma."MerchantId" join "Addresses" a on ma."AddressId" = a.id where ST_DWithin(a.geom, ST_MakePoint(:lat, :lon)::geography, :radius);`,
+        const merchants = await sequelize.query(`SELECT m.* FROM "Merchants" m join "MerchantAddresses" ma on m.id = ma."MerchantId" join "Addresses" a on ma."AddressId" = a.id where ST_DWithin(a.geom, ST_MakePoint(:lon, :lat)::geography, :radius);`,
         {
             replacements: {
                 lat,

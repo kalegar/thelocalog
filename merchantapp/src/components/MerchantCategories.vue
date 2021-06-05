@@ -1,17 +1,17 @@
 <template>
     <div v-if="categories.length">
-    <b-button class="clear-categories" v-if="selected.length" v-on:click="selected = [];">Clear Categories</b-button>
-    <b-form-group class="category-group" label="Filter by Category:">
-        <b-form-checkbox-group 
-            id="checkbox-group-categories"
-            v-model="selected"
-            :options="categories"
-            stacked
-            size="lg"
-            name="category">
-        
-        </b-form-checkbox-group>
-    </b-form-group>
+        <b-button class="clear-categories" v-if="selected.length" v-on:click="selected = [];">Clear Categories</b-button>
+        <b-form-group class="category-group" label="Filter by Category:" label-for="checkbox-group-categories">
+            <b-form-checkbox-group 
+                id="checkbox-group-categories"
+                v-model="selected"
+                :options="categories"
+                stacked
+                size="lg"
+                name="category">
+            
+            </b-form-checkbox-group>
+        </b-form-group>
     </div>
 </template>
 

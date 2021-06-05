@@ -6,7 +6,7 @@
             </template>
             <BaseContent>
                 <template v-slot:left>
-                    <div class="mt-3 sidebar">
+                    <div v-if="!displayCollapseFilters" class="mt-3 sidebar">
                         <MyLocation v-on:location="setGeoLocation($event);"/>
                         <MerchantTags v-on:tags="searchFilters.tags = $event"/>
                         <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
@@ -15,6 +15,21 @@
                 </template>
                 <div class="row">
                 <div class="merchantlist col">
+                    <div v-if="displayCollapseFilters" class="row">
+                        <b-card no-body class="mb-1 w-100">
+                            <b-card-header header-tag="header" class="p-1">
+                                <b-button block v-b-toggle.collapse-filters variant="secondary">Search Filters</b-button>
+                            </b-card-header>
+                            <b-collapse id="collapse-filters">
+                                <b-card-body>
+                                    <MyLocation v-on:location="setGeoLocation($event);"/>
+                                    <MerchantTags v-on:tags="searchFilters.tags = $event"/>
+                                    <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
+                                    <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
+                                </b-card-body>
+                            </b-collapse>
+                        </b-card>
+                    </div>
                     <div  class="row">
                         <div v-if="!searchFilters.searchquery" class="col">
                             <h1>Local Shops</h1>
@@ -46,7 +61,7 @@
                         </div>
                         <div v-else key="merchants">
                         <b-card-group columns>
-                            <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">    
+                            <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}" :key="merchant.id">    
                                 <b-card
                                     border-variant="primary"
                                     text-variant="white"
@@ -88,7 +103,7 @@
                         </div>
                         <div v-else key="list-merchants">
                         <b-list-group>
-                            <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id }}" :key="merchant.id">
+                            <router-link v-for="merchant in merchants" :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}" :key="merchant.id">
                                 <b-list-group-item>
                                     <div class="row merchant-list-row">
                                         <div class="col-4 col-xl-3">
@@ -216,7 +231,8 @@ export default {
                 tags: [],
                 neighbourhood: '',
                 includeDeleted: false
-            }
+            },
+            displayCollapseFilters: false
         }
     },
     methods: {
@@ -263,6 +279,9 @@ export default {
 
             if (vw < 576) {
                 this.merchantLayout = 1;
+                this.displayCollapseFilters = true;
+            }else {
+                this.displayCollapseFilters = false;
             }
 
         },250,{leading: true}),

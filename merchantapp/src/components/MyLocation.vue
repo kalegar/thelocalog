@@ -24,7 +24,7 @@ export default {
       enabled: function() {
             if (this.enabled) {
                 if (navigator.geolocation) {  
-                    navigator.geolocation.getCurrentPosition(this.setGeoLocation);  
+                    navigator.geolocation.getCurrentPosition(this.setGeoLocation,this.errorGettingPosition);  
                 }
             }else{
                 this.location = {};
@@ -41,6 +41,9 @@ export default {
       this.loadFromLocalStorage();
   },
   methods: {
+      errorGettingPosition: function(err) {
+          console.warn(`ERROR(${err.code}): ${err.message}`);
+      },
       setGeoLocation : function(position) {
           this.location = position;
           this.emitLocation();

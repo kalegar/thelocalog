@@ -1,0 +1,4 @@
+goto about:config
+search geo.wifi.uri
+set it to:
+	data:application/json,{"location": {"lat": 53.631611, "lng": -113.323975}, "accuracy": 27000.0}

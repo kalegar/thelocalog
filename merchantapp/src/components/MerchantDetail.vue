@@ -2,7 +2,6 @@
     <div class="MerchantDetail">
         <BasePage>
             <template v-slot:header>
-                <SearchBar/>
             </template>
             <BaseContent>
                 <template v-slot:left v-if="$auth.isAuthenticated && !loading && merchant">
@@ -103,20 +102,19 @@ import axios from 'axios';
 import Loading from './Loading.vue';
 import BasePage from './BasePage.vue';
 import BaseContent from './BaseContent.vue';
-import SearchBar from './SearchBar.vue';
 import GoogleMapsEmbed from './GoogleMapsEmbed.vue'
 import SocialMediaLinks from './SocialMediaLinks.vue'
 
 export default {
     name: 'MerchantDetail',
     props: {
-        id: String
+        id: String,
+        geoLocation: Object
     },
     components: {
         Loading,
         BasePage,
         BaseContent,
-        SearchBar,
         GoogleMapsEmbed,
         SocialMediaLinks
     },
@@ -134,6 +132,10 @@ export default {
     },
     methods: {
         encodeAddress: function(title,address) {
+            if (address.placeid) {
+                return encodeURI(`q=place_id:${address.placeid}`);
+            }
+
             const queryStr = 'q=' + title+' '+address.address1 + 
                 (address.address2 ? ' ' + address.address2 : '') +
                 (address.address3 ? ' '+ address.address3 : '') +

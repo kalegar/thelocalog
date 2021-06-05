@@ -68,42 +68,37 @@ router.get("/populategeo", async (req, res) => {
         let responseMessage = '';
         let count = 0;
         for (const address of addresses) {
-
             if (address.placeid) {
                 const place = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${address.placeid}&fields=geometry`);
+                if (place.data.status == "NOT_FOUND") {
+                    console.log("Address placeid is outdated. Clearing.");
+                    address.placeid = null;
+                }
                 if (place.data.status && place.data.status == "OK") {
                     const candidate = place.data.result;
                     if (candidate.geometry && candidate.geometry.location) {
                         //Need to specify SRID for compat with PostGIS < 3.0.0
-                        address.geom = { type: 'Point', coordinates: [candidate.geometry.location.lat,candidate.geometry.location.lng], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
+                        address.geom = { type: 'Point', coordinates: [candidate.geometry.location.lng,candidate.geometry.location.lat], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
                         console.log('Address geom was updated. Saving...');
                         await address.save({fields: ['geom']});
                         console.log('Saved!');
                         count ++;
                     }
                 }
-            }else {
-                const merchants = await address.getMerchants({attributes: ['title']});
+            }
+            if (!address.placeid) {
+                const merchants = await address.getMerchants({attributes: ['title'], paranoid: false});
                 const place = await getPlace(merchants[0].title,address);
-                console.log('PLACE: ' +place);
-                if (place && place.data && place.data.candidates) {
-                    if (place.data.status == 'ZERO_RESULTS') {
-                        responseMessage = responseMessage + `Skipped address id ${address.id} (${merchants[0].title}, ${address.full}), no results found. \n`;
-                        continue;
+                if (place) {
+                    address.placeid = place.place_id;
+                    if (place.geometry && place.geometry.location) {
+                        //Need to specify SRID for compat with PostGIS < 3.0.0
+                        address.geom = { type: 'Point', coordinates: [place.geometry.location.lng,place.geometry.location.lat], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
+                        await address.save({fields: ['geom', 'placeid']});
+                        count ++;
                     }
-                    const candidate = place.data.candidates[0];
-
-                    const placeid = candidate.place_id;
-                    address.placeid = placeid;
-
-                    if (place.data.status && place.data.status == "OK") {
-                        if (candidate.geometry && candidate.geometry.location) {
-                            //Need to specify SRID for compat with PostGIS < 3.0.0
-                            address.geom = { type: 'Point', coordinates: [candidate.geometry.location.lat,candidate.geometry.location.lng], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
-                            await address.save({fields: ['geom', 'placeid']});
-                            count ++;
-                        }
-                    }
+                } else {
+                    responseMessage = responseMessage + `Skipped address id ${address.id} (${merchants[0].title}, ${address.full}), no results found. \n`;
                 }
             }
         }
@@ -118,20 +113,53 @@ router.get("/populategeo", async (req, res) => {
 });
 
 const getPlace = async function(merchantTitle, address) {
-    let query = Utils.getQueryFromAddress(merchantTitle,address);
-    let place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id,geometry`);
-    if (place) {
-        if (place.data.status == 'ZERO_RESULTS') {
-            query = Utils.getQueryFromAddress('',address);
-            place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${query}&inputtype=textquery&fields=place_id,geometry`);
-            if (place){
-                if (place.data.status == 'ZERO_RESULTS') {
-                    return null;
-                }
-                return place;
-            }
-        }
+    let geocode = await getGeocodeHelper(`${address.address1}, ${address.city}, ${address.province}`);
+    if (geocode)
+        return geocode;
+    let query = `${merchantTitle} ${address.city}`;
+    let place = await getPlaceHelper(query);
+    if (place)
         return place;
+    query = `${address.address1} ${address.city}`;
+    place = await getPlaceHelper(query);
+    if (place)
+        return place;
+    query = Utils.getQueryFromAddress(merchantTitle,address);
+    place = await getPlaceHelper(query);
+    if (place)
+        return place;
+    query = Utils.getQueryFromAddress('',address);
+    place = await getPlaceHelper(query);
+    if (place)
+        return place;
+    return null;
+}
+
+const getPlaceHelper = async function(query) {
+    const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${encodeURI(query)}&inputtype=textquery&fields=place_id,geometry`);
+    if (place) {
+        if (place.data.status == "ZERO_RESULTS") {
+            return null;
+        }
+        return {
+            place_id: place.data.candidates[0].place_id,
+            geometry: place.data.candidates[0].geometry
+        };
+    }
+    return null;
+}
+
+const getGeocodeHelper = async function(address) {
+    const res = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&region=ca&key=${process.env.GOOGLE_PLACES_API_KEY}`);
+    if (res) {
+        if (res.data.status !== "OK") {
+            return null;
+        }
+        const result = res.data.results[0];
+        return {
+            place_id: result.place_id,
+            geometry: result.geometry
+        };
     }
     return null;
 }

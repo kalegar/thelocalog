@@ -125,11 +125,12 @@ router.get("/", async (req, res) => {
                 countQuery = 
                 "SELECT COUNT(m.id) " +
                 "FROM ("+
-                " SELECT DISTINCT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance "+
+                " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
                 " FROM \"MerchantAddresses\" ma JOIN "+
                 " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
-                " (SELECT ST_MakePoint(:lat,:lon)::geography as ref_geom) AS r "+
-                " WHERE ST_DWithin(a.geom, ref_geom, :radius) ) as d "+
+                " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
+                " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
+                " GROUP BY ma.\"MerchantId\") as d "+
                 "JOIN \"Merchants\" m on d.id = m.id "+
                 "WHERE " + q + ";";
             } else {
@@ -155,11 +156,12 @@ router.get("/", async (req, res) => {
                         selectQuery = 
                         "SELECT m.id,m.title,m.description,m.website " +
                         "FROM ("+
-                        " SELECT DISTINCT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance "+
+                        " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
                         " FROM \"MerchantAddresses\" ma JOIN "+
                         " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
-                        " (SELECT ST_MakePoint(:lat,:lon)::geography as ref_geom) AS r "+
-                        " WHERE ST_DWithin(a.geom, ref_geom, :radius) ) as d "+
+                        " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
+                        " WHERE ST_DWithin(a.geom, ref_geom, :radius) " + 
+                        " GROUP BY ma.\"MerchantId\") as d "+
                         "JOIN \"Merchants\" m on d.id = m.id "+
                         "WHERE " + q +
                         " ORDER BY d.distance " +
