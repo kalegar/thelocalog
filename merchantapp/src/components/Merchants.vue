@@ -15,21 +15,19 @@
                 </template>
                 <div class="row">
                 <div class="merchantlist col">
-                    <div v-if="displayCollapseFilters" class="row">
-                        <b-card no-body class="mb-1 w-100">
-                            <b-card-header header-tag="header" class="p-1">
-                                <b-button block v-b-toggle.collapse-filters variant="secondary">Search Filters</b-button>
-                            </b-card-header>
-                            <b-collapse id="collapse-filters">
-                                <b-card-body>
-                                    <MyLocation v-on:location="setGeoLocation($event);"/>
-                                    <MerchantTags v-on:tags="searchFilters.tags = $event"/>
-                                    <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
-                                    <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
-                                </b-card-body>
-                            </b-collapse>
-                        </b-card>
-                    </div>
+                    <v-row v-if="displayCollapseFilters" justify="center">
+                        <v-expansion-panels>
+                            <v-expansion-panel>
+                            <v-expansion-panel-header>Search Filters</v-expansion-panel-header>
+                            <v-expansion-panel-content>
+                                <MyLocation v-on:location="setGeoLocation($event);"/>
+                                <MerchantTags v-on:tags="searchFilters.tags = $event"/>
+                                <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
+                                <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
+                            </v-expansion-panel-content>
+                            </v-expansion-panel>
+                        </v-expansion-panels>
+                    </v-row>
                     <div  class="row">
                         <div v-if="!searchFilters.searchquery" class="col">
                             <h1>Local Shops</h1>
