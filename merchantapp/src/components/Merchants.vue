@@ -9,8 +9,8 @@
                     <div v-if="!displayCollapseFilters" class="mt-3 sidebar">
                         <MyLocation v-on:location="setGeoLocation($event);"/>
                         <MerchantTags v-on:tags="searchFilters.tags = $event"/>
-                        <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
                         <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
+                        <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
                     </div>
                 </template>
                 <div class="row">
@@ -38,10 +38,18 @@
                             <h1>Results for '<em>{{searchFilters.searchquery}}</em>'</h1>
                         </div>
                         <div class="d-none d-sm-block col-sm-2">
-                            <b-button-group>
-                                <b-button :pressed="merchantLayout == 0" v-on:click="merchantLayout = 0"><b-icon icon="list-ul" ></b-icon></b-button>
-                                <b-button :pressed="merchantLayout == 1" v-on:click="merchantLayout = 1"><b-icon icon="columns-gap"></b-icon></b-button>
-                            </b-button-group>
+                            <v-btn-toggle
+                                v-model="merchantLayout"
+                                mandatory
+                                color="primary"
+                            >
+                                <v-btn>
+                                    <v-icon>mdi-format-list-bulleted-square</v-icon>
+                                </v-btn>
+                                <v-btn>
+                                    <v-icon>mdi-view-grid-outline</v-icon>
+                                </v-btn>
+                            </v-btn-toggle>
                         </div>
                     </div>
                     <Loading :loading="loading && 1==2"/>
@@ -128,13 +136,12 @@
                 <transition name="fade" mode="out-in">
                     <div class="row" v-if="!loading" key="footer">
                         <div class="col align-self-center" align="center">
-                            <b-pagination
+                            <v-pagination
                                 v-model="page"
-                                :total-rows="pages"
-                                per-page=1
-                                first-number
-                                last-number
-                            ></b-pagination>
+                                :length="pages"
+                                total-visible="7"
+                                circle
+                            ></v-pagination>
                         </div>
                     </div>
                 </transition>
@@ -503,9 +510,5 @@ h4.merchant-list, p.merchant-list {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
-}
-.pagination {
-    justify-content: center;
-    margin-top: 1rem;
 }
 </style>

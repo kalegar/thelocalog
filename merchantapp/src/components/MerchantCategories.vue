@@ -1,18 +1,24 @@
 <template>
-    <div v-if="categories.length">
-        <b-button class="clear-categories" v-if="selected.length" v-on:click="selected = [];">Clear Categories</b-button>
-        <b-form-group class="category-group" label="Filter by Category:" label-for="checkbox-group-categories">
-            <b-form-checkbox-group 
-                id="checkbox-group-categories"
+    <v-container fluid v-if="categories.length">
+        <v-row>
+            <h5>Filter By Category:</h5>
+            <v-spacer></v-spacer>
+            <v-btn class="clear-categories" v-if="selected.length" @click="selected = [];" color="secondary">Clear Categories</v-btn>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-checkbox 
+                v-for="category in categories" 
                 v-model="selected"
-                :options="categories"
-                stacked
-                size="lg"
-                name="category">
-            
-            </b-form-checkbox-group>
-        </b-form-group>
-    </div>
+                :key="category"
+                :label="category"
+                :value="category"
+                color="secondary"
+                class="my-n3">
+                </v-checkbox>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
 
 <script>
@@ -67,8 +73,5 @@ export default {
 .category-group {
     text-align: left;
     margin-top: 2rem;
-}
-.clear-categories {
-    float: right;
 }
 </style>

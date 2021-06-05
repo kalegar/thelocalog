@@ -1,7 +1,6 @@
 <template>
     <div class="neighbourhood-div">
-        <label for="merchant-neighbourhood">Filter by Neighbourhood:</label>
-        <b-form-input id="merchant-neighbourhood" v-model="selected" placeholder="Neighbourhood"></b-form-input>
+        <v-text-field v-model="selected" label="Filter by Neighbourhood" color="secondary"></v-text-field>
     </div>
 </template>
 
@@ -31,7 +30,6 @@ export default {
 
 <style scoped>
 .neighbourhood-div {
-    margin-top: 2rem;
     text-align: left;
 }
 </style>

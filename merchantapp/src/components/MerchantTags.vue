@@ -1,7 +1,25 @@
 <template>
     <div class="tag-div">
-        <label for="merchant-tags">Filter by Keyword(s):</label>
-        <b-form-tags input-id="merchant-tags" v-model="selected" separator=" ,;"></b-form-tags>
+        <v-combobox
+          v-model="chips"
+          multiple
+          chips
+          clearable
+          color="secondary"
+          label="Filter by Keyword(s):"
+        >
+          <template v-slot:selection="{ attrs, item, select, selected }">
+            <v-chip
+              v-bind="attrs"
+              :input-value="selected"
+              close
+              @click="select"
+              @click:close="remove(item)"
+            >
+              <strong>{{ item }}</strong>
+            </v-chip>
+          </template>
+        </v-combobox>
     </div>
 </template>
 
@@ -10,18 +28,24 @@ export default {
     name: 'MerchantTags',
     data: function() {
         return {
-            selected: []
+            chips: []
         }
     },
+    methods: {
+      remove: function(item) {
+        this.chips.splice(this.chips.indexOf(item), 1)
+        this.chips = [...this.chips]
+      },
+    },
     watch: {
-        "selected": function() {
-            this.$emit('tags',this.selected);
-            localStorage.selectedMerchantTags = this.selected.join(';');
+        "chips": function() {
+            this.$emit('tags',this.chips);
+            localStorage.selectedMerchantTags = this.chips.join(';');
         }
     },
     mounted: function() {
         if (localStorage.selectedMerchantTags) {
-            this.selected = localStorage.selectedMerchantTags.split(';');
+            this.chips = localStorage.selectedMerchantTags.split(';');
         }
     }
 }
@@ -29,7 +53,6 @@ export default {
 
 <style scoped>
 .tag-div {
-    margin-top: 2rem;
     text-align: left;
 }
 </style>
