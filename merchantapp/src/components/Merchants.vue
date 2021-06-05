@@ -112,8 +112,8 @@
                                             </div>
                                         </div>
                                         <div class="col">
-                                            <h4 class="merchant-list">{{merchant.title}}</h4>
-                                            <p class="merchant-list">{{merchant.description}}</p>
+                                            <h4 class="merchant-list black--text">{{merchant.title}}</h4>
+                                            <p class="merchant-list black--text">{{merchant.description}}</p>
                                         </div>
                                     </div>
                                 </b-list-group-item>
@@ -174,6 +174,7 @@ import _throttle from 'lodash/debounce';
 export default {
     name: 'Merchants',
     props: {
+        query: String
     },
     watch: {
         "perpage": function(newVal) {
@@ -201,6 +202,10 @@ export default {
                 this.page = 1;
                 this.getMerchants();
             }
+        },
+        "query": function() {
+            this.searchFilters.searchquery = this.query;
+            this.getMerchants();
         }
     },
     components: {

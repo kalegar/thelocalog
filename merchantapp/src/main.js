@@ -21,10 +21,11 @@ import MerchantDetail from './components/MerchantDetail.vue';
 import Profile from './components/Profile.vue';
 import MerchantClaim from './components/MerchantClaim.vue';
 import AdminHome from './components/AdminHome.vue';
+import vuetify from './plugins/vuetify'
 
 const routes = [
   { path: '/', redirect: '/merchants' },
-  { path: '/merchants', component: Merchants, name: 'Merchants' },
+  { path: '/merchants', component: Merchants, name: 'Merchants', props: route => ({ query: route.query.q }) },
   { path: '/merchants/:id', component: MerchantDetail, name: 'MerchantDetail', props: true },
   { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard},
   { path: '/claim/:id', component: MerchantClaim, name: 'MerchantClaim', beforeEnter: authGuard, props: true},
@@ -51,6 +52,7 @@ Vue.config.productionTip = false
 
 new Vue({
   render: h => h(App),
+  vuetify,
   router
 }).$mount('#app')
 

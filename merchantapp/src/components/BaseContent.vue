@@ -23,6 +23,5 @@ export default {
 <style scoped>
 .content {
     background-color:#F1F1F1;
-    padding-top: 80px;
 }
 </style>

@@ -1,11 +1,17 @@
 <template>
-    <div class="location-div">
-        <b-form-checkbox id="geo-location-switch" v-model="enabled" switch size="lg">Use My Location</b-form-checkbox>
-        <div class="geo-radius" v-if="enabled">
-            <label for="geo-location-radius">Radius: {{radius}} km</label>
-            <b-form-input id="geo-location-radius" v-model="radius" type="range" size="lg" min="1" max="100" :disabled="!enabled"></b-form-input>
-        </div>
-    </div>
+    <v-container fluid class="location-div">
+        <v-row justify="center">
+            <v-col>
+                <span class="h5">Location</span>
+                <v-switch id="geo-location-switch" v-model="enabled" inset label="Use My Location"></v-switch>
+                <div class="geo-radius" v-if="enabled">
+                    <label for="geo-location-radius">Radius: {{radius}} km</label>
+                    <v-slider v-model="radius" min="1" max="100" :disabled="!enabled"></v-slider>
+                </div>
+            </v-col>
+        </v-row>
+        
+    </v-container>
 </template>
 
 <script>
@@ -73,13 +79,8 @@ export default {
 </script>
 
 <style scoped>
-.location-div {
-    margin-top: 1rem;
-}
-label {
-    text-align: left;
-}
 .geo-radius {
-    width: 60%;
+    margin-top:-1rem;
+    width: 80%;
 }
 </style>
