@@ -1,4 +1,6 @@
 goto about:config
-search geo.wifi.uri
+search geo.provider.network.url
 set it to:
 	data:application/json,{"location": {"lat": 53.631611, "lng": -113.323975}, "accuracy": 27000.0}
+default:
+	https://www.googleapis.com/geolocation/v1/geolocate?key=%GOOGLE_LOCATION_SERVICE_API_KEY%
