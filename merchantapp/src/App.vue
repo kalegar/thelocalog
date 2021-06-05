@@ -27,6 +27,7 @@
           hide-details
           rounded
           solo-inverted
+          clearable
           append-icon="mdi-magnify"
           v-model="searchQuery"
           @click:append="search()"
@@ -36,39 +37,33 @@
 
       <v-spacer></v-spacer>
 
-      <div class="auth" v-if="!$auth.loading">
-        <v-btn 
-          v-if="!$auth.isAuthenticated" 
-          v-on:click="login()"
-          text
-        >
-          <span class="mr-2">Log In</span>
-        </v-btn>
-        <div v-else>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  <v-icon>mdi-menu</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item :to="{ name: 'profile' }">
-                  <v-list-item-title>Profile</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-on:click="logout()">
-                  <v-list-item-title>Log Out</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="isAdmin" :to="{ name: 'AdminHome' }">
-                  <v-list-item-title>Admin</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-        </div>
-      </div>
+      <v-menu offset-y v-if="!$auth.loading">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            icon
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list v-if="$auth.isAuthenticated">
+          <v-list-item :to="{ name: 'profile' }">
+            <v-list-item-title>Profile</v-list-item-title>
+          </v-list-item>
+          <v-list-item v-on:click="logout()">
+            <v-list-item-title>Log Out</v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="isAdmin" :to="{ name: 'AdminHome' }">
+            <v-list-item-title>Admin</v-list-item-title>
+          </v-list-item>
+        </v-list>
+        <v-list v-else>
+          <v-list-item v-on:click="login()">
+            <v-list-item-title>Log In</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
     </v-app-bar>
 

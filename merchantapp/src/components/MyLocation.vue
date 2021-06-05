@@ -1,9 +1,10 @@
 <template>
     <v-container fluid class="location-div">
-        <v-row justify="center">
-            <v-col>
-                <span class="h5">Location</span>
+        <v-row>
+            <v-col class="mt-n2">
+                <v-layout justify-center align-center>
                 <v-switch id="geo-location-switch" v-model="enabled" inset label="Use My Location"></v-switch>
+                </v-layout>
                 <div class="geo-radius" v-if="enabled">
                     <label for="geo-location-radius">Radius: {{radius}} km</label>
                     <v-slider v-model="radius" min="1" max="100" :disabled="!enabled"></v-slider>
@@ -80,7 +81,6 @@ export default {
 
 <style scoped>
 .geo-radius {
-    margin-top:-1rem;
     width: 80%;
 }
 </style>

@@ -7,6 +7,7 @@
             <BaseContent>
                 <template v-slot:left>
                     <div v-if="!displayCollapseFilters" class="mt-3 sidebar">
+                        <h3 class="mt-8">Search Filters</h3>
                         <MyLocation v-on:location="setGeoLocation($event);"/>
                         <MerchantTags v-on:tags="searchFilters.tags = $event"/>
                         <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
@@ -443,7 +444,7 @@ export default {
 .shop-link {
     margin-left: 0.5rem;
 }
-h1,h3{
+h1{
   text-align: left;
   margin-bottom: 1rem;
 }

@@ -4,9 +4,9 @@
             <template v-slot:header>
             </template>
             <BaseContent>
-            <div class="container mt-3" v-if="isAdmin">
-                <div class="row">
-                    <div class="col">
+            <v-container class="mt-3" v-if="isAdmin">
+                <v-row>
+                    <v-col>
                         <h1>Admin</h1>
                         <div class="row claims">
                             <div class="col">
@@ -59,9 +59,9 @@
                             </b-modal>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </v-col>
+                </v-row>
+            </v-container>
             </BaseContent>
         </BasePage>
     </div>
