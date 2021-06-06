@@ -53,8 +53,6 @@ router.get("/", async (req, res) => {
     try {
         const {perpage,page,search,tags,categories,neighbourhood,lat,lon,radius,deleted} = req.query;
 
-        console.log(deleted);
-
         let query = {attributes: ['id','title','website','description']}
         let includes = []
 
