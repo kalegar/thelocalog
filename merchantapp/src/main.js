@@ -2,19 +2,11 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App.vue'
 
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
-import './app.scss'
-
 import { domain, clientId, audience } from "../auth_config.json";
 
 import { Auth0Plugin, authGuard } from "./auth";
 
 Vue.use(VueRouter);
-// Make BootstrapVue available throughout your project
-Vue.use(BootstrapVue);
-// Optionally install the BootstrapVue icon components plugin
-Vue.use(IconsPlugin);
 
 import Merchants from './components/Merchants.vue';
 import MerchantDetail from './components/MerchantDetail.vue';

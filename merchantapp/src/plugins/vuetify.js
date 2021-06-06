@@ -11,7 +11,9 @@ export default new Vuetify({
             light: {
                 primary: colors.red.darken3,
                 secondary: '#0b5a83',
-                background: '#F1F1F1'
+                background: '#F1F1F1',
+                success: colors.green.darken1,
+                danger: colors.red
             }
         }
     }

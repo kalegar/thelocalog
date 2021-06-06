@@ -2,7 +2,7 @@
     <v-row class="social-media-links">
         <v-col v-for="link in links" :key="link.id">
             <v-btn icon rounded :color="getColor(link.name)" :href="link.url" target="_blank">
-                <v-icon large>{{getSocialIcon(link.name)}}</v-icon>
+                <v-icon :large="large">{{getSocialIcon(link.name)}}</v-icon>
             </v-btn>
         </v-col>
     </v-row>
@@ -20,7 +20,11 @@ const Icons = {
 export default {
     name: 'SocialMediaLinks',
     props:  {
-        links: Array
+        links: Array,
+        large: {
+            type: Boolean,
+            default: true
+        }
     },
     methods: {
         getColor: function(name) {

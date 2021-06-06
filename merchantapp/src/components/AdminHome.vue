@@ -12,26 +12,26 @@
                             <div class="col">
                             <h3>Claims</h3>
                             <div class="claims" v-if="claims && claims.length">
-                                <b-list-group>
-                                <b-list-group-item v-for="claim in claims" :to="{ name: 'ClaimDetail', params: { id: claim.id }}" :key="claim.id">
-                                    <!-- <b-list-group-item> -->
-                                        <div class="row ml-3">
-                                            <h4 class="merchant-list">{{claim.Merchant.title}}</h4>
-                                            
-                                        </div>
-                                        <div class="row ml-3">
-                                            <div class="col">
-                                                <h5 class="text-left claim-email" v-if="claim.email">Sent By: {{claim.email}}</h5>
-                                                <p class="text-left claim-text">{{claim.text}}</p>
-                                            </div>
-                                        </div>
-                                        <div class="row mr-3 justify-content-end">
-                                            <p class="claim-created-date">{{claim.createdAt}}</p>
-                                        </div>
-                                        
-                                    <!-- </b-list-group-item> -->
-                                </b-list-group-item>
-                                </b-list-group>
+                                <v-list three-line>
+                                    <template v-for="(claim,index) in claims">
+                                            <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id }}" :key="claim.id">
+                                                <v-list-item-avatar>
+                                                    <v-icon>mdi-storefront</v-icon>
+                                                </v-list-item-avatar>
+
+                                                <v-list-item-content class="merchant-list-item">
+                                                    <v-list-item-title class="h5">{{claim.Merchant.title}}</v-list-item-title>
+                                                    <v-list-item-subtitle v-if="claim.email">{{claim.email}}</v-list-item-subtitle>
+                                                    <v-list-item-subtitle>{{claim.text}}</v-list-item-subtitle>
+                                                    <v-list-item-subtitle>{{claim.createdAt}}</v-list-item-subtitle>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                        <v-divider
+                                        :key="index"
+                                        class="mx-4"
+                                        ></v-divider>
+                                    </template>
+                                </v-list>
                             </div>
                             <div class="no-claims" v-else>
                                 <p>There are no claims.</p>
@@ -41,22 +41,70 @@
                         <div class="row tools">
                             <div class="col">
                             <h3>Tools</h3>
-                            <b-button class="m-1" :disabled="populateGeoLoading === true" v-on:click="populateGeometry()" v-b-tooltip.hover.bottom title="Populate addresses with geolocation data from Google Places API"><b-icon v-if="populateGeoLoading" icon="arrow-clockwise" animation="spin"></b-icon>Populate Geometry <b-badge v-if="populateGeoCount > 0" variant="light">{{populateGeoCount}}</b-badge></b-button>
-                            <b-modal id="modal-populate-geo" title="Populate Geometry">
-                                <p class="my-4">{{populateGeoResponse}}</p>
-                            </b-modal>
-                            <b-button class="m-1" :disabled="uploadLogoLoading === true" v-on:click="$bvModal.show('modal-upload-logo')"><b-icon v-if="uploadLogoLoading" icon="arrow-clockwise" animation="spin"></b-icon>Upload Logo</b-button>
-                            <b-modal id="modal-upload-logo" title="Upload Logo" @ok="uploadLogo()" @show="resetUploadLogoModal">
-                                <b-form-input class="mb-2" v-model="uploadedLogoMerchantId" placeholder="Merchant ID"></b-form-input>
-                                <b-form-file
-                                    v-model="uploadedLogo"
-                                    :state="Boolean(uploadedLogo)"
-                                    accept="image/png"
-                                    placeholder="Choose an image or drop it here..."
-                                    drop-placeholder="Drop image here..."
-                                ></b-form-file>
-                                <div class="mt-3" v-if="Boolean(uploadedLogo)">Selected file: {{ uploadedLogo ? uploadedLogo.name : '' }}</div>
-                            </b-modal>
+
+                            <v-btn @click="populateGeometry()" :disabled="populateGeoLoading === true">Populate Geometry</v-btn>
+                            <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
+                                {{ snackbar.text }}
+                                <template v-slot:action="{ attrs }">
+                                    <v-btn
+                                      text
+                                      v-bind="attrs"
+                                      @click="snackbar.show = false"
+                                    >
+                                    Close
+                                    </v-btn>
+                                </template>
+                            </v-snackbar>
+                            <v-dialog
+                              v-model="dialog.show"
+                              persistent
+                              max-width="290"
+                            >
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        @click="showUploadDialog()"
+                                    >Upload Logo</v-btn>
+                                </template>
+                                <v-card>
+                                    <v-card-title class="text-h5">
+                                        {{dialog.title}}
+                                    </v-card-title>
+                                    <v-card-text>
+                                        {{dialog.text}}
+                                    </v-card-text>
+                                    <v-divider class="mx-4"></v-divider>
+                                    <v-card-text>
+                                        <v-text-field
+                                          v-model="uploadedLogoMerchantId" 
+                                          label="Merchant ID"
+                                          prepend-icon="mdi-storefront"
+                                        ></v-text-field>
+                                    </v-card-text>
+                                    <v-card-text>
+                                        <v-file-input
+                                          accept="image/png"
+                                          label="Upload Logo"
+                                          dense
+                                          v-model="uploadedLogo"
+                                        ></v-file-input>
+                                    </v-card-text>
+                                    <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn
+                                            color="red darken-1"
+                                            text
+                                            @click="dialog.show = false"
+                                        >{{dialog.notext}}</v-btn>
+                                        <v-btn
+                                            color="green darken-1"
+                                            text
+                                            @click="dialog.show = false; dialog.action()"
+                                        >{{dialog.yestext}}</v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-dialog>
                             </div>
                         </div>
                     </v-col>
@@ -87,7 +135,21 @@ export default {
             populateGeoCount: 0,
             uploadLogoLoading: false,
             uploadedLogo: null,
-            uploadedLogoMerchantId: ''
+            uploadedLogoMerchantId: '',
+            snackbar: {
+                color: 'primary',
+                show: false,
+                text: '',
+                timeout: 2000
+            },
+            dialog: {
+                show: false,
+                title: '',
+                text: '',
+                notext: '',
+                yestext: '',
+                action: null
+            }
         }
     },
     methods: {
@@ -151,18 +213,28 @@ export default {
                 .then(res => {
                     this.populateGeoLoading = false;
                     if (res.status != 200) {
-                        this.makeToast('Populate Geometry',res.statusText,false,'danger');
+                        this.makeToast(res.statusText,'danger');
                         return;
                     }
-                    this.makeToast('Populate Geometry',res.data.message,false,'success');
+                    this.makeToast(res.data.message,'success');
                     this.getPopulateGeometryCount();
                 })
                 .catch(err => {
                     this.populateGeoLoading = false;
                     const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
-                    this.makeToast('Populate Geometry',`${err}${msg}`,false,'danger');
+                    this.makeToast(`${err}${msg}`,'danger');
                 });
             });
+        },
+        showUploadDialog: function() {
+            this.uploadedLogo = null;
+            this.uploadedLogoMerchantId = '';
+            this.dialog.title="Upload Logo";
+            this.dialog.text="Enter a merchant ID and upload a png file to set as that merchant's logo.";
+            this.dialog.yestext="Upload"
+            this.dialog.notext="Cancel"
+            this.dialog.action = this.uploadLogo;
+            this.dialog.show = true;
         },
         uploadLogo: function() {
             this.uploadLogoLoading = true;
@@ -180,28 +252,22 @@ export default {
                 .then(res => {
                     this.uploadLogoLoading = false;
                     if (res.status != 201) {
-                        this.makeToast('Upload Logo',`Error uploading logo: ${res.statusText} ${res.data.message}`,false,'danger');
+                        this.makeToast(`Error uploading logo: ${res.statusText} ${res.data.message}`,'danger',5000);
                     }
-                    this.makeToast('Upload Logo','Uploaded Logo Successfully!',false,'success');
+                    this.makeToast('Uploaded Logo Successfully!',false,'success');
                 })
                 .catch(err => {
                     this.uploadLogoLoading = false;
                     const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
-                    this.makeToast('Upload Logo',`Error uploading logo: ${err}${msg}`,false,'danger');
+                    this.makeToast(`Error uploading logo: ${err}${msg}`,'danger',5000);
                 });
             });
         },
-        resetUploadLogoModal: function() {
-            this.uploadedLogoMerchantId = '';
-            this.uploadedLogo = null;
-        },
-        makeToast: function(title,text, append = false, variant = null) {
-            this.$bvToast.toast(text, {
-                title: title,
-                autoHideDelay: 5000,
-                appendToast: append,
-                variant: variant
-            })
+        makeToast: function(text, color, timeout=2000) {
+            this.snackbar.timeout = timeout;
+            this.snackbar.color = color;
+            this.snackbar.text = text;
+            this.snackbar.show = true;
         }
     },
     updated: function() {

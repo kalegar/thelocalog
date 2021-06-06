@@ -1,7 +1,7 @@
 <template>
     <v-container fluid v-if="categories.length">
         <v-row>
-            <h5>Filter By Category:</h5>
+            <div class="text-body mb-3">Filter By Category:</div>
             <v-spacer></v-spacer>
             <v-btn class="clear-categories" v-if="selected.length" @click="selected = [];" color="secondary">Clear Categories</v-btn>
         </v-row>

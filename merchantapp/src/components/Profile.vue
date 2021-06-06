@@ -8,7 +8,7 @@
                         <div class="row">
                             <h1>Profile</h1>
                         </div>
-                        <b-form @submit="onSubmit" @reset="onReset" class="row align-items-center profile-form">
+                        <v-form @submit="onSubmit" @reset="onReset" class="row align-items-center profile-form">
                             <div class="col-md-2 mb-3">
                                 <img
                                 :src="$auth.user.picture"
@@ -17,37 +17,25 @@
                                 />
                             </div>
                             <div class="col-md text-center text-md-left">
-                            <b-form-group
-                                id="input-group-1"
-                                label="Email address:"
-                                label-for="input-1"
-                                description="We'll never share your email with anyone else."
-                            >
-                                <b-form-input
-                                id="input-1"
-                                v-model="form.email"
-                                type="email"
-                                placeholder="Enter email"
-                                required
-                                :readonly="!editing"
-                                ></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="input-group-2" label="Your Name:" label-for="input-2">
-                                <b-form-input
-                                id="input-2"
-                                v-model="form.name"
-                                placeholder="Enter name"
-                                required
-                                :readonly="!editing"
-                                ></b-form-input>
-                            </b-form-group>
+                                <v-text-field
+                                    v-model="form.email"
+                                    required
+                                    label="Email Address"
+                                    :readonly="!editing"
+                                ></v-text-field>
+                                <v-text-field
+                                    v-model="form.name"
+                                    required
+                                    label="Full Name"
+                                    :readonly="!editing"
+                                ></v-text-field>
                             <div class="profile-buttons" v-if="canEditProfile">
                                 <div class="edit-buttons" v-show="!editing">
-                                    <b-button variant="primary" v-on:click="editing = !editing">Edit</b-button>
+                                    <v-btn color="secondary" dark v-on:click="editing = !editing">Edit</v-btn>
                                 </div>
                                 <div class="submit-buttons" v-show="editing">
-                                    <b-button type="reset" variant="primary">Cancel</b-button>
-                                    <b-button type="submit" variant="primary">Save</b-button>
+                                    <v-btn type="reset" color="secondary" dark>Cancel</v-btn>
+                                    <v-btn type="submit" color="secondary" dark>Save</v-btn>
                                 </div>
                             </div>
                             </div>
@@ -55,7 +43,7 @@
                                 <h2>{{ $auth.user.name }}</h2>
                                 <p class="lead text-muted">{{ $auth.user.email }}</p>
                             </div> -->
-                        </b-form>
+                        </v-form>
                         <div class="row mt-3" v-if="myMerchants && myMerchants.length">
                             <h1>My Merchants</h1>
                             <!-- <highlightjs autodetect :code="JSON.stringify($auth.user, null, 2)" class="rounded w-100" /> -->

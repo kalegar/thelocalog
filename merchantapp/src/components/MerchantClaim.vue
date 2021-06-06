@@ -7,36 +7,27 @@
             <div class="container mt-3">
                 <div class="row">
                     <div class="col" v-if="merchant && !submitted">
+                        <v-card>
+                        <v-card-title>
                         <h1>Claim {{merchant.title}}</h1>
+                        </v-card-title>
                         <img class="logo" :src="'data:image/png;base64,'+logo[0].image" v-if="logo && logo.length"/>
-                        <b-form @submit="onSubmit" @reset="onReset" class="claim-form">
+                        <v-card-text>
+                        <v-form class="claim-form">
                             <div class="row align-items-center">
                             <div class="col">
-                                <b-form-group
-                                    id="input-group-1"
-                                    label="Email address:"
-                                    label-for="input-1"
-                                >
-                                    <b-form-input
-                                    id="input-1"
+                                <v-text-field
+                                    label="Email Address"
                                     v-model="form.email"
-                                    type="email"
-                                    placeholder="Enter email"
-                                    required
                                     readonly
-                                    ></b-form-input>
-                                </b-form-group>
+                                ></v-text-field>
                             </div>
                             <div class="col">
-                                <b-form-group id="input-group-2" label="Your Name:" label-for="input-2">
-                                    <b-form-input
-                                    id="input-2"
+                                <v-text-field
+                                    label="Full Name"
                                     v-model="form.name"
-                                    placeholder="Enter name"
-                                    required
                                     readonly
-                                    ></b-form-input>
-                                </b-form-group>
+                                ></v-text-field>
                             </div>
                             </div>
                             <div class="row">
@@ -46,21 +37,23 @@
                             </div>
                             <div class="row">
                                 <div class="col">
-                                    <b-form-textarea
-                                        id="textarea"
+                                    <v-textarea
+                                        label="Claim Details"
                                         v-model="form.text"
                                         placeholder="Please provide details of your proof of ownership"
-                                        rows="3"
-                                        max-rows="6">
-                                    </b-form-textarea>
+                                        rows="6"
+                                        required
+                                    ></v-textarea>
                                 </div>
                             </div>
                             <div class="row mt-1">
                                 <div class="col">
-                                    <b-button type="submit" variant="primary">Submit Claim</b-button>
+                                    <v-btn dark color="secondary" @click="onSubmit()">Submit Claim</v-btn>
                                 </div>
                             </div>
-                        </b-form>
+                        </v-form>
+                        </v-card-text>
+                        </v-card>
                     </div>
                     <div class="col" v-if="submitted">
                         <p>Your claim has been submitted!</p>

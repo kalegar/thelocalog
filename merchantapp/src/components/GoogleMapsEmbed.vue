@@ -3,6 +3,7 @@
     </div> -->
     <iframe
     height="250"
+    width="100%"
     frameborder="0" style="border:0"
     v-bind:src="mapsURL" allowfullscreen>
     </iframe>
