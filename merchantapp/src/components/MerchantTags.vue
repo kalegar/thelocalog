@@ -7,6 +7,7 @@
           clearable
           color="secondary"
           label="Filter by Keyword(s):"
+          :delimiters="delimiters"
         >
           <template v-slot:selection="{ attrs, item, select, selected }">
             <v-chip
@@ -28,7 +29,8 @@ export default {
     name: 'MerchantTags',
     data: function() {
         return {
-            chips: []
+            chips: [],
+            delimiters: [' ',',',';']
         }
     },
     methods: {
