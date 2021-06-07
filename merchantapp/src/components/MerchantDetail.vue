@@ -147,6 +147,7 @@ export default {
     },
     methods: {
         encodeAddress: function(title,address) {
+            console.log(address);
             if (address.placeid) {
                 return encodeURI(`q=place_id:${address.placeid}`);
             }

@@ -10,5 +10,10 @@ export const Utils = {
                     (address.province ? ' ' + address.province: '') +
                     (address.postalcode ? ' ' + address.postalcode: '')
         ).replace('#','').replace("'","");
+    },
+
+    createGeom: function(lng,lat) {
+        //Need to specify SRID for compat with PostGIS < 3.0.0
+        return { type: 'Point', coordinates: [lng,lat], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
     }
 }

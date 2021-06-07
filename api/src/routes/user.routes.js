@@ -5,7 +5,7 @@ import { Router } from 'express';
 import { Merchant, User, sequelize } from '../database/models';
 import { QueryTypes } from 'sequelize';
 import jwtAuthz from 'express-jwt-authz';
-import * as authService from '../auth0-service.js';
+import * as authService from '../service/auth0.service.js';
 
 
 const router = Router({mergeParams: true});

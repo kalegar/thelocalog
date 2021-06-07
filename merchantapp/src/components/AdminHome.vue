@@ -105,6 +105,11 @@
                                     </v-card-actions>
                                 </v-card>
                             </v-dialog>
+
+                            <v-btn
+                                @click="clearHoursCache()"
+                                :disabled="clearHoursCacheLoading === true"
+                            >Clear Hours Cache</v-btn>
                             </div>
                         </div>
                     </v-col>
@@ -136,6 +141,7 @@ export default {
             uploadLogoLoading: false,
             uploadedLogo: null,
             uploadedLogoMerchantId: '',
+            clearHoursCacheLoading: false,
             snackbar: {
                 color: 'primary',
                 show: false,
@@ -198,6 +204,31 @@ export default {
                 })
                 .catch(() => {
                     this.populateGeoCount = 0;
+                });
+            });
+        },
+        clearHoursCache: function() {
+            const url = `/api/admin/hours/clearcache`;
+            this.clearHoursCacheLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    this.clearHoursCacheLoading = false;
+                    if (res.status != 200) {
+                        this.makeToast(res.statusText,'danger');
+                        return;
+                    }
+                    this.makeToast(res.data.message,'success');
+                    this.getPopulateGeometryCount();
+                })
+                .catch(err => {
+                    this.clearHoursCacheLoading = false;
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast(`${err}${msg}`,'danger');
                 });
             });
         },
