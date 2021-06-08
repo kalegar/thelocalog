@@ -91,7 +91,7 @@ router.get("/populategeo", async (req, res) => {
                     address.placeid = null;
                 } else {
                     if (placeDetails.geometry && placeDetails.geometry.location) {
-                        address.geom = Utils.createGeom(placeDetails.geometry.lng,placeDetails.geometry.lat);
+                        address.geom = Utils.createGeom(placeDetails.geometry.location.lng,placeDetails.geometry.location.lat);
                         LoggingService.log('Address geom was updated. Saving...');
                         await address.save({fields: ['geom']});
                         LoggingService.log('Saved!');
@@ -105,7 +105,7 @@ router.get("/populategeo", async (req, res) => {
                 if (place) {
                     address.placeid = place.place_id;
                     if (place.geometry && place.geometry.location) {
-                        address.geom = Utils.createGeom(place.geometry.lng,place.geometry.lat);
+                        address.geom = Utils.createGeom(place.geometry.location.lng,place.geometry.location.lat);
                         await address.save({fields: ['geom', 'placeid']});
                         count ++;
                     }

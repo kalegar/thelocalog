@@ -72,6 +72,7 @@ router.get("/", async (req, res) => {
             let searchArray = search ? "(\'" + search.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const tagArray = tags ? "(\'" + tags.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
             const categoryArray = categories ? "(\'" + categories.split("+").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
+            const neighbourhoodArray = neighbourhood ? "(\'" + neighbourhood.map((n) => n.toUpperCase()).join('\',\'') + "\')" : '';
             let count = 0;
             const filterNearby =
                 "m.id in ("+ //Filter Nearby
@@ -92,7 +93,8 @@ router.get("/", async (req, res) => {
                 "m.id in ("+ //Neighbourhood
                 "SELECT ma.\"MerchantId\" as id "+
                 "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
-                "WHERE a.neighbourhood iLike '%" + neighbourhood + "%')";    
+                "WHERE UPPER(a.neighbourhood) iLike '%" + neighbourhood + "%' OR UPPER(a.neighbourhood) in " + neighbourhoodArray + ")";    
+            console.log(filterNeighbourhood);
             const filterSearch = 
                 "(m.id in ("+ //Tags
                     "SELECT mt.\"MerchantId\" as id "+

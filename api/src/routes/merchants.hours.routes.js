@@ -81,7 +81,7 @@ const getMerchantHours = async function(merchantId) {
                 data.periods = placeDetails.opening_hours.periods;
             }
             if (placeDetails.geometry && placeDetails.geometry.location && !address.geom) {
-                address.geom = Utils.createGeom(placeDetails.geometry.lng,placeDetails.geometry.lat);
+                address.geom = Utils.createGeom(placeDetails.geometry.location.lng,placeDetails.geometry.location.lat);
                 updateFields.push('geom');
             }
         }
