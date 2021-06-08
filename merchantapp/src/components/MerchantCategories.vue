@@ -62,7 +62,7 @@ export default {
     },
     watch: {
         "selected": function() {
-            this.$emit('categories',this.selected);
+            this.$emit('change',this.selected);
             localStorage.selectedMerchantCategories = this.selected.join(';');
         }
     }

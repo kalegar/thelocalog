@@ -5,10 +5,10 @@
                 <template v-slot:left>
                     <div v-if="!displayCollapseFilters" class="mt-3 sidebar">
                         <h3 class="mt-8">Search Filters</h3>
-                        <MyLocation v-on:location="setGeoLocation($event);"/>
-                        <MerchantTags v-on:tags="searchFilters.tags = $event"/>
-                        <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
-                        <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
+                        <MyLocation v-on:change="setGeoLocation($event);"/>
+                        <MerchantTags v-on:change="getMerchants({ tags: $event })"/>
+                        <MerchantNeighbourhood v-on:change="getMerchants({ neighbourhood: $event })"/>
+                        <MerchantCategories v-on:change="getMerchants({ categories: $event })"/>
                     </div>
                 </template>
                 <div class="row">
@@ -18,10 +18,10 @@
                             <v-expansion-panel>
                             <v-expansion-panel-header>Search Filters</v-expansion-panel-header>
                             <v-expansion-panel-content>
-                                <MyLocation v-on:location="setGeoLocation($event);"/>
-                                <MerchantTags v-on:tags="searchFilters.tags = $event"/>
-                                <MerchantCategories v-on:categories="searchFilters.categories = $event"/>
-                                <MerchantNeighbourhood v-on:neighbourhood="searchFilters.neighbourhood = $event"/>
+                                <MyLocation v-on:change="setGeoLocation($event);"/>
+                                <MerchantTags v-on:change="getMerchants({ tags: $event })"/>
+                                <MerchantNeighbourhood v-on:change="getMerchants({ neighbourhood: $event })"/>
+                                <MerchantCategories v-on:change="getMerchants({ categories: $event })"/>
                             </v-expansion-panel-content>
                             </v-expansion-panel>
                         </v-expansion-panels>
@@ -195,6 +195,8 @@ import MyLocation from './MyLocation.vue';
 import { Utils } from '../utils/util.js';
 import _throttle from 'lodash/debounce';
 
+let cancelToken;
+
 export default {
     name: 'Merchants',
     props: {
@@ -209,27 +211,8 @@ export default {
             this.getMerchants();
             localStorage.merchantsCurrentPage = newVal;
         },
-        "searchFilters.categories": function(newVal) {
-            if (newVal !== this['searchFilters.categories']) {
-                this.page = 1;
-                this.getMerchants();
-            }
-        },
-        "searchFilters.tags": function(newVal) {
-            if (newVal !== this['searchFilters.tags']) {
-                this.page = 1;
-                this.getMerchants();
-            }
-        },
-        "searchFilters.neighbourhood": function(newVal) {
-            if (newVal !== this['searchFilters.neighbourhood']) {
-                this.page = 1;
-                this.getMerchants();
-            }
-        },
         "query": function() {
-            this.searchFilters.searchquery = this.query;
-            this.getMerchants();
+            this.getMerchants({ searchquery: this.query });
         }
     },
     components: {
@@ -276,37 +259,18 @@ export default {
         backClick: function() {
             history.back();
         },
-        nextPage: function() {
-            this.page += 1;
-            this.getMerchants();
-        },
-        prevPage: function() {
-            this.page -=1;
-            this.getMerchants();
-        },
         refreshScreen: function() {
-            //this.page = 1;
             this.searchFilters.searchquery = '';
             this.getMerchants();
         },
-        setGeoLocation : function(location) {
+        setGeoLocation: function(location) {
             const { enabled, position, radius } = location;
             this.useGeoLocation = enabled;
             if (enabled === true) { 
                 this.geoLocation = position.coords;
                 this.geoRadius = radius * 1000;
             }
-            this.page = 1;
             this.getMerchants();
-        },
-        saveSearchFiltersToLocalStorage: function() {
-            let data = {
-            searchquery:    this.searchFilters.searchquery,
-            categories:     this.searchFilters.categories,
-            tags:           this.searchFilters.tags,
-            neighbourhood:  this.searchFilters.neighbourhood
-            }
-            localStorage.searchFilters = data;
         },
         onResize : _throttle(function() {
             const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -324,7 +288,18 @@ export default {
             }
 
         },250,{leading: true}),
-        getMerchants: _throttle(function() {
+        getMerchants: function(filters = null) {
+
+            if (filters) {
+                this.page = 1;
+                for (const key in filters) {
+                    this.searchFilters[key] = filters[key];
+                }
+            }
+
+            if (typeof cancelToken != typeof undefined) {
+                cancelToken.cancel("Operation canceled due to new request.");
+            }
             this.loading = true;
 
             this.page = Utils.clamp(this.page,1,Math.max(this.pages,1));
@@ -363,8 +338,10 @@ export default {
                 }
             }
 
+            cancelToken = axios.CancelToken.source();
             axios.get('/api/merchants', {
-                params
+                params,
+                cancelToken: cancelToken.token
             })
             .then(res => {
                 if (res.status != 200) {
@@ -372,19 +349,6 @@ export default {
                     const error = new Error(res.statusText);
                     throw error;
                 }
-                // const tempMerchants = res.data.merchants.rows;
-                // for (let i = this.merchants.length-1; i >= 0; i--) {
-                //     if (tempMerchants.filter(e => e.id === this.merchants[i].id).length == 0) {
-                //         this.merchants.splice(i,1);
-                //     }
-                // }
-                // tempMerchants.map(e => {
-                //     if (this.merchants.filter(m => m.id === e.id).length == 0) {
-                //         this.merchants.push(e);
-                //     }
-                // })
-                //const tempMerchants = res.data.merchants.rows;
-                //this.merchants = tempMerchants.map(m => m.nologo = false);
                 this.merchants = res.data.merchants.rows;
                 this.pages = Math.ceil(res.data.merchants.count / this.perpage);
                 if (this.pages <= 1) {
@@ -395,6 +359,9 @@ export default {
             })
             .catch(err => {
                 this.error = err;
+                if (axios.isCancel(err)) {
+                    return;
+                }
                 if (err.json) {
                     return err.json.then(json => {
                         this.error.message = json.message;
@@ -404,7 +371,7 @@ export default {
             .then(() => {
                 this.loading = false;
             })
-        },500, {leading: true})
+        }
     },
     updated: function() {
         document.title = 'Directory - The Localog';
@@ -415,15 +382,19 @@ export default {
             this.searchFilters.searchquery = this.query;
         }
 
+        let retrieve = true;
         if (localStorage.merchantsPerPage) {
             this.perpage = localStorage.merchantsPerPage;
+            retrieve = false;
         }
 
         if (localStorage.merchantsCurrentPage) {
             this.page = localStorage.merchantsCurrentPage;
+            retrieve = false;
         }
 
-        this.getMerchants();
+        if (retrieve)
+            this.getMerchants();
 
         let vm = this;
 

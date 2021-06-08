@@ -42,7 +42,7 @@
                             <div class="col">
                             <h3>Tools</h3>
 
-                            <v-btn @click="populateGeometry()" :disabled="populateGeoLoading === true">Populate Geometry</v-btn>
+                            <v-btn @click="populateGeometry()" :loading="populateGeoLoading">Populate Geometry</v-btn>
                             <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
                                 {{ snackbar.text }}
                                 <template v-slot:action="{ attrs }">
@@ -65,6 +65,7 @@
                                         v-bind="attrs"
                                         v-on="on"
                                         @click="showUploadDialog()"
+                                        :loading="uploadLogoLoading"
                                     >Upload Logo</v-btn>
                                 </template>
                                 <v-card>
@@ -108,7 +109,7 @@
 
                             <v-btn
                                 @click="clearHoursCache()"
-                                :disabled="clearHoursCacheLoading === true"
+                                :loading="clearHoursCacheLoading"
                             >Clear Hours Cache</v-btn>
                             </div>
                         </div>
@@ -285,7 +286,7 @@ export default {
                     if (res.status != 201) {
                         this.makeToast(`Error uploading logo: ${res.statusText} ${res.data.message}`,'danger',5000);
                     }
-                    this.makeToast('Uploaded Logo Successfully!',false,'success');
+                    this.makeToast('Uploaded Logo Successfully!','success');
                 })
                 .catch(err => {
                     this.uploadLogoLoading = false;

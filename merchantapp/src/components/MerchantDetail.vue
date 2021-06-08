@@ -7,11 +7,55 @@
                 <template v-slot:left v-if="$auth.isAuthenticated && !loading && merchant">
                     <div class="mt-4 sidebar">
                         <h4>Admin Tools</h4>
-                        <v-btn class="ma-1" v-if="!merchant.deletedAt" color="danger" dark :disabled="deleteMerchantLoading === true" v-on:click="deleteMerchant()">Delete Merchant</v-btn>
-                        <v-btn class="ma-1" v-else color="success" light :disabled="saveMerchantLoading === true" v-on:click="merchant.deletedAt = null; saveMerchant()">Restore Merchant</v-btn>
-                        <v-btn class="ma-1" v-if="!editing" v-on:click="editing = true">Edit Merchant</v-btn>
-                        <v-btn class="ma-1" v-if="editing" :disabled="saveMerchantLoading === true" v-on:click="saveMerchant()">Save</v-btn>
-                        <v-btn class="ma-1" v-if="editing" v-on:click="editing = false; getMerchant()">Cancel</v-btn>
+                        <v-btn class="ma-1" v-if="!merchant.deletedAt" color="danger" dark :loading="deleteMerchantLoading" v-on:click="deleteMerchant()">Delete<v-icon right dark>mdi-delete</v-icon></v-btn>
+                        <v-btn class="ma-1" v-else color="success" light :loading="saveMerchantLoading" v-on:click="merchant.deletedAt = null; saveMerchant()">Restore<v-icon right dark>mdi-restore</v-icon></v-btn>
+                        <v-btn class="ma-1" v-if="!editing" v-on:click="editing = true">Edit<v-icon right dark>mdi-pencil</v-icon></v-btn>
+                        <v-btn class="ma-1" v-if="editing" :loading="saveMerchantLoading" v-on:click="saveMerchant()">Save<v-icon right dark>mdi-content-save</v-icon></v-btn>
+                        <v-btn class="ma-1" v-if="editing" v-on:click="editing = false; getMerchant()">Cancel<v-icon right dark>mdi-cancel</v-icon></v-btn>
+                        <v-dialog
+                            v-model="dialog.show"
+                            persistent
+                            max-width="290"
+                        >
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    @click="showUploadDialog()"
+                                    :loading="uploadLogoLoading"
+                                >Upload Logo</v-btn>
+                            </template>
+                            <v-card>
+                                <v-card-title class="text-h5">
+                                    {{dialog.title}}
+                                </v-card-title>
+                                <v-card-text>
+                                    {{dialog.text}}
+                                </v-card-text>
+                                <v-divider class="mx-4"></v-divider>
+                                <v-card-text>
+                                    <v-file-input
+                                        accept="image/png"
+                                        label="Upload Logo"
+                                        dense
+                                        v-model="uploadedLogo"
+                                    ></v-file-input>
+                                </v-card-text>
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn
+                                        color="red darken-1"
+                                        text
+                                        @click="dialog.show = false"
+                                    >{{dialog.notext}}</v-btn>
+                                    <v-btn
+                                        color="green darken-1"
+                                        text
+                                        @click="dialog.show = false; dialog.action()"
+                                    >{{dialog.yestext}}</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
                     </div>
                 </template>
                 <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
@@ -87,6 +131,33 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <v-row>
+                                        <v-col class="contact" v-if="address.Contact">
+                                            <h3 class="mb-2">Contact Info:</h3>
+                                            <v-list-item v-if="address.Contact.email">
+                                                <v-list-item-content>
+                                                    <v-list-item-title><a :href="'mailto:'+address.Contact.email"><v-icon left>mdi-email</v-icon>{{address.Contact.email}}</a></v-list-item-title>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                            <v-list-item v-if="address.Contact.email2">
+                                                <v-list-item-content>
+                                                    <v-list-item-title><a :href="'mailto:'+address.Contact.email2"><v-icon left>mdi-email</v-icon>{{address.Contact.email2}}</a></v-list-item-title>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                            <v-list-item v-if="address.Contact.phone">
+                                                <v-list-item-content>
+                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone.replace( /\D/g, '')"><v-icon left>mdi-phone</v-icon>{{address.Contact.phone}}</a></v-list-item-title>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                            <v-list-item v-if="address.Contact.phone2">
+                                                <v-list-item-content>
+                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone2.replace( /\D/g, '')"><v-icon left>mdi-phone</v-icon>{{address.Contact.phone2}}</a></v-list-item-title>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                        </v-col>
+                                        <v-col>
+                                        </v-col>
+                                    </v-row>
                                 </v-container>
                                 </v-card-text>
                             </v-card>
@@ -136,12 +207,22 @@ export default {
             error: null,
             deleteMerchantLoading: false,
             saveMerchantLoading: false,
+            uploadLogoLoading: false,
+            uploadedLogo: null,
             editing: false,
             snackbar: {
                 color: 'primary',
                 show: false,
                 text: '',
                 timeout: 2000
+            },
+            dialog: {
+                show: false,
+                title: '',
+                text: '',
+                notext: '',
+                yestext: '',
+                action: null
             }
         }
     },
@@ -160,6 +241,43 @@ export default {
 
             
             return encodeURI(queryStr.replace('&','%26'));
+        },
+        showUploadDialog: function() {
+            this.uploadedLogo = null;
+            this.uploadedLogoMerchantId = '';
+            this.dialog.title="Upload Logo";
+            this.dialog.text=`Upload a png file to set as ${this.merchant.title}'s logo.`;
+            this.dialog.yestext="Upload"
+            this.dialog.notext="Cancel"
+            this.dialog.action = this.uploadLogo;
+            this.dialog.show = true;
+        },
+        uploadLogo: function() {
+            this.uploadLogoLoading = true;
+            const url = `/api/merchants/${this.id}/images/logo`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                let formData = new FormData();
+                formData.append('logo',this.uploadedLogo);
+                axios.post(url, formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+                .then(res => {
+                    this.uploadLogoLoading = false;
+                    if (res.status != 201) {
+                        this.makeToast(`Error uploading logo: ${res.statusText} ${res.data.message}`,'danger',5000);
+                    }
+                    this.makeToast('Uploaded Logo Successfully!','success');
+                })
+                .catch(err => {
+                    this.uploadLogoLoading = false;
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast(`Error uploading logo: ${err}${msg}`,'danger',5000);
+                });
+            });
         },
         getBusinessHours: function() {
             const url = `/api/merchants/${this.id}/hours`
@@ -267,7 +385,7 @@ export default {
             axios.get(url, {
                 params: {
                     'details': true,
-                    'include': 'address,social'
+                    'include': 'address,social,contact'
                 }
             })
             .then(res => {
@@ -319,12 +437,14 @@ h2, h1 {
 .merchant {
     margin-top: 24px;
 }
+.contact {
+    text-align: left;
+}
 .address {
     text-align: left;
 }
 .hours h3 {
     text-align: left;
-    
 }
 .hour {
     text-align: left;

@@ -41,7 +41,7 @@ export default {
     },
     watch: {
         "chips": function() {
-            this.$emit('tags',this.chips);
+            this.$emit('change',this.chips);
             localStorage.selectedMerchantTags = this.chips.join(';');
         }
     },

@@ -56,7 +56,7 @@ export default {
           this.emitLocation();
       },
       emitLocation: function() {
-          this.$emit('location',{ enabled: this.enabled, position: this.location, radius: this.radius});
+          this.$emit('change',{ enabled: this.enabled, position: this.location, radius: this.radius});
           this.saveToLocalStorage();
       },
       saveToLocalStorage: function() {

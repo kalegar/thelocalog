@@ -47,7 +47,6 @@ export default {
                     throw new Error(res.statusText);
                 }
                 this.neighbourhoods = res.data.neighbourhoods.map((cat) => {let words = cat.split(" "); return words.map((word) => word[0].toUpperCase() + word.toLowerCase().substring(1)).join(" ")});
-                console.log(this.neighbourhoods);
             })
             .catch(err => {
                 console.log(err);
@@ -60,7 +59,7 @@ export default {
     },
     watch: {
         "chips": _debounce(function() {
-            this.$emit('neighbourhood',this.chips);
+            this.$emit('change',this.chips);
             localStorage.selectedMerchantNeighbourhood = this.chips.join(';');
         }, 500)
     },
