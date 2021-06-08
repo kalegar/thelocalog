@@ -120,7 +120,7 @@ router.get("/", async (req, res) => {
             if (sortByDistance) {
                 replacements.lat = lat;
                 replacements.lon = lon,
-                replacements.radius = radius ? Utils.clamp(radius,1000,100000) : 10000;
+                replacements.radius = radius ? Utils.clamp(radius,1,100000) : 10000;
                 
                 countQuery = 
                 "SELECT COUNT(m.id) " +
