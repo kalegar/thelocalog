@@ -5,6 +5,7 @@ import cors from 'cors';
 import merchantRoutes from './routes/merchants.routes.js';
 import categoryRoutes from './routes/categories.routes.js';
 import nearbyRoutes from './routes/nearby.routes.js';
+import addressRoutes from './routes/addresses.routes.js';
 import userRoutes from './routes/user.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import checkJwt from './middleware/authentication.js';
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, `${baseURL}merchantapp/dist`)));
 app.use('/api/merchants',merchantRoutes);
 app.use('/api/categories',categoryRoutes);
 app.use('/api/nearby',nearbyRoutes);
+app.use('/api/addresses',addressRoutes)
 
 app.use('/api/user', checkJwt, userRoutes);
 

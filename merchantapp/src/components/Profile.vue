@@ -84,8 +84,7 @@ export default {
                     headers: {
                         Authorization: `Bearer ${authToken}`
                     }
-                }).then(res => {
-                    console.log(res);
+                }).then(() => {
                     location.reload();
                 }).catch(err => {
                     console.log(err);
@@ -107,7 +106,6 @@ export default {
         this.canEditProfile = this.$auth.user.sub.startsWith('auth0|');
 
         this.$auth.getTokenSilently().then((authToken) => {
-            console.log(this.$auth.user);
             axios.get('/api/user/merchants', {
                 headers: {
                     Authorization: `Bearer ${authToken}`

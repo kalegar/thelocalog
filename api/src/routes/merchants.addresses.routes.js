@@ -3,11 +3,13 @@ import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
 import { Merchant, Address } from '../database/models';
+import checkJwt from '../middleware/authentication.js';
+import adminRole from '../middleware/admin.auth.js';
 
 const router = Router({mergeParams: true});
 
 // Create a new Merchant Address
-router.post("/", async (req, res) => {
+router.post("/", checkJwt, adminRole, async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
         const { address, city, province, country, postalcode } = req.body;
@@ -50,7 +52,6 @@ router.get("/", async (req, res) => {
             where: { id: req.params.merchantId }
         });
         const addresses = await merchant.getAddresses();
-        console.log(addresses);
         return res.status(200).json({ addresses });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -58,7 +59,7 @@ router.get("/", async (req, res) => {
 });
 
 // Update an address by id
-router.put("/:id", async (req, res) => {
+router.put("/:id", checkJwt, adminRole, async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
         const { address, city, province, country, postalcode } = req.body;
@@ -95,7 +96,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete an address by id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkJwt, adminRole, async (req, res) => {
     try {
         const address = await Address.destroy({ where: { id: req.params.id } });
         if (!address)

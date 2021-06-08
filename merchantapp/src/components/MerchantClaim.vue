@@ -107,7 +107,6 @@ export default {
                         const error = new Error(res.statusText);
                         throw error;
                     }
-                    console.log(res.data);
                 })
                 .catch(err => {
                     console.log(err);

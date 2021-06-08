@@ -48,7 +48,6 @@ router.patch('/profile', async (req, res) => {
             body.picture = picture;
         }
         const result = await authService.updateUserProfile(userId,body);
-        console.log(result);
         return res.status(result.status).json(result.data);
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -58,7 +57,6 @@ router.patch('/profile', async (req, res) => {
 router.get('/merchants', async (req, res) => {
     try {
         const userId = req.user.sub;
-        console.log(req.user);
         const sql = 
                 "SELECT m.id,m.title,m.description,m.website " +
                 "FROM \"Merchants\" m "+
@@ -106,8 +104,6 @@ router.post('/merchants', addOwnerScope, async (req, res) => {
             },
             type: QueryTypes.INSERT
         });
-        
-        console.log(result);
        
         return res.status(201).json({ message: 'Success.' });
     } catch (error) {

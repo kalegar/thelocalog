@@ -7,7 +7,7 @@ import { Merchant, MerchantClaim, User, Address } from '../database/models';
 import { GoogleAPIService } from '../service/google-api.service.js';
 import { LoggingService } from '../service/logging.service.js';
 import { Utils } from '../util.js';
-import redisClient from '../service/redis.service.js';
+import { redisClient, redisPrefixHours } from '../service/redis.service.js';
 
 const router = Router();
 
@@ -50,15 +50,14 @@ router.get("/claims/:claimId", async (req, res) => {
 });
 
 router.get("/hours/clearcache", async(req, res) => {
-    redisClient.KEYS("HOURS/*", function(err, result) {
-        console.log(result);
+    redisClient.KEYS(`${redisPrefixHours}*`, function(err, result) {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ message: err.message });
+        }
         const count = result.length;
         for (const key of result) {
             redisClient.DEL(key);
-        }
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ message: error.message });
         }
         return res.status(200).json({ message: `Cleared ${count} keys.` });
     });

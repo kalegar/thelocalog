@@ -324,7 +324,7 @@ export default {
             }
 
         },250,{leading: true}),
-        getMerchants: function() {
+        getMerchants: _throttle(function() {
             this.loading = true;
 
             this.page = Utils.clamp(this.page,1,Math.max(this.pages,1));
@@ -404,7 +404,7 @@ export default {
             .then(() => {
                 this.loading = false;
             })
-        }
+        },500, {leading: true})
     },
     updated: function() {
         document.title = 'Directory - The Localog';

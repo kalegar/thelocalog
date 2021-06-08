@@ -15,6 +15,7 @@ import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
 import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
+import redisService, { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
 
 const handleValidationErrors = function(error,res) {
     if (error.name.includes('Validation')) {
@@ -54,7 +55,6 @@ router.get("/", async (req, res) => {
         const {perpage,page,search,tags,categories,neighbourhood,lat,lon,radius,deleted} = req.query;
 
         let query = {attributes: ['id','title','website','description']}
-        let includes = []
 
         query.offset = 0;
         query.limit = 2;
@@ -189,19 +189,24 @@ router.get("/", async (req, res) => {
             return;
         }
 
-        if (includes.length > 0) {
-            query.include = includes;
-        }
-
         query.order = [ ['title','ASC'] ];
 
         if (deleted) {
             query.paranoid = false;
         }
 
-        const merchants = await Merchant.findAndCountAll(query);
-
-        return res.status(200).json({ merchants });
+        const queryStr = JSON.stringify(query);
+        redisClient.get(`${redisPrefixRequest}${queryStr}`, async function(err, reply) {
+            if (err || !reply) {
+                const merchants = await Merchant.findAndCountAll(query);
+                redisClient.setex(`${redisPrefixRequest}${queryStr}`,redisExpiryTimeShort,JSON.stringify(merchants));
+                res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
+                return res.status(200).json({ merchants });
+            }
+            res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
+            const data = JSON.parse(reply);
+            return res.status(200).json({ merchants: data });
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -1,3 +1,6 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
 import axios from 'axios';
 import { Utils } from '../util.js';
 import { LoggingService } from './logging.service.js';
