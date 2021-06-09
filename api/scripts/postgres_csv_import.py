@@ -21,6 +21,12 @@ load_dotenv(dotenv_path)
 def clean_string(in_str):
     return in_str.replace(u"\u0027", "'").replace(u"\u200b","")
 
+def clean_phone(in_phone_str):
+    try:
+        return int(re.sub(r'\D','',in_phone_str))
+    except ValueError:
+        return None
+
 def province_name_to_province_code(name):
     return name.upper().replace("ALBERTA","AB").replace("BRITISH COLUMBIA","BC").replace("SASKATCHEWAN","SK").replace("MANITOBA","MB").replace("ONTARIO","ON").replace("QUEBEC","QC").replace("NOVA SCOTIA","NS").replace("NEW BRUNSWICK","NB")
 
@@ -106,7 +112,7 @@ def parse_csv(path):
                     if (result != None):
                         cur.execute(u"INSERT INTO \"MerchantAddresses\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"AddressId\") VALUES (%s, %s, %s, %s)",(datetime.datetime.now(), datetime.datetime.now(),merchantid,result[0]))
                         # INSERT CONTACT
-                        cur.execute(u"INSERT INTO \"Contacts\" (\"AddressId\",email,phone,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",(result[0],row["Email"],row["Phone"],datetime.datetime.now(), datetime.datetime.now()))
+                        cur.execute(u"INSERT INTO \"Contacts\" (\"AddressId\",email,phone,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",(result[0],row["Email"],clean_phone(row["Phone"]),datetime.datetime.now(), datetime.datetime.now()))
             
             # INSERT TAGS
             tags = row['Keywords'].replace("\r\n"," ").replace(","," ").replace("\n"," ").split(" ")

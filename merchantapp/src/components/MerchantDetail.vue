@@ -146,12 +146,12 @@
                                             </v-list-item>
                                             <v-list-item v-if="address.Contact.phone">
                                                 <v-list-item-content>
-                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone.replace( /\D/g, '')"><v-icon left>mdi-phone</v-icon>{{address.Contact.phone}}</a></v-list-item-title>
+                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone"><v-icon left>mdi-phone</v-icon>{{formatPhone(address.Contact.phone)}}</a></v-list-item-title>
                                                 </v-list-item-content>
                                             </v-list-item>
                                             <v-list-item v-if="address.Contact.phone2">
                                                 <v-list-item-content>
-                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone2.replace( /\D/g, '')"><v-icon left>mdi-phone</v-icon>{{address.Contact.phone2}}</a></v-list-item-title>
+                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone2"><v-icon left>mdi-phone</v-icon>{{formatPhone(address.Contact.phone2)}}</a></v-list-item-title>
                                                 </v-list-item-content>
                                             </v-list-item>
                                         </v-col>
@@ -184,6 +184,7 @@ import BasePage from './BasePage.vue';
 import BaseContent from './BaseContent.vue';
 import GoogleMapsEmbed from './GoogleMapsEmbed.vue'
 import SocialMediaLinks from './SocialMediaLinks.vue'
+import { Utils } from '../utils/util.js';
 
 export default {
     name: 'MerchantDetail',
@@ -227,6 +228,10 @@ export default {
         }
     },
     methods: {
+        formatPhone: function(phone) {
+            const formatted = Utils.formatPhoneNumber(phone);
+            return formatted ? formatted : phone;
+        },
         encodeAddress: function(title,address) {
             if (address.placeid) {
                 return encodeURI(`q=place_id:${address.placeid}`);
