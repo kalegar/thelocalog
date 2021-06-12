@@ -116,29 +116,77 @@ router.get("/", async (req, res) => {
             if (categories)        q = q.replace("3=3",filterCategories);
             if (neighbourhood)     q = q.replace("4=4",filterNeighbourhood);
             if (deleted !== true)  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
-            let countQuery = '';
+
+            let selectClause = "m.id,m.title,m.description,m.website";
+            let orderByClause = "m.title ASC";
+            let limitClause = " LIMIT "+query.limit+" OFFSET "+query.offset+";";
+            let mainQuery = "\"Merchants\" m";
+
             if (sortByDistance) {
                 replacements.lat = lat;
                 replacements.lon = lon,
                 replacements.radius = radius ? Utils.clamp(radius,1,100000) : 10000;
-                
-                countQuery = 
-                "SELECT COUNT(m.id) " +
-                "FROM ("+
+            }
+
+            /////////////////////
+            //START BUILD QUERY//
+            /////////////////////
+            if (search && sortByDistance) {
+                selectClause = 
+                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank";
+
+                mainQuery =
+                "("+
                 " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
                 " FROM \"MerchantAddresses\" ma JOIN "+
                 " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
                 " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
                 " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
-                " GROUP BY ma.\"MerchantId\") as d "+
-                "JOIN \"Merchants\" m on d.id = m.id "+
-                "WHERE " + q + ";";
-            } else {
-                countQuery = 
-                "SELECT COUNT(m.id) " +
-                "FROM \"Merchants\" m "+
-                "WHERE " + q + ";";
+                " GROUP BY ma.\"MerchantId\"" + 
+                ") as d "+
+                "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery('" + search + "') as query";
+
+                q = q + " AND (query @@ m.textsearch) ";
+
+                orderByClause = "rank DESC, d.distance";
+            } else if (search) {
+                selectClause = 
+                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank";
+                mainQuery = 
+                "\"Merchants\" m, websearch_to_tsquery('" + search + "') as query ";
+                q = q + " AND (query @@ m.textsearch) ";
+                orderByClause = "rank DESC";
+
+            } else if (sortByDistance) {
+                mainQuery =
+                "("+
+                " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
+                " FROM \"MerchantAddresses\" ma JOIN "+
+                " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
+                " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
+                " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
+                " GROUP BY ma.\"MerchantId\"" + 
+                ") as d "+
+                "JOIN \"Merchants\" m on d.id = m.id ";
+
+                orderByClause = "d.distance";
             }
+
+            const countQuery = 
+            "SELECT COUNT(m.id) " +
+            "FROM " + mainQuery + " " +
+            "WHERE " + q + ";"
+
+            const selectQuery = 
+            "SELECT " + selectClause + " " +
+            "FROM " + mainQuery + " " +
+            "WHERE " + q + " " +
+            (orderByClause ? "ORDER BY " + orderByClause + " " : "") +
+            (limitClause ? limitClause : "") +
+            ";";
+            ///////////////////
+            //END BUILD QUERY//
+            ///////////////////
             
             Merchant.sequelize.query(
                 countQuery,
@@ -150,29 +198,6 @@ router.get("/", async (req, res) => {
                 if (count > 0) {
                     if (query.offset > count) {
                         query.offset = 0;
-                    }
-                    let selectQuery = '';
-                    if (sortByDistance) {
-                        selectQuery = 
-                        "SELECT m.id,m.title,m.description,m.website " +
-                        "FROM ("+
-                        " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
-                        " FROM \"MerchantAddresses\" ma JOIN "+
-                        " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
-                        " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
-                        " WHERE ST_DWithin(a.geom, ref_geom, :radius) " + 
-                        " GROUP BY ma.\"MerchantId\") as d "+
-                        "JOIN \"Merchants\" m on d.id = m.id "+
-                        "WHERE " + q +
-                        " ORDER BY d.distance " +
-                        " LIMIT "+query.limit+" OFFSET "+query.offset+";";
-                    } else {
-                        selectQuery =
-                        "SELECT m.id,m.title,m.description,m.website " +
-                        "FROM \"Merchants\" m "+
-                        "WHERE " + q +
-                        " ORDER BY m.title ASC" + 
-                        " LIMIT "+query.limit+" OFFSET "+query.offset+";";
                     }
                     Merchant.sequelize.query(
                         selectQuery,
