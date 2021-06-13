@@ -74,7 +74,6 @@
                                         dense
                                         shaped
                                         :elevation="hover ? 12 : 4"
-                                        :color="hover ? 'blue lighten-5' : 'white'"
                                         :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}"
                                     >
                                         <v-list-item three-line class="mb-n2">
@@ -98,6 +97,13 @@
 
                                         <v-divider class="mx-4"></v-divider>
 
+
+                                        <div class="d-flex" style="height: 24px;"> 
+                                            <v-spacer></v-spacer>
+                                            <v-list-item class="my-n1" style="width: 50%; max-width: 50%;">
+                                            <v-list-item-subtitle v-if="merchant.distance"><v-icon>mdi-map-marker-outline</v-icon> Distance: {{merchant.distance >= 1000 ? (merchant.distance / 1000).toFixed(1) + 'km' : merchant.distance.toFixed(0) + 'm'}}</v-list-item-subtitle>
+                                            </v-list-item>
+                                        </div>
                                         <v-card-actions>
                                         </v-card-actions>
                                     </v-card>
@@ -120,10 +126,21 @@
                         <div v-else key="list-merchants">
                             <v-list three-line>
                                 <template v-for="merchant in merchants">
-                                        <v-list-item :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}" :key="merchant.title">
-                                            <v-list-item-avatar>
-                                                <v-icon>mdi-storefront</v-icon>
+                                    <v-hover v-slot:default="{ hover }" :key="merchant.title">
+                                        <v-list-item :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}">
+                                            <div v-if="!merchant.distance">
+                                            <v-list-item-avatar class="mt-n4">
+                                                <v-icon :large="hover" >mdi-storefront</v-icon>
                                             </v-list-item-avatar>
+                                            </div>
+                                            <div class="mt-n2" v-if="merchant.distance">
+                                                <v-list-item-avatar class="my-0">
+                                                    <v-icon :large="hover">mdi-map-marker-outline</v-icon>
+                                                </v-list-item-avatar>
+                                                <v-list-item-subtitle class="mr-4 mt-n1">{{merchant.distance >= 1000 ? (merchant.distance / 1000).toFixed(1) + 'km' : merchant.distance.toFixed(0) + 'm'}}</v-list-item-subtitle>
+                                            </div>
+
+                                            <v-divider vertical class="my-4 mr-2"></v-divider>
 
                                             <v-list-item-content class="merchant-list-item">
                                                 <h3>{{merchant.title}}</h3>
@@ -136,6 +153,7 @@
                                               size="80"
                                             ><v-img contain :src="`/api/merchants/${merchant.id}/images/logo`"/></v-list-item-avatar>
                                         </v-list-item>
+                                    </v-hover>
                                     <v-divider
                                       :key="merchant.id"
                                       class="mx-4"

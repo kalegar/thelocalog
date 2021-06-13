@@ -133,7 +133,7 @@ router.get("/", async (req, res) => {
             /////////////////////
             if (search && sortByDistance) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank";
+                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank, d.distance";
 
                 mainQuery =
                 "("+
@@ -158,6 +158,8 @@ router.get("/", async (req, res) => {
                 orderByClause = "rank DESC";
 
             } else if (sortByDistance) {
+                selectClause =
+                "m.id,m.title,m.description,m.website,distance";
                 mainQuery =
                 "("+
                 " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+

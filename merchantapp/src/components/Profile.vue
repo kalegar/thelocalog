@@ -106,6 +106,18 @@ export default {
         this.canEditProfile = this.$auth.user.sub.startsWith('auth0|');
 
         this.$auth.getTokenSilently().then((authToken) => {
+
+            axios.get(`/api/user`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            .catch(err => {
+                if (err.json) {
+                    console.log(err.json);
+                }
+            });
+
             axios.get('/api/user/merchants', {
                 headers: {
                     Authorization: `Bearer ${authToken}`

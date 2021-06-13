@@ -43,6 +43,8 @@
                                         placeholder="Please provide details of your proof of ownership"
                                         rows="6"
                                         required
+                                        :counter="textAreaMaxLength"
+                                        :rules="textAreaRules"
                                     ></v-textarea>
                                 </div>
                             </div>
@@ -57,6 +59,7 @@
                     </div>
                     <div class="col" v-if="submitted">
                         <p>Your claim has been submitted!</p>
+                        <v-btn dark color="secondary" :to="{ name: 'Merchants' }">Back To Directory</v-btn>
                     </div>
                 </div>
             </div>
@@ -87,15 +90,18 @@ export default {
                 name: ''
             },
             logo: [],
-            submitted: false
+            submitted: false,
+            textAreaMaxLength: 500,
+            textAreaRules: [v => v ? (v.length <= 500 || 'Text over character limit will be truncated.') : true]
         }
     },
     methods: {
         onSubmit: function() {
             event.preventDefault();
             const url = `/api/merchants/${this.id}/claims`;
+
             this.$auth.getTokenSilently().then((authToken) => {
-                axios.post(url, { text: this.form.text, email: this.form.email }, {
+                axios.post(url, { text: this.form.text.substring(0,Math.min(this.form.text.length,this.textAreaMaxLength)), email: this.form.email }, {
                     headers: {
                         Authorization: `Bearer ${authToken}`
                     }
@@ -125,7 +131,6 @@ export default {
                     const error = new Error(res.statusText);
                     throw error;
                 }
-                console.log(res.data);
                 this.logo = res.data;
             })
             .catch(err => {
@@ -155,7 +160,6 @@ export default {
                 throw error;
             }
             this.merchant = res.data.merchant;
-            console.log(this.merchant);
             this.getLogo();
         })
         .catch(err => {
