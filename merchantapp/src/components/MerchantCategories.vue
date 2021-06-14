@@ -3,17 +3,18 @@
         <v-row>
             <div class="text-body mb-3">Filter By Category:</div>
             <v-spacer></v-spacer>
-            <v-btn class="clear-categories" v-if="selected.length" @click="selected = [];" color="secondary">Clear Categories</v-btn>
+            <v-btn class="clear-categories" v-if="value.length" @click="value = []; updateInput();" color="secondary" small>Clear Categories</v-btn>
         </v-row>
         <v-row>
             <v-col>
                 <v-checkbox 
                 v-for="category in categories" 
-                v-model="selected"
+                v-model="value"
                 :key="category"
                 :label="category"
                 :value="category"
                 color="secondary"
+                @change="updateInput"
                 class="my-n3">
                 </v-checkbox>
             </v-col>
@@ -26,6 +27,16 @@ import axios from 'axios';
 
 export default {
     name: 'MerchantCategories',
+    model: {
+      prop: 'modelValue',
+      event: 'change'
+    },
+    props: {
+      modelValue: {
+        type: Array,
+        default: () => []
+      }
+    },
     methods: {
         getCategories: function() {
             axios.get('/api/categories'
@@ -44,26 +55,33 @@ export default {
                     });
                 }
             });
+        },
+        updateInput: function(store = true) {
+            this.$emit('change',this.value);
+            if (store)
+                this.save();
+        },
+        save: function() {
+            localStorage.selectedMerchantCategories = this.value.join(';');
         }
     },
     data: function() {
         return {
-            selected: [],
+            value: [],
             categories: []
         }
     },
     mounted: function() {
-
-        if (localStorage.selectedMerchantCategories) {
-            this.selected = localStorage.selectedMerchantCategories.split(';');
-        }
-
         this.getCategories();
+        if (localStorage.selectedMerchantCategories) {
+            this.value = localStorage.selectedMerchantCategories.split(';');
+            this.updateInput(false);
+        }
     },
     watch: {
-        "selected": function() {
-            this.$emit('change',this.selected);
-            localStorage.selectedMerchantCategories = this.selected.join(';');
+        "modelValue": function() {
+            this.value = this.modelValue;
+            this.save();
         }
     }
 }

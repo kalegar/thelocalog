@@ -1,12 +1,13 @@
 <template>
     <div class="neighbourhood-div">
         <v-combobox
-          v-model="chips"
+          v-model="value"
           multiple
           chips
           clearable
           color="secondary"
           label="Filter by Neighbourhood:"
+          @change="updateInput"
           :delimiters="delimiters"
           :items="neighbourhoods"
         >
@@ -27,13 +28,22 @@
 
 <script>
 import axios from 'axios';
-import _debounce from 'lodash/debounce';
 
 export default {
     name: 'MerchantNeighbourhood',
+    model: {
+      prop: 'modelValue',
+      event: 'change'
+    },
+    props: {
+      modelValue: {
+        type: Array,
+        default: () => []
+      }
+    },
     data: function() {
         return {
-            chips: '',
+            value: [],
             neighbourhoods: [],
             delimiters: [',',';']
         }
@@ -53,20 +63,29 @@ export default {
             });
         },
         remove: function(item) {
-            this.chips.splice(this.chips.indexOf(item), 1)
-            this.chips = [...this.chips]
+            this.value.splice(this.value.indexOf(item), 1)
+            this.value = [...this.value]
+        },
+        updateInput: function(store = true) {
+            this.$emit('change',this.value);
+            if (store)
+                this.save();
+        },
+        save: function() {
+            localStorage.selectedMerchantNeighbourhood = this.value.join(';');
         }
     },
     watch: {
-        "chips": _debounce(function() {
-            this.$emit('change',this.chips);
-            localStorage.selectedMerchantNeighbourhood = this.chips.join(';');
-        }, 500)
+      "modelValue": function() {
+        this.value = this.modelValue;
+        this.save();
+      }
     },
     mounted: function() {
         this.getNeighbourhoods();
         if (localStorage.selectedMerchantNeighbourhood) {
-            this.chips = localStorage.selectedMerchantNeighbourhood.split(';');
+            this.value = localStorage.selectedMerchantNeighbourhood.split(';');
+            this.updateInput(false);
         }
     }
 }

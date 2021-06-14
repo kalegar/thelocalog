@@ -3,11 +3,11 @@
         <v-row>
             <v-col class="mt-n2">
                 <v-layout justify-center align-center>
-                <v-switch id="geo-location-switch" v-model="enabled" inset label="Use My Location"></v-switch>
+                <v-switch id="geo-location-switch" v-model="value" @change="updateInput" inset label="Use My Location" :loading="loading" color="secondary"></v-switch>
                 </v-layout>
-                <div class="geo-radius" v-if="enabled">
+                <div class="geo-radius" v-if="value">
                     <label for="geo-location-radius">Radius: {{radius}} km</label>
-                    <v-slider v-model="radius" min="1" max="100" :disabled="!enabled"></v-slider>
+                    <v-slider v-model="radius" @change="updateRadius" min="1" max="100" :disabled="!value" color="secondary"></v-slider>
                 </div>
             </v-col>
         </v-row>
@@ -20,53 +20,82 @@ import _debounce from 'lodash/debounce';
 
 export default {
   name: 'MyLocation',
+  model: {
+      prop: 'modelValue',
+      event: 'change'
+    },
+    props: {
+      modelValue: {
+        type: Boolean,
+        default: false
+      }
+    },
   data: function() {
       return {
-          enabled: false,
-          location: {},
-          radius: 10
+          value: false,
+          location: {
+              latitude: 0,
+              longitude: 0
+          },
+          radius: 10,
+          loading: false,
       }
   },
   watch: {
-      enabled: function() {
-            if (this.enabled) {
-                if (navigator.geolocation) {  
-                    navigator.geolocation.getCurrentPosition(this.setGeoLocation,this.errorGettingPosition);  
-                }
-            }else{
-                this.location = {};
-                this.emitLocation();
-            }
-        },
-      radius: _debounce(function() {
-          if (this.enabled) {
-              this.emitLocation();
-          }
-      }, 500)  
+      modelValue: function() {
+        this.value = this.modelValue;
+        this.save();
+      }
   },
   mounted: function() {
       this.loadFromLocalStorage();
+      this.updateInput(false);
   },
   methods: {
+      getGeoLocation : function() {
+          if (this.value && navigator.geolocation) {  
+              this.loading = true;
+              navigator.geolocation.getCurrentPosition(this.setGeoLocation,this.errorGettingPosition);  
+          }
+      },
       errorGettingPosition: function(err) {
           console.warn(`ERROR(${err.code}): ${err.message}`);
+          this.loading = false;
       },
       setGeoLocation : function(position) {
-          this.location = position;
-          this.emitLocation();
+          this.loading = false;
+          this.location = position.coords;
+          this.updateLocation();
+          this.updateRadius(false);
+          this.$emit('change',this.value);
       },
-      emitLocation: function() {
-          this.$emit('change',{ enabled: this.enabled, position: this.location, radius: this.radius});
-          this.saveToLocalStorage();
+      updateInput: function(store = true) {
+          if (this.value) {
+              this.getGeoLocation();
+          }else{
+            this.$emit('change',this.value);
+          }
+          if (store)
+            this.save();
       },
-      saveToLocalStorage: function() {
-          localStorage.useGeoLocation = this.enabled ? 'true' : 'false';
+      updateLocation: function(store = true) {
+          this.$emit('update:location', this.location);
+          if (store)
+            this.save();
+      },
+      updateRadius: _debounce(function(store = true) {
+          this.$emit('update:radius', this.radius);
+          if (store)
+            this.save();
+      }, 500),
+      save: function() {
+          localStorage.useGeoLocation = this.value ? 'true' : 'false';
           localStorage.geoLocation = this.location;
           localStorage.geoRadius = this.radius;
       },
       loadFromLocalStorage: function() {
           if (localStorage.useGeoLocation) {
-            this.enabled = (localStorage.useGeoLocation === 'true');
+            this.value = (localStorage.useGeoLocation === 'true');
           }
           if (localStorage.geoLocation) {
             this.location = localStorage.geoLocation;

@@ -1,12 +1,13 @@
 <template>
     <div class="tag-div">
         <v-combobox
-          v-model="chips"
+          v-model="value"
           multiple
           chips
           clearable
           color="secondary"
           label="Filter by Keyword(s):"
+          @change="updateInput"
           :delimiters="delimiters"
         >
           <template v-slot:selection="{ attrs, item, select, selected }">
@@ -27,27 +28,46 @@
 <script>
 export default {
     name: 'MerchantTags',
+    model: {
+      prop: 'modelValue',
+      event: 'change'
+    },
+    props: {
+      modelValue: {
+        type: Array,
+        default: () => []
+      }
+    },
     data: function() {
         return {
-            chips: [],
+            value: [],
             delimiters: [' ',',',';']
         }
     },
+    watch: {
+      "modelValue": function() {
+        this.value = this.modelValue;
+        this.save();
+      }
+    },
     methods: {
       remove: function(item) {
-        this.chips.splice(this.chips.indexOf(item), 1)
-        this.chips = [...this.chips]
+        this.value.splice(this.value.indexOf(item), 1)
+        this.value = [...this.value]
       },
-    },
-    watch: {
-        "chips": function() {
-            this.$emit('change',this.chips);
-            localStorage.selectedMerchantTags = this.chips.join(';');
-        }
+      updateInput: function(store = true) {
+        this.$emit('change',this.value);
+        if (store)
+          this.save();
+      },
+      save: function() {
+        localStorage.selectedMerchantTags = this.value.join(';');
+      }
     },
     mounted: function() {
         if (localStorage.selectedMerchantTags) {
-            this.chips = localStorage.selectedMerchantTags.split(';');
+            this.value = localStorage.selectedMerchantTags.split(';');
+            this.updateInput(false);
         }
     }
 }

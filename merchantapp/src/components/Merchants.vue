@@ -3,35 +3,63 @@
         <BasePage v-on:headerclicked="refreshScreen()">
             <BaseContent>
                 <template v-slot:left>
-                    <div v-if="!displayCollapseFilters" class="mt-3 sidebar">
-                        <h3 class="mt-8">Search Filters</h3>
-                        <MyLocation v-on:change="setGeoLocation($event);"/>
-                        <MerchantTags v-on:change="getMerchants({ tags: $event })"/>
-                        <MerchantNeighbourhood v-on:change="getMerchants({ neighbourhood: $event })"/>
-                        <MerchantCategories v-on:change="getMerchants({ categories: $event })"/>
-                    </div>
+                    <v-row v-if="!displayCollapseFilters" justify="center" class="ma-4">
+                        <v-expansion-panels>
+                            <v-expansion-panel>
+                            <v-expansion-panel-header v-slot:default="{ open }">
+                                <v-row no-gutters>
+                                <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="open">mdi-filter</v-icon>
+                                <v-col class="mt-1" align-self="center">
+                                Search Filters
+                                </v-col>
+                                <v-col class="mt-1 mr-2" align-self="center" v-if="hasSearchFilters">
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="secondary" class="ma-0 float-right" small @click.native.stop="clearFilters()">Reset</v-btn>
+                                </v-col>
+                                </v-row>
+                            </v-expansion-panel-header>
+                            <v-expansion-panel-content eager>
+                                <MyLocation v-model="geo.enabled" v-bind:radius.sync="geo.radius" v-bind:location.sync="geo.location"/>
+                                <MerchantTags v-model="tags"/>
+                                <MerchantNeighbourhood v-model="neighbourhood"/>
+                                <MerchantCategories v-model="categories"/>
+                            </v-expansion-panel-content>
+                            </v-expansion-panel>
+                        </v-expansion-panels>
+                    </v-row>
                 </template>
                 <div class="row">
                 <div class="merchantlist col">
                     <v-row v-if="displayCollapseFilters" justify="center">
                         <v-expansion-panels>
                             <v-expansion-panel>
-                            <v-expansion-panel-header>Search Filters</v-expansion-panel-header>
-                            <v-expansion-panel-content>
-                                <MyLocation v-on:change="setGeoLocation($event);"/>
-                                <MerchantTags v-on:change="getMerchants({ tags: $event })"/>
-                                <MerchantNeighbourhood v-on:change="getMerchants({ neighbourhood: $event })"/>
-                                <MerchantCategories v-on:change="getMerchants({ categories: $event })"/>
+                            <v-expansion-panel-header v-slot:default="{ open }">
+                                <v-row no-gutters>
+                                <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="open">mdi-filter</v-icon>
+                                <v-col class="mt-1" align-self="center">
+                                Search Filters
+                                </v-col>
+                                <v-col class="mt-1 mr-2" align-self="center" v-if="hasSearchFilters">
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="secondary" class="ma-0 float-right" small @click.native.stop="clearFilters()">Reset</v-btn>
+                                </v-col>
+                                </v-row>
+                            </v-expansion-panel-header>
+                            <v-expansion-panel-content eager>
+                                <MyLocation v-model="geo.enabled" v-bind:radius.sync="geo.radius" v-bind:location.sync="geo.location"/>
+                                <MerchantTags v-model="tags"/>
+                                <MerchantNeighbourhood v-model="neighbourhood"/>
+                                <MerchantCategories v-model="categories"/>
                             </v-expansion-panel-content>
                             </v-expansion-panel>
                         </v-expansion-panels>
                     </v-row>
-                    <div  class="row">
-                        <div v-if="!searchFilters.searchquery" class="col">
+                    <div class="row">
+                        <div v-if="!searchquery" class="col">
                             <h1>Local Shops</h1>
                         </div>
                         <div v-else class="col">
-                            <h1>Results for '<em>{{searchFilters.searchquery}}</em>'</h1>
+                            <h1>Results for '<em>{{searchquery}}</em>'</h1>
                         </div>
                         <div class="d-none d-sm-block col-sm-2">
                             <v-btn-toggle
@@ -74,7 +102,7 @@
                                         dense
                                         shaped
                                         :elevation="hover ? 12 : 4"
-                                        :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}"
+                                        :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geo.location }}"
                                     >
                                         <v-list-item three-line class="mb-n2">
                                             <v-list-item-content>
@@ -127,7 +155,7 @@
                             <v-list three-line>
                                 <template v-for="merchant in merchants">
                                     <v-hover v-slot:default="{ hover }" :key="merchant.title">
-                                        <v-list-item :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geoLocation }}">
+                                        <v-list-item :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geo.location }}">
                                             <div v-if="!merchant.distance">
                                             <v-list-item-avatar class="mt-n4">
                                                 <v-icon :large="hover" >mdi-storefront</v-icon>
@@ -193,7 +221,7 @@
                         ></v-select>
                     </div>
                     <div class="admin-filters" v-if="$auth.isAuthenticated">
-                        <v-checkbox large v-model="searchFilters.includeDeleted" v-on:change="getMerchants()" label="Include Deleted Merchants"></v-checkbox>
+                        <v-checkbox large v-model="includeDeleted" v-on:change="getMerchants()" label="Include Deleted Merchants"></v-checkbox>
                     </div>
                 </template>
             </BaseContent>
@@ -231,6 +259,32 @@ export default {
         },
         "query": function() {
             this.getMerchants({ searchquery: this.query });
+        },
+        "merchantLayout": function() {
+            localStorage.merchantLayout = String(this.merchantLayout);
+        },
+        "tags": function() {
+            this.shouldGetMerchants = true;
+        },
+        "neighbourhood": function() {
+            this.shouldGetMerchants = true;
+        },
+        "categories": function() {
+            this.shouldGetMerchants = true;
+        },
+        "geo.enabled": function() {
+            this.shouldGetMerchants = true;
+        },
+        "geo.radius": function() {
+            if (this.geo.enabled) {
+                this.shouldGetMerchants = true;
+            }
+        },
+        "shouldGetMerchants": function(newValue, oldValue) {
+            console.log('should get: ' + this.shouldGetMerchants);
+            if (newValue && (oldValue !== newValue)) {
+                this.getMerchants();
+            }
         }
     },
     components: {
@@ -250,24 +304,32 @@ export default {
             page: 1,
             pages: 1,
             perpage: '10',
-            geoRadius: 10000,
-            useGeoLocation: false,
-            geoLocation: {},
+            geo: {
+                enabled: false,
+                location: {},
+                radius: 10
+            },
             merchantLayout: 0,
             merchantCardCols: 4,
-            searchFilters: {
+            shouldGetMerchants: false,
+            //SEARCH FILTERS:
                 searchquery: '',
                 categories: [],
                 tags: [],
-                neighbourhood: '',
-                includeDeleted: false
-            },
+                neighbourhood: [],
+                includeDeleted: false,
+
             displayCollapseFilters: false,
             perPageOptions: [
                 { text: '10 Per Page', value: '10' },
                 { text: '25 Per Page', value: '25' },
                 { text: '50 Per Page', value: '50' }
             ]
+        }
+    },
+    computed: {
+        hasSearchFilters: function() {
+            return Boolean(this.categories.length || this.tags.length || this.neighbourhood.length || (this.geo && this.geo.enabled));
         }
     },
     methods: {
@@ -278,17 +340,21 @@ export default {
             history.back();
         },
         refreshScreen: function() {
-            this.searchFilters.searchquery = '';
+            this.searchquery = '';
             this.getMerchants();
         },
-        setGeoLocation: function(location) {
-            const { enabled, position, radius } = location;
-            this.useGeoLocation = enabled;
-            if (enabled === true) { 
-                this.geoLocation = position.coords;
-                this.geoRadius = radius * 1000;
-            }
-            this.getMerchants();
+        clearFilters: function() {
+            this.getMerchants({
+                geo: {
+                    enabled: false,
+                    location: {},
+                    radius: 10
+                },
+                categories: [],
+                tags: [],
+                neighbourhood: [],
+                includeDeleted: false
+            });
         },
         onResize : _throttle(function() {
             const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -311,7 +377,7 @@ export default {
             if (filters) {
                 this.page = 1;
                 for (const key in filters) {
-                    this.searchFilters[key] = filters[key];
+                    this[key] = filters[key];
                 }
             }
 
@@ -328,31 +394,32 @@ export default {
                 'perpage': this.perpage
             }
 
-            if (this.searchFilters.tags && this.searchFilters.tags.length > 0) {
-                params.tags = this.searchFilters.tags.join(" ");
+            if (this.tags && this.tags.length > 0) {
+                params.tags = this.tags.join(" ");
             }
 
-            if (this.searchFilters.categories && this.searchFilters.categories.length > 0) {
-                params.categories = this.searchFilters.categories.join("+");
+            if (this.categories && this.categories.length > 0) {
+                params.categories = this.categories.join("+");
             }
 
-            if (this.searchFilters.neighbourhood && this.searchFilters.neighbourhood.length > 0) {
-                params.neighbourhood = this.searchFilters.neighbourhood;
+            if (this.neighbourhood && this.neighbourhood.length > 0) {
+                params.neighbourhood = this.neighbourhood;
             }
 
-            if (this.searchFilters.searchquery) {
-                params.search = this.searchFilters.searchquery;
+            if (this.searchquery) {
+                params.search = this.searchquery;
             }
 
-            if (this.searchFilters.includeDeleted) {
+            if (this.includeDeleted) {
                 params.deleted = 'true';
             }
 
-            if (this.useGeoLocation && this.geoLocation) {
-                params.lat = this.geoLocation.latitude;
-                params.lon = this.geoLocation.longitude;
-                if (this.geoRadius) {
-                    params.radius = this.geoRadius;
+            if (this.geo && this.geo.enabled && this.geo.location) {
+                console.log(this.geo);
+                params.lat = this.geo.location.latitude;
+                params.lon = this.geo.location.longitude;
+                if (this.geo.radius) {
+                    params.radius = this.geo.radius * 1000;
                 }
             }
 
@@ -376,10 +443,10 @@ export default {
                 }
             })
             .catch(err => {
-                this.error = err;
                 if (axios.isCancel(err)) {
                     return;
                 }
+                this.error = err;
                 if (err.json) {
                     return err.json.then(json => {
                         this.error.message = json.message;
@@ -388,6 +455,7 @@ export default {
             })
             .then(() => {
                 this.loading = false;
+                this.shouldGetMerchants = false;
             })
         }
     },
@@ -397,7 +465,7 @@ export default {
     mounted: function() {
 
         if (this.query) {
-            this.searchFilters.searchquery = this.query;
+            this.searchquery = this.query;
         }
 
         let retrieve = true;
@@ -409,6 +477,10 @@ export default {
         if (localStorage.merchantsCurrentPage) {
             this.page = localStorage.merchantsCurrentPage;
             retrieve = false;
+        }
+
+        if (localStorage.merchantLayout) {
+            this.merchantLayout = Number(localStorage.merchantLayout);
         }
 
         if (retrieve)
