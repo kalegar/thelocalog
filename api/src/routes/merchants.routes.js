@@ -94,7 +94,6 @@ router.get("/", async (req, res) => {
                 "SELECT ma.\"MerchantId\" as id "+
                 "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                 "WHERE UPPER(a.neighbourhood) iLike '%" + neighbourhood + "%' OR UPPER(a.neighbourhood) in " + neighbourhoodArray + ")";    
-            console.log(filterNeighbourhood);
             const filterSearch = 
                 "(m.id in ("+ //Tags
                     "SELECT mt.\"MerchantId\" as id "+
