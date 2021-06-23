@@ -15,5 +15,18 @@ export const Utils = {
     createGeom: function(lng,lat) {
         //Need to specify SRID for compat with PostGIS < 3.0.0
         return { type: 'Point', coordinates: [lng,lat], crs: { type: 'name', properties: { name: 'EPSG:4326'} }};
+    },
+
+    toListSQL: function(value,split=true,delimiter=',') {
+        if (value) {
+            if (Array.isArray(value)) {
+                return "(\'" + value.map((n) => n.toUpperCase()).join('\',\'') + "\')";
+            } else if (split) {
+                return "(\'" + value.split(delimiter).map((n) => n.toUpperCase()).join('\',\'') + "\')";
+            } else {
+                return `(\'${value}\')`;
+            }
+        }
+        return '(\'\')';
     }
 }

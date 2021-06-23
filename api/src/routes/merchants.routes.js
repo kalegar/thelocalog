@@ -19,7 +19,7 @@ import redisService, { redisClient, redisPrefixRequest, redisExpiryTimeShort } f
 
 const handleValidationErrors = function(error,res) {
     if (error.name.includes('Validation')) {
-        res.status(400).json({ message: error.message });
+        res.status(403).json({ message: error.message });
     }else{
         res.status(500).json({ message: error.message });
     }
@@ -49,10 +49,34 @@ router.post("/", checkJwt, adminRole, async (req, res) => {
     }
 });
 
+const parseSort = function(value,allowed) {
+    let result = '';
+    if (value && allowed) {
+        const arr = Array.isArray(value) ? value : value.split(',');
+        arr.map(e => {
+            if (e && e.length > 1) {
+                const dir = e.charAt(0);
+                const col = ((dir === '+' || dir === '-') ? e.slice(1) : e).toUpperCase();
+                if (allowed.hasOwnProperty(col)) {
+                    if (result !== '') {
+                        result = result + ', ';
+                    }
+                    if (dir === '-') {
+                        result = result + allowed[col] + ' ' + 'DESC';
+                    } else {
+                        result = result + allowed[col] + ' ' + 'ASC';
+                    }
+                }
+            }
+        })
+    }
+    return result;
+}
+
 // Retrieve all merchants
 router.get("/", async (req, res) => {
     try {
-        const {perpage,page,search,tags,categories,neighbourhood,lat,lon,radius,deleted} = req.query;
+        const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort} = req.query;
 
         let query = {attributes: ['id','title','website','description']}
 
@@ -69,63 +93,72 @@ router.get("/", async (req, res) => {
         const sortByDistance = (lat && lon);
 
         if (search || tags || categories || neighbourhood || sortByDistance) {
-            let searchArray = search ? "(\'" + search.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
-            const tagArray = tags ? "(\'" + tags.split(" ").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
-            const categoryArray = categories ? "(\'" + categories.split("+").map((tag) => tag.toUpperCase()).join('\',\'') + "\')" : '';
-            const neighbourhoodArray = neighbourhood ? "(\'" + neighbourhood.map((n) => n.toUpperCase()).join('\',\'') + "\')" : '';
-            let count = 0;
-            const filterNearby =
-                "m.id in ("+ //Filter Nearby
-                "SELECT ma.\"MerchantId\" as id "+
-                "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id "+
-                "WHERE ST_DWithin(a.geom, ST_MakePoint(:lat, :lon)::geography, :radius) )";
+            const searchArray        = Utils.toListSQL(search,true,' ');
+            const tagArray           = Utils.toListSQL(tags);
+            const categoryArray      = Utils.toListSQL(categories);
+            const neighbourhoodArray = Utils.toListSQL(neighbourhood);
+            
             const filterTags = 
                 "m.id in ("+ //Filter Tags
                 "SELECT mt.\"MerchantId\" as id "+
                 "FROM \"MerchantTags\" mt join \"Tags\" t on mt.\"TagId\" = t.id " +
-                "WHERE t.tag in " + tagArray + ")";
+                `WHERE t.tag in ${tagArray})`;
             const filterCategories = 
                 "m.id in ("+ //Categories
                 "SELECT mc.\"MerchantId\" as id "+
                 "FROM \"MerchantCategories\" mc join \"Categories\" c on mc.\"CategoryId\" = c.id " +
-                "WHERE c.category in " + categoryArray + ")";
+                `WHERE c.category in ${categoryArray})`;
             const filterNeighbourhood = 
                 "m.id in ("+ //Neighbourhood
                 "SELECT ma.\"MerchantId\" as id "+
                 "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
-                "WHERE UPPER(a.neighbourhood) iLike '%" + neighbourhood + "%' OR UPPER(a.neighbourhood) in " + neighbourhoodArray + ")";    
+                `WHERE UPPER(a.neighbourhood) iLike :neighbourhoodlike OR UPPER(a.neighbourhood) in ${neighbourhoodArray})`;    
             const filterSearch = 
-                "(m.id in ("+ //Tags
-                    "SELECT mt.\"MerchantId\" as id "+
-                    "FROM \"MerchantTags\" mt join \"Tags\" t on mt.\"TagId\" = t.id " +
-                    "WHERE t.tag in " + searchArray + ") " +
-                "OR m.id in ("+ //Categories
+                "(m.id in ("+ //Categories
                     "SELECT mc.\"MerchantId\" as id "+
                     "FROM \"MerchantCategories\" mc join \"Categories\" c on mc.\"CategoryId\" = c.id " +
-                    "WHERE c.category in " + searchArray + ") " +
+                    `WHERE c.category in ${searchArray}) ` +
                 "OR m.id in ("+ //Neighbourhood
                     "SELECT ma.\"MerchantId\" as id "+
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
-                    "WHERE a.neighbourhood iLike '%" + search + "%') " +
-                "OR m.title iLike '%" + search + "%')";
+                    `WHERE a.neighbourhood iLike :searchlike OR UPPER(a.neighbourhood) in ${searchArray}) ` +
+                "OR (query @@ m.textsearch))";
             let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5";
             let replacements = {};
-            if (search)            q = q.replace("1=1",filterSearch);
-            if (tags)              q = q.replace("2=2",filterTags);
-            if (categories)        q = q.replace("3=3",filterCategories);
-            if (neighbourhood)     q = q.replace("4=4",filterNeighbourhood);
-            if (deleted !== true)  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
 
             let selectClause = "m.id,m.title,m.description,m.website";
             let orderByClause = "m.title ASC";
             let limitClause = " LIMIT "+query.limit+" OFFSET "+query.offset+";";
             let mainQuery = "\"Merchants\" m";
 
+            let allowedOrderBy = {
+                'TITLE': 'm.title'
+            };
+
             if (sortByDistance) {
                 replacements.lat = lat;
-                replacements.lon = lon,
+                replacements.lon = lon;
                 replacements.radius = radius ? Utils.clamp(radius,1,100000) : 10000;
+                allowedOrderBy['DIST'] = 'd.distance';
             }
+            if (search) {
+                q = q.replace('1=1',filterSearch);
+                replacements.search = search;
+                replacements.searchlike = '%' + search + '%';
+                allowedOrderBy['RANK'] = 'rank';
+            }
+            if (tags) {
+                q = q.replace("2=2",filterTags);
+            }
+            if (categories) {
+                q = q.replace("3=3",filterCategories);
+            }
+            if (neighbourhood) {
+                q = q.replace("4=4",filterNeighbourhood);
+                replacements.neighbourhoodlike = '%' + neighbourhood + '%';
+            }
+
+            if (deleted !== true)  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
 
             /////////////////////
             //START BUILD QUERY//
@@ -143,17 +176,15 @@ router.get("/", async (req, res) => {
                 " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
                 " GROUP BY ma.\"MerchantId\"" + 
                 ") as d "+
-                "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery('" + search + "') as query";
-
-                q = q + " AND (query @@ m.textsearch) ";
+                "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery(:search) as query";
 
                 orderByClause = "rank DESC, d.distance";
             } else if (search) {
                 selectClause = 
                 "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank";
                 mainQuery = 
-                "\"Merchants\" m, websearch_to_tsquery('" + search + "') as query ";
-                q = q + " AND (query @@ m.textsearch) ";
+                "\"Merchants\" m, websearch_to_tsquery(:search) as query ";
+
                 orderByClause = "rank DESC";
 
             } else if (sortByDistance) {
@@ -173,6 +204,10 @@ router.get("/", async (req, res) => {
                 orderByClause = "d.distance";
             }
 
+            if (sort) {
+                orderByClause = parseSort(sort,allowedOrderBy);
+            }
+
             const countQuery = 
             "SELECT COUNT(m.id) " +
             "FROM " + mainQuery + " " +
@@ -189,32 +224,30 @@ router.get("/", async (req, res) => {
             //END BUILD QUERY//
             ///////////////////
             
-            Merchant.sequelize.query(
+            const countResult = await Merchant.sequelize.query(
                 countQuery,
                 { type: QueryTypes.SELECT, raw: true, replacements }
-            ).then(result => {
-                if (result && Array.isArray(result) && result.length > 0) {
-                    count = Number(result[0].count);
+            );
+            let count = 0;
+            if (countResult && Array.isArray(countResult) && countResult.length > 0) {
+                count = Number(countResult[0].count);
+            }
+            if (count > 0) {
+                if (query.offset > count) {
+                    query.offset = 0;
                 }
-                if (count > 0) {
-                    if (query.offset > count) {
-                        query.offset = 0;
+                const merchants = await Merchant.sequelize.query(
+                    selectQuery,
+                    {
+                        model: Merchant,
+                        mapToModel: true,
+                        replacements
                     }
-                    Merchant.sequelize.query(
-                        selectQuery,
-                        {
-                            model: Merchant,
-                            mapToModel: true,
-                            replacements
-                        }
-                    ).then(merchants => {
-                        return res.status(200).json({ merchants: { count, rows: merchants }});
-                    })
-                } else {
-                    return res.status(200).json({ merchants: { count, rows: [] }});
-                }
-            });
-            return;
+                );
+                return res.status(200).json({ merchants: { count, rows: merchants }});
+            } else {
+                return res.status(200).json({ merchants: { count, rows: [] }});
+            }
         }
 
         query.order = [ ['title','ASC'] ];
@@ -236,7 +269,8 @@ router.get("/", async (req, res) => {
             return res.status(200).json({ merchants: data });
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
@@ -289,7 +323,8 @@ router.get("/:id", async (req, res) => {
 
         return res.status(200).json({ merchant });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
@@ -314,7 +349,8 @@ router.put("/:id", checkJwt, adminRole, async (req, res) => {
 
         return res.status(200).json({ merchant });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
@@ -327,7 +363,8 @@ router.delete("/:id", checkJwt, adminRole, async (req, res) => {
     
         return res.status(200).json({ message: 'The merchant was deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 

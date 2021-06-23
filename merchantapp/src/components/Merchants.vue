@@ -395,19 +395,19 @@ export default {
             }
 
             if (this.tags && this.tags.length > 0) {
-                params.tags = this.tags.join(" ");
+                params.t = this.tags.join(",");
             }
 
             if (this.categories && this.categories.length > 0) {
-                params.categories = this.categories.join("+");
+                params.c = this.categories.join(",");
             }
 
             if (this.neighbourhood && this.neighbourhood.length > 0) {
-                params.neighbourhood = this.neighbourhood;
+                params.n = this.neighbourhood.join(",");
             }
 
             if (this.searchquery) {
-                params.search = this.searchquery;
+                params.s = this.searchquery;
             }
 
             if (this.includeDeleted) {
