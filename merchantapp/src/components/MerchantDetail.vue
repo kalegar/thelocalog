@@ -178,13 +178,13 @@
 </template>
 
 <script>
-import axios from 'axios';
 import Loading from './Loading.vue';
 import BasePage from './BasePage.vue';
 import BaseContent from './BaseContent.vue';
 import GoogleMapsEmbed from './GoogleMapsEmbed.vue'
 import SocialMediaLinks from './SocialMediaLinks.vue'
 import { Utils } from '../utils/util.js';
+import { MerchantService } from '../service/Merchant.service';
 
 export default {
     name: 'MerchantDetail',
@@ -259,43 +259,22 @@ export default {
         },
         uploadLogo: function() {
             this.uploadLogoLoading = true;
-            const url = `/api/merchants/${this.id}/images/logo`;
             this.$auth.getTokenSilently().then((authToken) => {
-                let formData = new FormData();
-                formData.append('logo',this.uploadedLogo);
-                axios.post(url, formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        Authorization: `Bearer ${authToken}`
-                    },
-                })
-                .then(res => {
+
+                MerchantService.uploadLogo(this.id,authToken,this.uploadedLogo).then(result => {
+                    this.makeToast(result,'success');
+                }, err => {
+                    this.makeToast(err,'danger',5000);
+                }).then(() => {
                     this.uploadLogoLoading = false;
-                    if (res.status != 201) {
-                        this.makeToast(`Error uploading logo: ${res.statusText} ${res.data.message}`,'danger',5000);
-                    }
-                    this.makeToast('Uploaded Logo Successfully!','success');
-                })
-                .catch(err => {
-                    this.uploadLogoLoading = false;
-                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
-                    this.makeToast(`Error uploading logo: ${err}${msg}`,'danger',5000);
                 });
             });
         },
         getBusinessHours: function() {
-            const url = `/api/merchants/${this.id}/hours`
-            axios.get(url)
-            .then(res => {
-                if (res.status != 200) {
-                    console.log('getBusinessHours() Error');
-                    const error = new Error(res.statusText);
-                    throw error;
-                }
-                if (res.data.data) {
+            MerchantService.getBusinessHours(this.id).then(result => {
+                if (result) {
                     for (const address of this.merchant.Addresses) {
-                        const hours = res.data.data.filter(e => e.address_id == address.id);
+                        const hours = result.filter(e => e.address_id == address.id);
                         if (hours.length > 0) {
                             let business_status = '';
                             switch (hours[0].status) {
@@ -308,73 +287,44 @@ export default {
                         }
                     }
                 }
-            })
-            .catch(err => {
+            }, err => {
                 console.log(err);
-            })
+            });
         },
         getLogo: function() {
-            const url = `/api/merchants/${this.id}/images`
-            axios.get(url,{ params: { type: 'LOGO' }})
-            .then(res => {
-                if (res.status != 200) {
-                    console.log('Error retrieving logo');
-                    const error = new Error(res.statusText);
-                    throw error;
-                }
-                this.logo = res.data;
-            })
-            .catch(err => {
-                console.log(err);
-            })
+            MerchantService.getLogo(this.id).then(result => {
+                this.logo = result;
+            }, () => {
+                console.log('Error retrieving logo');
+            });
         },
         saveMerchant: function() {
             this.saveMerchantLoading = true;
-            const url = `/api/merchants/${this.id}`;
             this.$auth.getTokenSilently().then((authToken) => {
-                axios.put(url, this.merchant,
-                {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`
-                    },
-                })
-                .then(res => {
-                    if (res.status != 200) {
-                        this.makeToast(`Error updating merchant: ${res.statusText} ${res.data.message}`,'danger');
-                    }else{
-                        this.makeToast('Merchant Updated!','success');
-                    }
-                })
-                .catch(err => {
-                    const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
-                    this.makeToast(`Error updating merchant: ${err}${msg}`,'danger');
-                })
-                .then(() => {this.saveMerchantLoading = false; this.editing = false; this.getMerchant()});
+
+                MerchantService.saveMerchant(this.id,authToken,this.merchant).then(result => {
+                    this.makeToast(result,'success');
+                }, err => {
+                    this.makeToast(err,'danger');
+                }).then(() => {
+                    this.saveMerchantLoading = false; 
+                    this.editing = false; 
+                    this.getMerchant();
+                });
             });
         },
         deleteMerchant: function() {
             this.deleteMerchantLoading = true;
-            const url = `/api/merchants/${this.id}`;
             this.$auth.getTokenSilently().then((authToken) => {
-                axios.delete(url,
-                {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`
-                    },
-                })
-                .then(res => {
-                    if (res.status != 200) {
-                        this.makeToast(`Error deleting merchant: ${res.statusText} ${res.data.message}`,'danger');
-                    } else {
-                        this.makeToast('Soft-deleted Merchant!','success');
-                        this.getMerchant();
-                    }
-                })
-                .catch(err => {
-                    const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
-                    this.makeToast(`Error deleting merchant: ${err}${msg}`,'danger');
-                })
-                .then(() => this.deleteMerchantLoading = false);
+
+                MerchantService.deleteMerchant(this.id,authToken).then(result => {
+                    this.makeToast(result,'success');
+                    this.getMerchant();
+                }, err => {
+                    this.makeToast(err,'danger');
+                }).then(() => {
+                    this.deleteMerchantLoading = false;
+                });
             });
         },
         makeToast: function(text, color, timeout=2000) {
@@ -386,32 +336,18 @@ export default {
         getMerchant: function() {
             this.loading = true;
             this.merchant = null;
-            const url = `/api/merchants/${this.id}`
-            axios.get(url, {
-                params: {
-                    'details': true,
-                    'include': 'address,social,contact'
-                }
-            })
-            .then(res => {
-                if (res.status != 200) {
-                    console.log('ERROR');
-                    const error = new Error(res.statusText);
-                    throw error;
-                }
-                this.merchant = res.data.merchant;
+            MerchantService.getMerchant(this.id).then(result => {
+                this.merchant = result;
                 this.getBusinessHours();
                 this.getLogo();
-            })
-            .catch(err => {
+            }, err => {
                 this.error = err;
                 if (err.json) {
                     return err.json.then(json => {
                         this.error.message = json.message;
                     });
                 }
-            })
-            .then(() => {
+            }).then(() => {
                 this.loading = false;
             });
         }

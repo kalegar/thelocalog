@@ -92,6 +92,133 @@ export const MerchantService = {
                 });
 
         });
-    }
+    },
+
+    getMerchant: function(id,include = 'address,social,contact') {
+        const url = `/api/merchants/${id}`;
+        return new Promise((resolve,reject) => {
+            axios.get(url, {
+                params: {
+                    'details': true,
+                    'include': include
+                }
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data.merchant);
+            })
+            .catch(err => {
+                reject(err);
+            });
+        });
+    },
+
+    deleteMerchant: function(id,authToken) {
+        const url = `/api/merchants/${id}`;
+        return new Promise((resolve,reject) => {
+            axios.delete(url,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject(`Error deleting merchant: ${res.statusText} ${res.data.message}`);
+                } else {
+                    resolve('Soft-deleted Merchant!');
+                }
+            })
+            .catch(err => {
+                const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error deleting merchant: ${err}${msg}`);
+            });
+        });
+    },
+
+    saveMerchant: function(id,authToken,merchant) {
+        const url = `/api/merchants/${this.id}`;
+        return new Promise((resolve,reject) => {
+            axios.put(url, merchant,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject(`Error updating merchant: ${res.statusText} ${res.data.message}`);
+                }else{
+                    resolve('Merchant Updated!');
+                }
+            })
+            .catch(err => {
+                const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error updating merchant: ${err}${msg}`);
+            });
+        });
+    },
+
+    getLogo: function(id) {
+        const url = `/api/merchants/${id}/images`;
+        return new Promise((resolve,reject) => {
+            axios.get(url,{ params: { type: 'LOGO' }})
+            .then(res => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
+    getBusinessHours: function(id) {
+        const url = `/api/merchants/${id}/hours`;
+        return new Promise((resolve,reject) => {
+            axios.get(url)
+            .then(res => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data.data);
+            })
+            .catch(err => {
+                reject(err);
+            });
+        });
+    },
+
+    uploadLogo: function(id,authToken,logo) {
+        const url = `/api/merchants/${id}/images/logo`;
+        return new Promise((resolve,reject) => {
+            let formData = new FormData();
+            formData.append('logo',logo);
+            axios.post(url, formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 201) {
+                    reject(`Error uploading logo: ${res.statusText} ${res.data.message}`);
+                }
+                resolve('Uploaded Logo Successfully!');
+            })
+            .catch(err => {
+                const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error uploading logo: ${err}${msg}`);
+            });
+        });
+    },
 
 }
