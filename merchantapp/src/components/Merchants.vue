@@ -95,47 +95,8 @@
                         <div v-else key="merchants">
                             <v-row>
                                 <v-col v-for="merchant in merchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
-                                    <v-hover v-slot:default="{ hover }">
-                                    <v-card
-                                        max-width="400"
-                                        outlined
-                                        dense
-                                        shaped
-                                        :elevation="hover ? 12 : 4"
-                                        :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geo.location }}"
-                                    >
-                                        <v-list-item three-line class="mb-n2">
-                                            <v-list-item-content>
-                                                <h3>{{merchant.title}}</h3>
-                                            </v-list-item-content>
-
-                                            <v-list-item-avatar
-                                              tile
-                                              size="100"
-                                            ><v-img contain :src="`/api/merchants/${merchant.id}/images/logo`"/></v-list-item-avatar>
-
-                                        </v-list-item>
-
-                                        <v-divider class="mx-4"></v-divider>
-
-                                        <v-list-item three-line class="my-n3">
-                                        <v-list-item-subtitle v-if="merchant.description">{{merchant.description}}</v-list-item-subtitle>
-                                        <v-list-item-subtitle v-else>A local shop near you!</v-list-item-subtitle>
-                                        </v-list-item>
-
-                                        <v-divider class="mx-4"></v-divider>
-
-
-                                        <div class="d-flex" style="height: 24px;"> 
-                                            <v-spacer></v-spacer>
-                                            <v-list-item class="my-n1" style="width: 50%; max-width: 50%;">
-                                            <v-list-item-subtitle v-if="merchant.distance"><v-icon>mdi-map-marker-outline</v-icon> Distance: {{merchant.distance >= 1000 ? (merchant.distance / 1000).toFixed(1) + 'km' : merchant.distance.toFixed(0) + 'm'}}</v-list-item-subtitle>
-                                            </v-list-item>
-                                        </div>
-                                        <v-card-actions>
-                                        </v-card-actions>
-                                    </v-card>
-                                    </v-hover>
+                                    <advertisement-card v-if="merchant.advertisement"></advertisement-card>
+                                    <merchant-card v-else :key="merchant.title" :merchant="merchant" :geo="geo"></merchant-card>
                                 </v-col>
                             </v-row>
                         </div>
@@ -154,34 +115,7 @@
                         <div v-else key="list-merchants">
                             <v-list three-line>
                                 <template v-for="merchant in merchants">
-                                    <v-hover v-slot:default="{ hover }" :key="merchant.title">
-                                        <v-list-item :to="{ name: 'MerchantDetail', params: { id: merchant.id, geoLocation: geo.location }}">
-                                            <div v-if="!merchant.distance">
-                                            <v-list-item-avatar class="mt-n4">
-                                                <v-icon :large="hover" >mdi-storefront</v-icon>
-                                            </v-list-item-avatar>
-                                            </div>
-                                            <div class="mt-n2" v-if="merchant.distance">
-                                                <v-list-item-avatar class="my-0">
-                                                    <v-icon :large="hover">mdi-map-marker-outline</v-icon>
-                                                </v-list-item-avatar>
-                                                <v-list-item-subtitle class="mr-4 mt-n1">{{merchant.distance >= 1000 ? (merchant.distance / 1000).toFixed(1) + 'km' : merchant.distance.toFixed(0) + 'm'}}</v-list-item-subtitle>
-                                            </div>
-
-                                            <v-divider vertical class="my-4 mr-2"></v-divider>
-
-                                            <v-list-item-content class="merchant-list-item">
-                                                <h3>{{merchant.title}}</h3>
-                                                <v-list-item-subtitle v-if="merchant.description">{{merchant.description}}</v-list-item-subtitle>
-                                                <v-list-item-subtitle v-else>A local shop near you!</v-list-item-subtitle>
-                                            </v-list-item-content>
-
-                                            <v-list-item-avatar
-                                              tile
-                                              size="80"
-                                            ><v-img contain :src="`/api/merchants/${merchant.id}/images/logo`"/></v-list-item-avatar>
-                                        </v-list-item>
-                                    </v-hover>
+                                    <merchant-list-item :key="merchant.title" :merchant="merchant" :geo="geo"></merchant-list-item>
                                     <v-divider
                                       :key="merchant.id"
                                       class="mx-4"
@@ -238,8 +172,12 @@ import MerchantCategories from './MerchantCategories.vue'
 import MerchantTags from './MerchantTags.vue'
 import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
 import MyLocation from './MyLocation.vue';
+
 import { Utils } from '../utils/util.js';
 import _throttle from 'lodash/debounce';
+import MerchantCard from './MerchantCard.vue';
+import MerchantListItem from './MerchantListItem.vue';
+import AdvertisementCard from './AdvertisementCard.vue';
 
 let cancelToken;
 
@@ -294,7 +232,10 @@ export default {
         MerchantCategories,
         MerchantTags,
         MerchantNeighbourhood,
-        MyLocation
+        MyLocation,
+        MerchantCard,
+        MerchantListItem,
+        AdvertisementCard
     },
     data: function() {
         return {
@@ -434,7 +375,11 @@ export default {
                     const error = new Error(res.statusText);
                     throw error;
                 }
-                this.merchants = res.data.merchants.rows;
+                let tempMerchants = res.data.merchants.rows;
+                for (let i = 4; i < tempMerchants.length; i += 7) {
+                    tempMerchants.splice(i, 0, { advertisement: true });
+                }
+                this.merchants = tempMerchants;
                 this.pages = Math.ceil(res.data.merchants.count / this.perpage);
                 if (this.pages <= 1) {
                     this.page = 1;
@@ -505,26 +450,9 @@ export default {
 </script>
 
 <style scoped>
-.card-footer {
-    background-color: #001E48 !important;
-    font-size: 24px;
-}
-.shop-header-link {
-    color: white;
-    margin-left: 1rem;
-}
-.shop-content {
-    margin: 1rem;
-}
-.shop-link {
-    margin-left: 0.5rem;
-}
 h1{
   text-align: left;
   margin-bottom: 1rem;
-}
-.merchant-list-item{
-    text-align: left;
 }
 .merchantlist {
     margin-top: 2rem;
@@ -532,53 +460,9 @@ h1{
     margin-right: 2rem;
     width: 100%;
 }
-.merchantitems {
-    height: 74vh;
-    overflow-y: scroll;
-    overflow-x: clip;
-}
-.list-item {
-  display: inline-block;
-  transition: opacity 0.5s;
-  max-width: 350px;
-}
-.list-item:hover {
-    opacity: 0.5;
-}
-.list-enter-active, .list-leave-active {
-  transition: opacity 1s;
-}
-.list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
-  opacity: 0;
-}
 .sidebar {
     margin: 1rem 1rem 1rem 1rem;
 }
-.merchant-list-logo {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: auto;
-}
-.merchant-list-logo-frame {
-    position: relative;
-    height: 128px;
-    max-width: 128px;
-}
-.merchant-list-row {
-    padding-top: 8px;
-    padding-bottom: 8px;
-}
-h4.merchant-list, p.merchant-list {
-    text-align: left;
-}
-
 .fade-enter-active {
   transition: opacity .5s;
 }
