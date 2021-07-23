@@ -23,6 +23,15 @@
                                 <MerchantTags v-model="tags"/>
                                 <MerchantNeighbourhood v-model="neighbourhood"/>
                                 <MerchantCategories v-model="categories"/>
+                                <v-select
+                                    class="my-2"
+                                    :items="merchantOrderOptions"
+                                    item-text="text"
+                                    item-value="value"
+                                    label="Order Results By"
+                                    v-model="merchantOrder"
+                                    color="secondary"
+                                ></v-select>
                             </v-expansion-panel-content>
                             </v-expansion-panel>
                         </v-expansion-panels>
@@ -187,6 +196,10 @@ export default {
         query: String
     },
     watch: {
+        "merchantOrder": function(newVal) {
+            this.getMerchants();
+            localStorage.merchantOrder = newVal;
+        },
         "perpage": function(newVal) {
             this.getMerchants();
             localStorage.merchantsPerPage = newVal;
@@ -265,6 +278,12 @@ export default {
                 { text: '10 Per Page', value: '10' },
                 { text: '25 Per Page', value: '25' },
                 { text: '50 Per Page', value: '50' }
+            ],
+            merchantOrder: '+TITLE',
+            merchantOrderOptions: [
+                { text: 'Title', value: '+TITLE' },
+                { text: 'Relevance', value: '+RANK' },
+                { text: 'Distance', value: '+DIST' } 
             ]
         }
     },
@@ -332,7 +351,8 @@ export default {
             let params = {
                 'details': true,
                 'page': this.page,
-                'perpage': this.perpage
+                'perpage': this.perpage,
+                'sort': this.merchantOrder
             }
 
             if (this.tags && this.tags.length > 0) {
@@ -426,6 +446,10 @@ export default {
 
         if (localStorage.merchantLayout) {
             this.merchantLayout = Number(localStorage.merchantLayout);
+        }
+
+        if (localStorage.merchantOrder) {
+            this.merchantOrder = localStorage.merchantOrder;
         }
 
         if (retrieve)
