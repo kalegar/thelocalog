@@ -14,7 +14,7 @@
                             <div class="claims" v-if="claims && claims.length">
                                 <v-list three-line>
                                     <template v-for="(claim,index) in claims">
-                                            <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id }}" :key="claim.id">
+                                            <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id }}" :key="'claim-'+claim.id">
                                                 <v-list-item-avatar>
                                                     <v-icon>mdi-storefront</v-icon>
                                                 </v-list-item-avatar>
@@ -123,8 +123,8 @@
 
 <script>
 import axios from 'axios';
-import BasePage from './BasePage.vue';
-import BaseContent from './BaseContent.vue';
+import BasePage from './base/BasePage.page.vue';
+import BaseContent from './base/BaseContent.page.vue';
 
 export default {
     name: 'AdminHome',

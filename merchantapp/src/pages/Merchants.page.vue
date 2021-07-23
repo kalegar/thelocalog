@@ -173,19 +173,19 @@
 </template>
 
 <script>
-import Loading from './Loading.vue'
-import BasePage from './BasePage.vue'
-import BaseContent from './BaseContent.vue'
-import MerchantCategories from './MerchantCategories.vue'
-import MerchantTags from './MerchantTags.vue'
-import MerchantNeighbourhood from './MerchantNeighbourhood.vue'
-import MyLocation from './MyLocation.vue';
+import Loading from '../components/Loading.vue'
+import BasePage from './base/BasePage.page.vue';
+import BaseContent from './base/BaseContent.page.vue';
+import MerchantCategories from '../components/MerchantCategories.vue'
+import MerchantTags from '../components/MerchantTags.vue'
+import MerchantNeighbourhood from '../components/MerchantNeighbourhood.vue'
+import MyLocation from '../components/MyLocation.vue';
 
 import { Utils } from '../utils/util.js';
 import _throttle from 'lodash/debounce';
-import MerchantCard from './MerchantCard.vue';
-import MerchantListItem from './MerchantListItem.vue';
-import AdvertisementCard from './AdvertisementCard.vue';
+import MerchantCard from '../components/MerchantCard.vue';
+import MerchantListItem from '../components/MerchantListItem.vue';
+import AdvertisementCard from '../components/AdvertisementCard.vue';
 
 import { MerchantService } from '../service/Merchant.service';
 

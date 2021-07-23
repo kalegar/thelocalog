@@ -55,8 +55,8 @@
 </template>
 
 <script>
-import BasePage from './BasePage.vue';
-import BaseContent from './BaseContent.vue';
+import BasePage from './base/BasePage.page.vue';
+import BaseContent from './base/BaseContent.page.vue';
 import axios from 'axios';
 
 export default {

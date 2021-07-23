@@ -8,11 +8,12 @@ import { Auth0Plugin, authGuard } from "./auth";
 
 Vue.use(VueRouter);
 
-import Merchants from './components/Merchants.vue';
-import MerchantDetail from './components/MerchantDetail.vue';
-import Profile from './components/Profile.vue';
-import MerchantClaim from './components/MerchantClaim.vue';
-import AdminHome from './components/AdminHome.vue';
+import Merchants from './pages/Merchants.page.vue';
+import MerchantDetail from './pages/MerchantDetail.page.vue';
+import Profile from './pages/Profile.page.vue';
+import MerchantClaim from './pages/MerchantClaim.page.vue';
+import MerchantClaimDetail from './pages/MerchantClaimDetail.page.vue';
+import AdminHome from './pages/AdminHome.page.vue';
 import vuetify from './plugins/vuetify'
 
 const routes = [
@@ -21,7 +22,8 @@ const routes = [
   { path: '/merchants/:id', component: MerchantDetail, name: 'MerchantDetail', props: true },
   { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard},
   { path: '/claim/:id', component: MerchantClaim, name: 'MerchantClaim', beforeEnter: authGuard, props: true},
-  { path: '/admin', component: AdminHome, name: 'AdminHome', beforeEnter: authGuard}
+  { path: '/admin', component: AdminHome, name: 'AdminHome', beforeEnter: authGuard},
+  { path: '/admin/claim/:id', component: MerchantClaimDetail, name: 'ClaimDetail', beforeEnter: authGuard, props: true}
 ]
 
 const router = new VueRouter({

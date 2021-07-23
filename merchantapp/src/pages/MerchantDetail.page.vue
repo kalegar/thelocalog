@@ -178,11 +178,11 @@
 </template>
 
 <script>
-import Loading from './Loading.vue';
-import BasePage from './BasePage.vue';
-import BaseContent from './BaseContent.vue';
-import GoogleMapsEmbed from './GoogleMapsEmbed.vue'
-import SocialMediaLinks from './SocialMediaLinks.vue'
+import Loading from '../components/Loading.vue';
+import BasePage from './base/BasePage.page.vue';
+import BaseContent from './base/BaseContent.page.vue';
+import GoogleMapsEmbed from '../components/GoogleMapsEmbed.vue'
+import SocialMediaLinks from '../components/SocialMediaLinks.vue'
 import { Utils } from '../utils/util.js';
 import { MerchantService } from '../service/Merchant.service';
 
