@@ -1,0 +1,4 @@
+Run build.sh
+Run copy-to-pi.sh
+SSH into raspberrypi4 and run /home/pi/localog-restart.sh
+OR, wait until midnight and a CRON will load up the new build into production.

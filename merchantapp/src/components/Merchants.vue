@@ -173,7 +173,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import Loading from './Loading.vue'
 import BasePage from './BasePage.vue'
 import BaseContent from './BaseContent.vue'
@@ -188,7 +187,7 @@ import MerchantCard from './MerchantCard.vue';
 import MerchantListItem from './MerchantListItem.vue';
 import AdvertisementCard from './AdvertisementCard.vue';
 
-let cancelToken;
+import { MerchantService } from '../service/Merchant.service';
 
 export default {
     name: 'Merchants',
@@ -341,87 +340,35 @@ export default {
                 }
             }
 
-            if (typeof cancelToken != typeof undefined) {
-                cancelToken.cancel("Operation canceled due to new request.");
-            }
             this.loading = true;
 
             this.page = Utils.clamp(this.page,1,Math.max(this.pages,1));
 
-            let params = {
-                'details': true,
-                'page': this.page,
-                'perpage': this.perpage,
-                'sort': this.merchantOrder
-            }
+            let options = {
+                searchquery: this.searchquery,
+                categories: this.categories,
+                tags: this.tags,
+                neighbourhood: this.neighbourhood,
+                includeDeleted: this.includeDeleted,
+                geo: this.geo,
+                page: this.page,
+                perpage: this.perpage,
+                sort: this.merchantOrder
+            };
 
-            if (this.tags && this.tags.length > 0) {
-                params.t = this.tags.join(",");
-            }
-
-            if (this.categories && this.categories.length > 0) {
-                params.c = this.categories.join(",");
-            }
-
-            if (this.neighbourhood && this.neighbourhood.length > 0) {
-                params.n = this.neighbourhood.join(",");
-            }
-
-            if (this.searchquery) {
-                params.s = this.searchquery;
-            }
-
-            if (this.includeDeleted) {
-                params.deleted = 'true';
-            }
-
-            if (this.geo && this.geo.enabled && this.geo.location) {
-                console.log(this.geo);
-                params.lat = this.geo.location.latitude;
-                params.lon = this.geo.location.longitude;
-                if (this.geo.radius) {
-                    params.radius = this.geo.radius * 1000;
-                }
-            }
-
-            cancelToken = axios.CancelToken.source();
-            axios.get('/api/merchants', {
-                params,
-                cancelToken: cancelToken.token
-            })
-            .then(res => {
-                if (res.status != 200) {
-                    console.log('ERROR');
-                    const error = new Error(res.statusText);
-                    throw error;
-                }
-                let tempMerchants = res.data.merchants.rows;
-                for (let i = 4; i < tempMerchants.length; i += 7) {
-                    tempMerchants.splice(i, 0, { advertisement: true });
-                }
-                this.merchants = tempMerchants;
-                this.pages = Math.ceil(res.data.merchants.count / this.perpage);
-                if (this.pages <= 1) {
-                    this.page = 1;
-                } else if (this.page > this.pages) {
-                    this.page = (this.pages - 1);
-                }
-            })
-            .catch(err => {
-                if (axios.isCancel(err)) {
-                    return;
-                }
-                this.error = err;
-                if (err.json) {
-                    return err.json.then(json => {
-                        this.error.message = json.message;
-                    });
-                }
-            })
-            .then(() => {
+            MerchantService.getMerchants(options).then(result => {
                 this.loading = false;
                 this.shouldGetMerchants = false;
-            })
+                this.merchants = result.merchants;
+                this.page = result.page;
+                this.pages = result.pages;
+            }, err => {
+                this.loading = false;
+                this.shouldGetMerchants = false;
+                if (!err.cancelled) {
+                    console.log(err);
+                }
+            });
         }
     },
     updated: function() {
