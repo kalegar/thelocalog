@@ -140,7 +140,7 @@ export const MerchantService = {
     },
 
     saveMerchant: function(id,authToken,merchant) {
-        const url = `/api/merchants/${this.id}`;
+        const url = `/api/merchants/${id}`;
         return new Promise((resolve,reject) => {
             axios.put(url, merchant,
             {
