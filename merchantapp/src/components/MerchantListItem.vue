@@ -6,11 +6,6 @@
         params: { id: merchant.id, geoLocation: geo.location },
       }"
     >
-      <div v-if="!merchant.distance">
-        <v-list-item-avatar class="mt-n4">
-          <v-icon :large="hover">mdi-storefront</v-icon>
-        </v-list-item-avatar>
-      </div>
       <div class="mt-n2" v-if="merchant.distance">
         <v-list-item-avatar class="my-0">
           <v-icon :large="hover">mdi-map-marker-outline</v-icon>
@@ -22,7 +17,7 @@
         }}</v-list-item-subtitle>
       </div>
 
-      <v-divider vertical class="my-4 mr-2"></v-divider>
+      <v-divider vertical class="my-4 mr-2" v-if="merchant.distance"></v-divider>
 
       <v-list-item-content class="merchant-list-item">
         <h3>{{ merchant.title }}</h3>

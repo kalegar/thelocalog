@@ -20,13 +20,17 @@ export const Utils = {
     toListSQL: function(value,split=true,delimiter=',') {
         if (value) {
             if (Array.isArray(value)) {
-                return "(\'" + value.map((n) => n.toUpperCase()).join('\',\'') + "\')";
+                return "(\'" + value.map((n) => Utils.cleanString(n.toUpperCase())).join('\',\'') + "\')";
             } else if (split) {
-                return "(\'" + value.split(delimiter).map((n) => n.toUpperCase()).join('\',\'') + "\')";
+                return "(\'" + value.split(delimiter).map((n) => Utils.cleanString(n.toUpperCase())).join('\',\'') + "\')";
             } else {
-                return `(\'${value}\')`;
+                return `(\'${Utils.cleanString(value)}\')`;
             }
         }
         return '(\'\')';
+    },
+
+    cleanString: function(value) {
+        return value.replaceAll("'","\'\'");
     }
 }

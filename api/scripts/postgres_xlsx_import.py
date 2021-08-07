@@ -16,6 +16,8 @@ def clean_string(in_str):
     return '' if in_str == None else in_str.replace(u"\u0027", "'").replace(u"\u200b","")
 
 def clean_phone(in_phone_str):
+    if in_phone_str == None:
+        return None
     try:
         return int(re.sub(r'\D','',in_phone_str))
     except ValueError:
@@ -88,11 +90,14 @@ def parse_row(row,fields,maincategory,prev_name):
         merchant_desc = row[fields['Description']]
         if 'Type' in fields:
             merchant_type = row[fields['Type']]
+        merchant_onlineShopping = False
+        if ('Online Shopping' in fields) and (row[fields['Online Shopping']] != None):
+            merchant_onlineShopping = row[fields['Online Shopping']].upper() == 'YES'
         if (update):
             print('UPDATE ' + str(merchantid) + " - " + merchant_name)
-            cur.execute(u"UPDATE \"Merchants\" SET (title,description,type,website,\"createdAt\",\"updatedAt\") = (%s, %s, %s, %s, %s, %s) WHERE id = %s",(clean_string(merchant_name), clean_string(merchant_desc), merchant_type, website, datetime.datetime.now(), datetime.datetime.now(),psycopg2.extras.UUID_adapter(merchantid)))
+            cur.execute(u"UPDATE \"Merchants\" SET (title,description,type,website,\"onlineShopping\",\"updatedAt\") = (%s, %s, %s, %s, %s, %s) WHERE id = %s",(clean_string(merchant_name), clean_string(merchant_desc), merchant_type, website, merchant_onlineShopping, datetime.datetime.now(),psycopg2.extras.UUID_adapter(merchantid)))
         else:
-            cur.execute(u"INSERT INTO \"Merchants\" (id,title,description,type,website,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s, %s, %s)",(psycopg2.extras.UUID_adapter(merchantid),clean_string(merchant_name), clean_string(merchant_desc), merchant_type, website, datetime.datetime.now(), datetime.datetime.now()))
+            cur.execute(u"INSERT INTO \"Merchants\" (id,title,description,type,website,\"onlineShopping\",\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s, %s, %s, %s)",(psycopg2.extras.UUID_adapter(merchantid),clean_string(merchant_name), clean_string(merchant_desc), merchant_type, website, merchant_onlineShopping, datetime.datetime.now(), datetime.datetime.now()))
     else:
         print('Inserting additional address for merchant ' + prev_name)
     # INSERT ADDRESS
@@ -109,21 +114,25 @@ def parse_row(row,fields,maincategory,prev_name):
     merchant_phone = None
     if 'Phone' in fields:
         merchant_phone = row[fields['Phone']]
+    # Clear out current addresses - only if this is the first address.
+    if not(address_only):
+        cur.execute(u"DELETE FROM \"Contacts\" C WHERE C.\"AddressId\" in (SELECT MA.\"AddressId\" FROM \"MerchantAddresses\" MA WHERE MA.\"MerchantId\" = %s)",(merchantid,))
+        cur.execute(u"DELETE FROM \"Addresses\" A WHERE A.id in (SELECT MA.\"AddressId\" FROM \"MerchantAddresses\" MA WHERE MA.\"MerchantId\" = %s)",(merchantid,))
+        # Shouldn't have to delete from join table, should cascade delete.
+        # cur.execute(u"DELETE FROM \"MerchantAddresses\" WHERE \"MerchantId\" = %s",merchantid)
     if (merchant_address != None and len(merchant_address) > 0):
-        cur.execute(u"SELECT id FROM \"Addresses\" WHERE \"full\" = %s",(merchant_address,))
-        result = cur.fetchone()
-        if (result == None):
-            addr = parse_address(merchant_address,merchant_postal_code,merchant_neighbourhood)
-            if addr == None:
-                print('Error Parsing Address "' + merchant_address + '". Skipping.')
-            else:
-                cur.execute(u"INSERT INTO \"Addresses\" (address1,address2,address3,city,province,country,postalcode,neighbourhood,\"full\") VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",addr)
-                result = cur.fetchone()
-                if (result != None):
-                    cur.execute(u"INSERT INTO \"MerchantAddresses\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"AddressId\") VALUES (%s, %s, %s, %s)",(datetime.datetime.now(), datetime.datetime.now(),merchantid,result[0]))
-                    # INSERT CONTACT
-                    cur.execute(u"INSERT INTO \"Contacts\" (\"AddressId\",email,phone,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",(result[0],merchant_email,clean_phone(merchant_phone),datetime.datetime.now(), datetime.datetime.now()))
-    
+        addr = parse_address(merchant_address,merchant_postal_code,merchant_neighbourhood)
+        if addr == None:
+            print('Error Parsing Address "' + merchant_address + '". Skipping.')
+        else:
+            cur.execute(u"INSERT INTO \"Addresses\" (address1,address2,address3,city,province,country,postalcode,neighbourhood,\"full\") VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",addr)
+            result = cur.fetchone()
+            if (result != None):
+                cur.execute(u"INSERT INTO \"MerchantAddresses\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"AddressId\") VALUES (%s, %s, %s, %s)",(datetime.datetime.now(), datetime.datetime.now(),merchantid,result[0]))
+                # INSERT CONTACT
+                cur.execute(u"INSERT INTO \"Contacts\" (\"AddressId\",email,phone,\"createdAt\",\"updatedAt\") VALUES(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",(result[0],merchant_email,clean_phone(merchant_phone),datetime.datetime.now(), datetime.datetime.now()))
+    else:
+        print('No address found for ' + merchant_name + ' or address length was zero.')
     if address_only:
         return
 
@@ -189,11 +198,13 @@ def parse_row(row,fields,maincategory,prev_name):
 
 def parse_sheet(sheet):
     maincategory = sheet.title
-    use_name_as_cat = input(f"Is '{maincategory}' the category? (y(default)/n/skip): ")
+    use_name_as_cat = input(f"Is '{maincategory}' the category? (y(default)/n/skip/exit): ")
     if (use_name_as_cat == "n"):
         maincategory = input("Enter category:")
-    elif (use_name_as_cat == "skip"):
+    elif (use_name_as_cat == "skip" or use_name_as_cat == "s"):
         return True
+    elif (use_name_as_cat == "exit" or use_name_as_cat == "e"):
+        return False
     print('Category: ' + maincategory)
     field_dict = {}
     first_row = True

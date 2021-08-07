@@ -20,7 +20,7 @@
 
       <v-spacer></v-spacer>
 
-      <v-responsive min-width="40" max-width="460" content-class="compact">
+      <v-responsive min-width="40" max-width="450" content-class="compact">
         <v-text-field
           dense
           flat
@@ -28,7 +28,7 @@
           rounded
           solo-inverted
           clearable
-          append-icon="mdi-magnify"
+          v-bind:append-icon="(searchQuery && searchQuery.length > 0) ? '' : 'mdi-magnify'"
           v-model="searchQuery"
           @click:append="search()"
         >

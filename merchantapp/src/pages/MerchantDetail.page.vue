@@ -98,17 +98,61 @@
                                         <a v-if="!editing" :href="merchant.website" target="_blank">{{merchant.website}}</a>
                                         <v-text-field v-else class="mt-2" v-model="merchant.website" label="Website"></v-text-field>
                                     </div>
-                                    <v-divider v-if="merchant.SocialMediaLinks && merchant.SocialMediaLinks.length" class="my-4"></v-divider>
-                                    <SocialMediaLinks :links="merchant.SocialMediaLinks"/>
+                                    <div class="online-shopping mt-6">
+                                        <v-row class="mb-4" justify="center">
+                                        <v-spacer></v-spacer>
+                                        <h4 class="mr-1">In-Store Shopping:</h4>
+                                        <div v-if="!editing" id="in-store-shopping">
+                                            <v-icon color="green">mdi-check-circle-outline</v-icon>
+                                        </div>
+                                        <div v-else>
+                                            <!-- For now, all stores have in-store shopping. -->
+                                            <v-icon color="green">mdi-check-circle-outline</v-icon>
+                                        </div>
+                                        <v-spacer></v-spacer>
+                                        <h4 class="mr-1">Online Shopping:</h4>
+                                        <div v-if="!editing" id="online-shopping">
+                                            <v-icon color="green" v-if="merchant.onlineShopping">mdi-check-circle-outline</v-icon>
+                                            <v-icon color="red" v-else>mdi-close-circle-outline</v-icon>
+                                        </div>
+                                        <div v-else>
+                                            <v-checkbox v-model="merchant.onlineShopping" dense class="mt-n1"></v-checkbox>
+                                        </div>
+                                        <v-spacer></v-spacer>
+                                        </v-row>
+                                    </div>
+                                    <v-divider v-if="merchant.SocialMediaLinks && merchant.SocialMediaLinks.length" class="my-2"></v-divider>
+                                    <SocialMediaLinks class="mb-1" :links="merchant.SocialMediaLinks"/>
                                     </v-card-text>
                                 </v-card>
                             </div>
                         </div>
                         <div class="addresses row" v-if="merchant.Addresses">
                             <div class="col">
-                            <h2 v-if="merchant.Addresses.length > 1">Locations:</h2>
+                            <h2 v-if="merchant.Addresses.length > 1">{{ merchant.Addresses.length }} Locations:</h2>
                             <h2 v-if="merchant.Addresses.length == 1">Location:</h2>
-                            <v-card class="addresscard" v-for="(address, index) in merchant.Addresses" :key="address.id" elevation="6">
+                            <v-expansion-panels v-model="selectedAddress" multiple class="mt-2">
+                                <v-expansion-panel
+                                  v-for="(address, index) in merchant.Addresses" :key="address.id"
+                                >
+                                <v-expansion-panel-header>
+                                    <template v-slot:default="{ open, hover }">
+                                    <v-row no-gutters>
+                                        <v-icon left :color="open ? 'primary' : ''" :large="hover || open">mdi-map-marker-outline</v-icon>
+                                        <div :class="open ? 'address-header-bold' : 'address-header'">
+                                        {{address.address1}}, {{address.city}}, {{address.province}}
+                                        </div>
+                                        <v-col cols="1">
+                                            
+                                        </v-col>
+                                        <v-col >
+                                            
+                                        </v-col>
+                                    </v-row>
+                                    </template>
+                                </v-expansion-panel-header>
+                                <v-expansion-panel-content>
+                            <v-card class="addresscard" elevation="6">
                                 <GoogleMapsEmbed :mapParams="encodeAddress(merchant.title,address)"/>
                                 <v-card-text>
                                 <v-container class="addressdetails fluid mt-n2">
@@ -161,6 +205,9 @@
                                 </v-container>
                                 </v-card-text>
                             </v-card>
+                                </v-expansion-panel-content>
+                            </v-expansion-panel>
+                            </v-expansion-panels>
                             </div>
                         </div>
                         <div class="merchant-footer row align-items-center">
@@ -224,7 +271,8 @@ export default {
                 notext: '',
                 yestext: '',
                 action: null
-            }
+            },
+            selectedAddress: [0]
         }
     },
     methods: {
@@ -405,6 +453,36 @@ h2, h1 {
 }
 .title {
     margin-bottom: 0.5rem;
+}
+.address-header-bold {
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    text-align: left;
+    height: auto;
+}
+.address-header {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    text-align: left;
+    height: auto;
+}
+
+.online-shopping {
+    text-align: left;
+}
+
+.online-shopping-inner {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    text-align: left;
+    height: auto;
 }
 
 .fade-enter-active, .fade-leave-active {

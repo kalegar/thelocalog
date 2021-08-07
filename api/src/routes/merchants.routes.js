@@ -76,7 +76,7 @@ const parseSort = function(value,allowed) {
 // Retrieve all merchants
 router.get("/", async (req, res) => {
     try {
-        const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort} = req.query;
+        const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort,o: onlineShopping} = req.query;
 
         let query = {attributes: ['id','title','website','description']}
 
@@ -92,7 +92,7 @@ router.get("/", async (req, res) => {
 
         const sortByDistance = (lat && lon);
 
-        if (search || tags || categories || neighbourhood || sortByDistance) {
+        if (search || tags || categories || neighbourhood || sortByDistance || onlineShopping) {
             const searchArray        = Utils.toListSQL(search,true,' ');
             const tagArray           = Utils.toListSQL(tags);
             const categoryArray      = Utils.toListSQL(categories);
@@ -122,8 +122,12 @@ router.get("/", async (req, res) => {
                     "SELECT ma.\"MerchantId\" as id "+
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                     `WHERE a.neighbourhood iLike :searchlike OR UPPER(a.neighbourhood) in ${searchArray}) ` +
+                "OR m.title iLike :searchlike " +
                 "OR (query @@ m.textsearch))";
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5";
+            const filterOnlineShopping =
+                "(m.\"onlineShopping\" = :onlineShopping)";
+            
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6";
             let replacements = {};
 
             let selectClause = "m.id,m.title,m.description,m.website";
@@ -159,6 +163,11 @@ router.get("/", async (req, res) => {
             }
 
             if (deleted !== true)  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
+
+            if (typeof onlineShopping !== 'undefined') {
+                q = q.replace("6=6",filterOnlineShopping);
+                replacements.onlineShopping = (onlineShopping == 1);
+            }
 
             /////////////////////
             //START BUILD QUERY//
@@ -331,10 +340,10 @@ router.get("/:id", async (req, res) => {
 // Update a merchant by id
 router.put("/:id", checkJwt, adminRole, async (req, res) => {
     try {
-        const { title, description, website, deletedAt } = req.body;
+        const { title, description, website, deletedAt, onlineShopping } = req.body;
 
         const merchants = await Merchant.update(
-        { title, description, website, deletedAt },
+        { title, description, website, deletedAt, onlineShopping },
         {
             returning: true,
             where: { id: req.params.id },

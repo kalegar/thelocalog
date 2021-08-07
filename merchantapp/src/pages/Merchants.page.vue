@@ -123,8 +123,9 @@
                         </div>
                         <div v-else key="list-merchants">
                             <v-list three-line>
-                                <template v-for="merchant in merchants">
-                                    <merchant-list-item :key="merchant.title" :merchant="merchant" :geo="geo"></merchant-list-item>
+                                <template v-for="(merchant, index) in merchants">
+                                    <advertisement-list-item v-if="merchant.advertisement" :key="index"></advertisement-list-item>
+                                    <merchant-list-item v-else :key="merchant.title" :merchant="merchant" :geo="geo"></merchant-list-item>
                                     <v-divider
                                       :key="merchant.id"
                                       class="mx-4"
@@ -188,6 +189,7 @@ import MerchantListItem from '../components/MerchantListItem.vue';
 import AdvertisementCard from '../components/AdvertisementCard.vue';
 
 import { MerchantService } from '../service/Merchant.service';
+import AdvertisementListItem from '../components/AdvertisementListItem.vue';
 
 export default {
     name: 'Merchants',
@@ -247,7 +249,8 @@ export default {
         MyLocation,
         MerchantCard,
         MerchantListItem,
-        AdvertisementCard
+        AdvertisementCard,
+        AdvertisementListItem
     },
     data: function() {
         return {
