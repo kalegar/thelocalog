@@ -16,6 +16,8 @@ import adminRole from '../middleware/admin.auth.js';
 import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
 import redisService, { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
+import { GoogleAPIService } from "../service/google-api.service";
+import { LoggingService } from "../service/logging.service";
 
 const handleValidationErrors = function(error,res) {
     if (error.name.includes('Validation')) {
@@ -337,13 +339,49 @@ router.get("/:id", async (req, res) => {
     }
 });
 
+const getFullAddress = function(addrObject) {
+    return addrObject.address1 && addrObject.address1.length > 0 ? addrObject.address1 + ', ' : '' +
+           addrObject.address2 && addrObject.address2.length > 0 ? addrObject.address2 + ', ' : '' +
+           addrObject.address3 && addrObject.address3.length > 0 ? addrObject.address3 + ', ' : '' +
+           addrObject.city     && addrObject.city.length     > 0 ? addrObject.city     + ', ' : '' +
+           addrObject.province && addrObject.province.length > 0 ? addrObject.province : '';
+}
+
+const areAddressesEqual = function(addr1, addr2) {
+    return (
+           addr1.address1      === addr2.address1   &&
+           addr1.address2      === addr2.address2   &&
+           addr1.address3      === addr2.address3   &&
+           addr1.city          === addr2.city       &&
+           addr1.province      === addr2.province   &&
+           addr1.country       === addr2.country    &&
+           addr1.postalcode    === addr2.postalcode &&
+           addr1.neighbourhood === addr2.neighbourhood
+    );
+}
+
+const areContactsEqual = function(cont1, cont2) {
+    return (
+            cont1.email      === cont2.email     &&
+            cont1.email2     === cont2.email2    &&
+            cont1.phone      === cont2.phone     &&
+            cont1.phonetype  === cont2.phonetype &&
+            cont1.phone2     === cont2.phone2    &&
+            cont1.phonetype2 === cont2.phonetype2
+    );
+}
+
 // Update a merchant by id
 router.put("/:id", checkJwt, adminRole, async (req, res) => {
     try {
-        const { title, description, website, deletedAt, onlineShopping } = req.body;
+        const { title, description, website, deletedAt, onlineShopping, inStoreShopping, Addresses } = req.body;
+
+        let updatedMerchant = {
+            title, description, website, deletedAt, onlineShopping, inStoreShopping
+        };
 
         const merchants = await Merchant.update(
-        { title, description, website, deletedAt, onlineShopping },
+        updatedMerchant,
         {
             returning: true,
             where: { id: req.params.id },
@@ -355,6 +393,79 @@ router.put("/:id", checkJwt, adminRole, async (req, res) => {
             return res.status(404).json({ message: 'The merchant with the given id was not found' });
         
         const merchant = merchants[1][0].dataValues;
+
+        if (Addresses && Array.isArray(Addresses)) {
+            Merchant.findOne({where: {id: req.params.id }, include: { model: Address, include: { model: Contact}}}).then((merch) => {
+                const currentAddresses = merch.Addresses;
+                if (typeof currentAddresses !== 'undefined' || currentAddresses.length > 0) {
+                for (const address of Addresses) {
+                    let temp = currentAddresses.filter(addr => addr.id = address.id);
+                    if (temp.length <= 0) {
+                        LoggingService.log('Tried to update an address for a different merchant!!');
+                        continue;
+                    }
+
+                    const currAddr = temp[0];
+
+                    if (areAddressesEqual(address,currAddr)) {
+                        if ((address.hasOwnProperty('Contact')) && areContactsEqual(address.Contact,currAddr.Contact)) {
+                            LoggingService.log('Address unchanged. skipping.');
+                            continue;
+                        }
+                    }
+    
+                    let newAddress = {
+                        address1: address.address1,
+                        address2: address.address2,
+                        address3: address.address3,
+                        city: address.city,
+                        province: address.province,
+                        postalcode: address.postalcode,
+                        neighbourhood: address.neighbourhood,
+                        full: getFullAddress(address),
+                    }
+        
+                    GoogleAPIService.getPlace(title, address).then(function(place) {
+                        if (place) {
+                            newAddress.placeid = place.place_id;
+                            if (place.geometry && place.geometry.location) {
+                                newAddress.geom = Utils.createGeom(place.geometry.location.lng,place.geometry.location.lat);
+                            }
+                        } else {
+                            newAddress.placeid = null;
+                            newAddress.geom = null;
+                        }
+                    }).catch((err) => console.log(err)).then(() => {
+                        Address.update(
+                            newAddress,
+                            {
+                                returning: false,
+                                where: { id : address.id }
+                            }
+                        )
+        
+                        if (address.Contact) {
+                            Contact.update(
+                                {
+                                email: address.Contact.email,
+                                email2: address.Contact.email2,
+                                phone: address.Contact.phone,
+                                phone2: address.Contact.phone2
+                                },
+                                {
+                                    returning: false,
+                                    where: { id : address.Contact.id }
+                                }
+                            )
+                        }
+                    })
+                    
+                }
+                }else{
+                    LoggingService.log('No addresses on current merchant. Aborting address updates.');
+                }
+            }).catch((err) => console.log(err));
+        }
 
         return res.status(200).json({ merchant });
     } catch (error) {

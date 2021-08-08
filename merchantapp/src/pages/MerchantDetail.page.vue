@@ -103,11 +103,11 @@
                                         <v-spacer></v-spacer>
                                         <h4 class="mr-1">In-Store Shopping:</h4>
                                         <div v-if="!editing" id="in-store-shopping">
-                                            <v-icon color="green">mdi-check-circle-outline</v-icon>
+                                            <v-icon color="green" v-if="merchant.inStoreShopping">mdi-check-circle-outline</v-icon>
+                                            <v-icon color="red" v-else>mdi-close-circle-outline</v-icon>
                                         </div>
                                         <div v-else>
-                                            <!-- For now, all stores have in-store shopping. -->
-                                            <v-icon color="green">mdi-check-circle-outline</v-icon>
+                                            <v-checkbox v-model="merchant.inStoreShopping" dense class="mt-n1"></v-checkbox>
                                         </div>
                                         <v-spacer></v-spacer>
                                         <h4 class="mr-1">Online Shopping:</h4>
@@ -142,16 +142,13 @@
                                         <div :class="open ? 'address-header-bold' : 'address-header'">
                                         {{address.address1}}, {{address.city}}, {{address.province}}
                                         </div>
-                                        <v-col cols="1">
-                                            
-                                        </v-col>
-                                        <v-col >
-                                            
-                                        </v-col>
                                     </v-row>
                                     </template>
                                 </v-expansion-panel-header>
                                 <v-expansion-panel-content>
+                                <v-row v-if="editing" class="mb-2">
+                                    <v-btn color="danger" dark small :loading="deleteMerchantLoading">Delete<v-icon right dark>mdi-delete</v-icon></v-btn>
+                                </v-row>
                             <v-card class="addresscard" elevation="6">
                                 <GoogleMapsEmbed :mapParams="encodeAddress(merchant.title,address)"/>
                                 <v-card-text>
@@ -159,11 +156,24 @@
                                     <div class="row d-block d-sm-flex">
                                         <div class="col address" align="justify-content-center">
                                             <h3 class="mb-2">Address:</h3>
-                                            <p>{{address.address1}}</p>
-                                            <p v-if="address.address2">{{address.address2}}</p>
-                                            <p v-if="address.address3">{{address.address3}}</p>
-                                            <p>{{address.city}}, {{address.province}}, {{address.country}}</p>
-                                            <p>{{address.postalcode}}</p>
+                                            <div v-if="!editing" >
+                                                <p>{{address.address1}}</p>
+                                                <p v-if="address.address2">{{address.address2}}</p>
+                                                <p v-if="address.address3">{{address.address3}}</p>
+                                                <p>{{address.city}}, {{address.province}}, {{address.country}}</p>
+                                                <p>{{address.postalcode}}</p>
+                                                <p v-if="address.neighbourhood">Neighbourhood: {{address.neighbourhood}}</p>
+                                            </div>
+                                            <div v-else>
+                                                <v-text-field class="mt-2" v-model="address.address1" label="Address Line 1"></v-text-field>
+                                                <v-text-field class="mt-2" v-model="address.address2" label="Address Line 2"></v-text-field>
+                                                <v-text-field class="mt-2" v-model="address.address3" label="Address Line 3"></v-text-field>
+                                                <v-text-field class="mt-2" v-model="address.city" label="City"></v-text-field>
+                                                <v-select class="mt-2" v-model="address.province" :items="provinces" item-text="prov" item-value="abbr" label="Province"></v-select>
+                                                <v-text-field class="mt-2" v-model="address.country" maxlength="2" counter label="Country"></v-text-field>
+                                                <v-text-field class="mt-2" v-model="address.postalcode" maxlength="20" counter label="Postal Code"></v-text-field>
+                                                <v-text-field class="mt-2" v-model="address.neighbourhood" maxlength="70" counter label="Neighbourhood"></v-text-field>
+                                            </div>
                                         </div>
                                         <div class="col hours mt-3-xs" v-if="hours && hours.length">
                                             <h3 class="mb-2">Hours:</h3>
@@ -178,24 +188,28 @@
                                     <v-row>
                                         <v-col class="contact" v-if="address.Contact">
                                             <h3 class="mb-2">Contact Info:</h3>
-                                            <v-list-item v-if="address.Contact.email">
+                                            <v-list-item v-if="address.Contact.email || editing">
                                                 <v-list-item-content>
-                                                    <v-list-item-title><a :href="'mailto:'+address.Contact.email"><v-icon left>mdi-email</v-icon>{{address.Contact.email}}</a></v-list-item-title>
+                                                    <v-list-item-title v-if="!editing"><a :href="'mailto:'+address.Contact.email"><v-icon left>mdi-email</v-icon>{{address.Contact.email}}</a></v-list-item-title>
+                                                    <v-list-item-title v-else><v-text-field class="mt-2" v-model="address.Contact.email" label="Email Address 1" prepend-icon="mdi-email"></v-text-field></v-list-item-title>
                                                 </v-list-item-content>
                                             </v-list-item>
-                                            <v-list-item v-if="address.Contact.email2">
+                                            <v-list-item v-if="address.Contact.email2 || editing">
                                                 <v-list-item-content>
-                                                    <v-list-item-title><a :href="'mailto:'+address.Contact.email2"><v-icon left>mdi-email</v-icon>{{address.Contact.email2}}</a></v-list-item-title>
+                                                    <v-list-item-title v-if="!editing"><a :href="'mailto:'+address.Contact.email2"><v-icon left>mdi-email</v-icon>{{address.Contact.email2}}</a></v-list-item-title>
+                                                    <v-list-item-title v-else><v-text-field class="mt-2" v-model="address.Contact.email2" label="Email Address 2" prepend-icon="mdi-email"></v-text-field></v-list-item-title>
                                                 </v-list-item-content>
                                             </v-list-item>
-                                            <v-list-item v-if="address.Contact.phone">
+                                            <v-list-item v-if="address.Contact.phone || editing">
                                                 <v-list-item-content>
-                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone"><v-icon left>mdi-phone</v-icon>{{formatPhone(address.Contact.phone)}}</a></v-list-item-title>
+                                                    <v-list-item-title v-if="!editing"><a :href="'tel:+'+address.Contact.phone"><v-icon left>mdi-phone</v-icon>{{formatPhone(address.Contact.phone)}}</a></v-list-item-title>
+                                                    <v-list-item-title v-else><v-text-field class="mt-2" v-model="address.Contact.phone" label="Phone 1" prepend-icon="mdi-phone"></v-text-field></v-list-item-title>
                                                 </v-list-item-content>
                                             </v-list-item>
-                                            <v-list-item v-if="address.Contact.phone2">
+                                            <v-list-item v-if="address.Contact.phone2 || editing">
                                                 <v-list-item-content>
-                                                    <v-list-item-title><a :href="'tel:+'+address.Contact.phone2"><v-icon left>mdi-phone</v-icon>{{formatPhone(address.Contact.phone2)}}</a></v-list-item-title>
+                                                    <v-list-item-title v-if="!editing"><a :href="'tel:+'+address.Contact.phone2"><v-icon left>mdi-phone</v-icon>{{formatPhone(address.Contact.phone2)}}</a></v-list-item-title>
+                                                    <v-list-item-title v-else><v-text-field class="mt-2" v-model="address.Contact.phone2" label="Phone 2" prepend-icon="mdi-phone"></v-text-field></v-list-item-title>
                                                 </v-list-item-content>
                                             </v-list-item>
                                         </v-col>
@@ -272,7 +286,22 @@ export default {
                 yestext: '',
                 action: null
             },
-            selectedAddress: [0]
+            selectedAddress: [0],
+            provinces: [
+                {prov: 'Alberta', abbr: 'AB'},
+                {prov: 'British Columbia', abbr: 'BC'},
+                {prov: 'Manitoba', abbr:'MB'},
+                {prov: 'New Brunswick', abbr: 'NB'},
+                {prov: 'Newfoundland and Labrador', abbr: 'NL'},
+                {prov: 'Northwest Territories', abbr: 'NT'},
+                {prov: 'Nova Scotia', abbr:'NS'},
+                {prov: 'Nunavut', abbr:'NU'},
+                {prov: 'Ontario', abbr:'ON'},
+                {prov: 'Prince Edward Island', abbr:'PE'},
+                {prov: 'Quebec', abbr:'QC'},
+                {prov: 'Saskatchewan', abbr: 'SK'},
+                {prov: 'Yukon', abbr: 'YT'}
+            ]
         }
     },
     methods: {
@@ -351,7 +380,7 @@ export default {
             this.$auth.getTokenSilently().then((authToken) => {
 
                 MerchantService.saveMerchant(this.id,authToken,this.merchant).then(result => {
-                    this.makeToast(result,'success');
+                    this.makeToast(result,'success',5000);
                 }, err => {
                     this.makeToast(err,'danger');
                 }).then(() => {

@@ -28,7 +28,8 @@ module.exports = (sequelize, DataTypes) => {
     website: DataTypes.STRING,
     type: DataTypes.STRING,
     description: DataTypes.TEXT,
-    onlineShopping: DataTypes.BOOLEAN
+    onlineShopping: DataTypes.BOOLEAN,
+    inStoreShopping: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Merchant',

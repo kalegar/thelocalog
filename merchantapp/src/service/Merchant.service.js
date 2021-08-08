@@ -152,7 +152,7 @@ export const MerchantService = {
                 if (res.status != 200) {
                     reject(`Error updating merchant: ${res.statusText} ${res.data.message}`);
                 }else{
-                    resolve('Merchant Updated!');
+                    resolve('Merchant Updated! You may need to refresh to see changes.');
                 }
             })
             .catch(err => {
