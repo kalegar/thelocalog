@@ -79,16 +79,17 @@
                         </div>
                     </div>
                     <div class="merchant container" v-if="!loading && merchant" key="merchant">
-                        <div class="row title">
-                            <div class="col my-auto">
+                        <v-row class="title">
+                            <div class="my-auto d-block d-sm-inline">
                                 <h1 v-if="!editing">{{merchant.title}}</h1>
                                 <v-text-field v-else v-model="merchant.title" label="Merchant Title"></v-text-field>
                             </div>
-                            <div class="col" v-if="logo && logo.length">
+                            <v-spacer></v-spacer>
+                            <div class="col d-block d-sm-inline" v-if="logo && logo.length">
                                 <img class="logo" :src="'data:image/png;base64,'+logo[0].image" />
                             </div>
-                        </div>
-                        <div class="row">
+                        </v-row>
+                        <div class="row mt-8">
                             <div class="col mt-n4">
                                 <v-card>
                                     <v-card-text>
@@ -137,12 +138,12 @@
                                 >
                                 <v-expansion-panel-header>
                                     <template v-slot:default="{ open, hover }">
-                                    <v-row no-gutters>
+                                    <div class="address-header">
                                         <v-icon left :color="open ? 'primary' : ''" :large="hover || open">mdi-map-marker-outline</v-icon>
-                                        <div :class="open ? 'address-header-bold' : 'address-header'">
+                                        <p :class="open ? 'my-auto bold' : 'my-auto'">
                                         {{address.address1}}, {{address.city}}, {{address.province}}
-                                        </div>
-                                    </v-row>
+                                        </p>
+                                    </div>
                                     </template>
                                 </v-expansion-panel-header>
                                 <v-expansion-panel-content>
@@ -480,25 +481,31 @@ h2, h1 {
     max-width: 12rem;
     max-height: 12rem;
 }
+@media (min-width: 650px) { 
+  .title {
+    margin-top: 0.5rem;
+  }
+}
 .title {
     margin-bottom: 0.5rem;
+    margin-left: auto;
 }
-.address-header-bold {
+.bold {
     font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    flex-direction: column;
-    text-align: left;
-    height: auto;
 }
 .address-header {
     display: flex;
-    justify-content: center;
     align-content: center;
-    flex-direction: column;
+    flex-direction: row;
     text-align: left;
-    height: auto;
+    overflow: hidden;
+    margin-left: -0.75rem;
+}
+
+.address-header p {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .online-shopping {
