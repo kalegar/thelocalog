@@ -162,6 +162,28 @@ export const MerchantService = {
         });
     },
 
+    createMerchant: function(merchant, authToken) {
+        const url = `/api/merchants`;
+        return new Promise((resolve, reject) => {
+            axios.post(url, merchant,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            .then(res => {
+                if (res.status != 201) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        })
+    },
+
     getLogo: function(id) {
         const url = `/api/merchants/${id}/images`;
         return new Promise((resolve,reject) => {

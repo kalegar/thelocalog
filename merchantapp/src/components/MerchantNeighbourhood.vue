@@ -10,7 +10,7 @@
           @change="updateInput"
           :delimiters="delimiters"
           :items="neighbourhoods"
-          allow-overflow="false"
+          :allow-overflow="false"
         >
           <template v-slot:selection="{ attrs, item, select, selected }">
             <v-chip

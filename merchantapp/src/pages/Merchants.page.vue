@@ -63,14 +63,14 @@
                             </v-expansion-panel>
                         </v-expansion-panels>
                     </v-row>
-                    <div class="row">
-                        <div v-if="!searchquery" class="col">
+                    <v-row>
+                        <v-col v-if="!searchquery">
                             <h1>Local Shops</h1>
-                        </div>
-                        <div v-else class="col">
+                        </v-col>
+                        <v-col v-else>
                             <h1>Results for '<em>{{searchquery}}</em>'</h1>
-                        </div>
-                        <div class="d-none d-sm-block col-sm-2">
+                        </v-col>
+                        <v-col class="d-none d-sm-block" sm="2">
                             <v-btn-toggle
                                 v-model="merchantLayout"
                                 mandatory
@@ -83,8 +83,8 @@
                                     <v-icon>mdi-view-grid-outline</v-icon>
                                 </v-btn>
                             </v-btn-toggle>
-                        </div>
-                    </div>
+                        </v-col>
+                    </v-row>
                     <Loading :loading="loading && 1==2"/>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
                     <div v-if="merchantLayout == 1">
@@ -166,6 +166,7 @@
                     </div>
                     <div class="admin-filters" v-if="$auth.isAuthenticated">
                         <v-checkbox large v-model="includeDeleted" v-on:change="getMerchants()" label="Include Deleted Merchants"></v-checkbox>
+                        <create-merchant-modal></create-merchant-modal>
                     </div>
                 </template>
             </BaseContent>
@@ -190,6 +191,7 @@ import AdvertisementCard from '../components/AdvertisementCard.vue';
 
 import { MerchantService } from '../service/Merchant.service';
 import AdvertisementListItem from '../components/AdvertisementListItem.vue';
+import CreateMerchantModal from '../components/CreateMerchantModal.vue';
 
 export default {
     name: 'Merchants',
@@ -250,7 +252,8 @@ export default {
         MerchantCard,
         MerchantListItem,
         AdvertisementCard,
-        AdvertisementListItem
+        AdvertisementListItem,
+        CreateMerchantModal
     },
     data: function() {
         return {
