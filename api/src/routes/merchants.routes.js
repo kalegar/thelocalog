@@ -339,38 +339,6 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-const getFullAddress = function(addrObject) {
-    return addrObject.address1 && addrObject.address1.length > 0 ? addrObject.address1 + ', ' : '' +
-           addrObject.address2 && addrObject.address2.length > 0 ? addrObject.address2 + ', ' : '' +
-           addrObject.address3 && addrObject.address3.length > 0 ? addrObject.address3 + ', ' : '' +
-           addrObject.city     && addrObject.city.length     > 0 ? addrObject.city     + ', ' : '' +
-           addrObject.province && addrObject.province.length > 0 ? addrObject.province : '';
-}
-
-const areAddressesEqual = function(addr1, addr2) {
-    return (
-           addr1.address1      === addr2.address1   &&
-           addr1.address2      === addr2.address2   &&
-           addr1.address3      === addr2.address3   &&
-           addr1.city          === addr2.city       &&
-           addr1.province      === addr2.province   &&
-           addr1.country       === addr2.country    &&
-           addr1.postalcode    === addr2.postalcode &&
-           addr1.neighbourhood === addr2.neighbourhood
-    );
-}
-
-const areContactsEqual = function(cont1, cont2) {
-    return (
-            cont1.email      === cont2.email     &&
-            cont1.email2     === cont2.email2    &&
-            cont1.phone      === cont2.phone     &&
-            cont1.phonetype  === cont2.phonetype &&
-            cont1.phone2     === cont2.phone2    &&
-            cont1.phonetype2 === cont2.phonetype2
-    );
-}
-
 // Update a merchant by id
 router.put("/:id", checkJwt, adminRole, async (req, res) => {
     try {
@@ -407,8 +375,8 @@ router.put("/:id", checkJwt, adminRole, async (req, res) => {
 
                     const currAddr = temp[0];
 
-                    if (areAddressesEqual(address,currAddr)) {
-                        if ((address.hasOwnProperty('Contact')) && areContactsEqual(address.Contact,currAddr.Contact)) {
+                    if (Utils.areAddressesEqual(address,currAddr)) {
+                        if ((address.hasOwnProperty('Contact')) && Utils.areContactsEqual(address.Contact,currAddr.Contact)) {
                             LoggingService.log('Address unchanged. skipping.');
                             continue;
                         }
@@ -422,7 +390,7 @@ router.put("/:id", checkJwt, adminRole, async (req, res) => {
                         province: address.province,
                         postalcode: address.postalcode,
                         neighbourhood: address.neighbourhood,
-                        full: getFullAddress(address),
+                        full: Utils.getFullAddress(address),
                     }
         
                     GoogleAPIService.getPlace(title, address).then(function(place) {

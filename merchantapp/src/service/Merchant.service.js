@@ -184,6 +184,50 @@ export const MerchantService = {
         })
     },
 
+    createAddress: function(merchantId, address, authToken) {
+        const url = `/api/merchants/${merchantId}/addresses`;
+        return new Promise((resolve, reject) => {
+            axios.post(url, address,
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+            .then(res => {
+                if (res.status != 201) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        })
+    },
+
+    deleteAddress: function(merchantId, addressId, authToken) {
+        const url = `/api/merchants/${merchantId}/addresses/${addressId}`;
+        return new Promise((resolve, reject) => {
+            axios.delete(url,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve('Deleted Address.');
+            })
+            .catch(err => {
+                reject(err);
+            })
+        })
+    },
+
     getLogo: function(id) {
         const url = `/api/merchants/${id}/images`;
         return new Promise((resolve,reject) => {

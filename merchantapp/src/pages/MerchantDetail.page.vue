@@ -82,7 +82,7 @@
                         <v-row class="title">
                             <div class="my-auto d-block d-sm-inline">
                                 <h1 v-if="!editing">{{merchant.title}}</h1>
-                                <v-text-field v-else v-model="merchant.title" label="Merchant Title"></v-text-field>
+                                <v-text-field class="text-h4" height=40 v-else large v-model="merchant.title" label="Merchant Title"></v-text-field>
                             </div>
                             <v-spacer></v-spacer>
                             <div class="col d-block d-sm-inline" v-if="logo && logo.length">
@@ -130,6 +130,7 @@
                         </div>
                         <div class="addresses row" v-if="merchant.Addresses">
                             <div class="col">
+                            <create-address-modal :merchantId="merchant.id" @created="makeToast('Address Created.','success',2000); getMerchant();" @error="makeToast('Error creating address.','danger',3000);"></create-address-modal>
                             <h2 v-if="merchant.Addresses.length > 1">{{ merchant.Addresses.length }} Locations:</h2>
                             <h2 v-if="merchant.Addresses.length == 1">Location:</h2>
                             <v-expansion-panels v-model="selectedAddress" multiple class="mt-2">
@@ -148,7 +149,26 @@
                                 </v-expansion-panel-header>
                                 <v-expansion-panel-content>
                                 <v-row v-if="editing" class="mb-2">
-                                    <v-btn color="danger" dark small :loading="deleteMerchantLoading">Delete<v-icon right dark>mdi-delete</v-icon></v-btn>
+                                    <v-dialog max-width="600" transition="dialog-bottom-transition" v-model="deleteAddressDialog">
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn color="danger" dark small :loading="deleteAddressLoading" v-bind="attrs" v-on="on">Delete<v-icon right dark>mdi-delete</v-icon></v-btn>
+                                        </template>
+                                        <v-card>
+                                            <v-card-title class="text-h5">Delete Location</v-card-title>
+                                            <v-card-text>Are you sure you want to delete this location? This cannot be undone.</v-card-text>
+                                            <v-divider></v-divider>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn color="secondary" text @click="deleteAddressDialog = false">
+                                                    Cancel
+                                                </v-btn>
+                                                <v-btn color="red" text @click="deleteAddress(address.id); deleteAddressDialog = false;">
+                                                    <v-icon left>mdi-delete</v-icon>
+                                                    Delete
+                                                </v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
                                 </v-row>
                             <v-card class="addresscard" elevation="6">
                                 <GoogleMapsEmbed :mapParams="encodeAddress(merchant.title,address)"/>
@@ -247,6 +267,7 @@ import GoogleMapsEmbed from '../components/GoogleMapsEmbed.vue'
 import SocialMediaLinks from '../components/SocialMediaLinks.vue'
 import { Utils } from '../utils/util.js';
 import { MerchantService } from '../service/Merchant.service';
+import CreateAddressModal from '../components/CreateAddressModal.vue';
 
 export default {
     name: 'MerchantDetail',
@@ -259,7 +280,8 @@ export default {
         BasePage,
         BaseContent,
         GoogleMapsEmbed,
-        SocialMediaLinks
+        SocialMediaLinks,
+        CreateAddressModal
     },
     data: function() {
         return {
@@ -302,7 +324,9 @@ export default {
                 {prov: 'Quebec', abbr:'QC'},
                 {prov: 'Saskatchewan', abbr: 'SK'},
                 {prov: 'Yukon', abbr: 'YT'}
-            ]
+            ],
+            deleteAddressDialog: false,
+            deleteAddressLoading: false
         }
     },
     methods: {
@@ -403,6 +427,19 @@ export default {
                 }).then(() => {
                     this.deleteMerchantLoading = false;
                 });
+            });
+        },
+        deleteAddress: function(id) {
+            this.deleteAddressLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                MerchantService.deleteAddress(this.id,id,authToken).then(result => {
+                    this.makeToast(result,'success');
+                    this.getMerchant();
+                }, err => {
+                    this.makeToast(err,'danger');
+                }).then(() => {
+                    this.deleteAddressLoading = false;
+                })
             });
         },
         makeToast: function(text, color, timeout=2000) {
