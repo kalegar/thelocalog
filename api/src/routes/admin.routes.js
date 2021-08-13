@@ -49,6 +49,47 @@ router.get("/claims/:claimId", async (req, res) => {
     }
 });
 
+router.put("/claims/:claimId/accept", async (req, res) => {
+    try {
+        const claim = await MerchantClaim.findOne({
+            where: {
+                id: req.params.claimId
+            },
+            include: [
+                { model: Merchant },
+                { model: User }
+            ]
+        });
+        if (claim && claim.Merchant && claim.User) {
+            await claim.Merchant.addUser(claim.User);
+            await claim.destroy();
+            return res.status(200).json(claim);
+        } else {
+            return res.status(404).json({ message: 'The claim with the specified ID was not found.'});
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.put("/claims/:claimId/deny", async (req, res) => {
+    try {
+        const claim = await MerchantClaim.findOne({
+            where: {
+                id: req.params.claimId
+            }
+        });
+        if (claim) {
+            await claim.destroy();
+            return res.status(202).json({ message: 'Success' });
+        } else {
+            return res.status(404).json({ message: 'The claim with the specified ID was not found.'});
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.get("/hours/clearcache", async(req, res) => {
     redisClient.KEYS(`${redisPrefixHours}*`, function(err, result) {
         if (err) {

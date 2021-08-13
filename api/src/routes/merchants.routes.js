@@ -13,6 +13,7 @@ import merchantImagesRouter from './merchants.images.routes.js';
 import merchantClaimsRouter from './merchants.claims.routes.js';
 import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
+import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
 import redisService, { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
@@ -340,7 +341,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update a merchant by id
-router.put("/:id", checkJwt, adminRole, async (req, res) => {
+router.put("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
         const { title, description, website, deletedAt, onlineShopping, inStoreShopping, Addresses } = req.body;
 
@@ -443,7 +444,7 @@ router.put("/:id", checkJwt, adminRole, async (req, res) => {
 });
 
 // Delete a merchant by id
-router.delete("/:id", checkJwt, adminRole, async (req, res) => {
+router.delete("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
         const merchant = await Merchant.destroy({ where: { id: req.params.id } });
         if (!merchant)

@@ -164,7 +164,7 @@
                             v-model="perpage"
                         ></v-select>
                     </div>
-                    <div class="admin-filters" v-if="$auth.isAuthenticated">
+                    <div class="admin-filters" v-if="isAdmin">
                         <v-checkbox large v-model="includeDeleted" v-on:change="getMerchants()" label="Include Deleted Merchants"></v-checkbox>
                         <create-merchant-modal></create-merchant-modal>
                     </div>
@@ -295,6 +295,9 @@ export default {
     computed: {
         hasSearchFilters: function() {
             return Boolean(this.categories.length || this.tags.length || this.neighbourhood.length || (this.geo && this.geo.enabled));
+        },
+        isAdmin: function() {
+            return this.$auth.isAuthenticated && this.$auth.user[this.$auth.rolesKey] && this.$auth.user[this.$auth.rolesKey].includes('admin');
         }
     },
     methods: {

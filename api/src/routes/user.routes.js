@@ -61,9 +61,7 @@ router.get('/merchants', async (req, res) => {
                 "SELECT m.id,m.title,m.description,m.website " +
                 "FROM \"Merchants\" m "+
                 "JOIN \"MerchantOwners\" mo ON mo.\"MerchantId\" = m.id " +
-                "JOIN \"Users\" u ON mo.\"UserId\" = u.id " +
-                "WHERE u.id = :userId";
-
+                "WHERE mo.\"UserId\" = :userId";
 
         const merchants = await sequelize.query(sql,
         {
@@ -76,6 +74,35 @@ router.get('/merchants', async (req, res) => {
         if (merchants) {
             return res.status(200).json({merchants});
         }else{
+            return res.status(200).json([]);
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/* Method to determine if the requesting user is the owner of the specified merchant Id. */
+router.get('/merchants/:merchantId', async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const sql = 
+                "SELECT m.id,m.title,m.description,m.website " +
+                "FROM \"Merchants\" m "+
+                "JOIN \"MerchantOwners\" mo ON mo.\"MerchantId\" = m.id " +
+                "WHERE mo.\"UserId\" = :userId AND mo.\"MerchantId\" = :merchantId";
+
+        const merchants = await sequelize.query(sql,
+        {
+            replacements: {
+                userId,
+                merchantId: req.params.merchantId
+            },
+            type: QueryTypes.SELECT
+        });
+
+        if (merchants && merchants.length) {
+            return res.status(200).json(merchants);
+        } else {
             return res.status(200).json([]);
         }
     } catch (error) {

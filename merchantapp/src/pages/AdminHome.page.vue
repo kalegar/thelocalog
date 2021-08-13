@@ -14,7 +14,7 @@
                             <div class="claims" v-if="claims && claims.length">
                                 <v-list three-line>
                                     <template v-for="(claim,index) in claims">
-                                            <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id }}" :key="'claim-'+claim.id">
+                                            <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id.toString() }}" :key="'claim-'+claim.id">
                                                 <v-list-item-avatar>
                                                     <v-icon>mdi-storefront</v-icon>
                                                 </v-list-item-avatar>
@@ -125,6 +125,7 @@
 import axios from 'axios';
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
+import { AdminService } from '../service/Admin.service';
 
 export default {
     name: 'AdminHome',
@@ -161,30 +162,11 @@ export default {
     },
     methods: {
         getClaims: function() {
-            const url = `/api/admin/claims`
             this.$auth.getTokenSilently().then((authToken) => {
-                axios.get(url, {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`
-                    }
-                })
-                .then(res => {
-                    if (res.status != 200) {
-                        console.log('ERROR');
-                        const error = new Error(res.statusText);
-                        throw error;
-                    }
-                    if (res.data.claims) {
-                        this.claims = res.data.claims;
-                    }
-                })
-                .catch(err => {
-                    this.error = err;
-                    if (err.json) {
-                        return err.json.then(json => {
-                            this.error.message = json.message;
-                        });
-                    }
+                AdminService.getMerchantClaims(authToken).then(res => {
+                    this.claims = res;
+                }, err => {
+                    console.log(err);
                 });
             });
         },

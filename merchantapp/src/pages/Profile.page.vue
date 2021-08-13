@@ -80,7 +80,7 @@ export default {
         onSubmit: function() {
             this.editing = false;
             this.$auth.getTokenSilently().then((authToken) => {
-                axios.patch('/api/user/profile',this.form,{
+                axios.patch('/api/users/profile',this.form,{
                     headers: {
                         Authorization: `Bearer ${authToken}`
                     }
@@ -107,7 +107,7 @@ export default {
 
         this.$auth.getTokenSilently().then((authToken) => {
 
-            axios.get(`/api/user`, {
+            axios.get(`/apis`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -118,7 +118,7 @@ export default {
                 }
             });
 
-            axios.get('/api/user/merchants', {
+            axios.get('/api/users/merchants', {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }

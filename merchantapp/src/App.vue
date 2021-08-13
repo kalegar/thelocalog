@@ -77,6 +77,7 @@
 
 <script>
 import _debounce from 'lodash/debounce';
+import { UserService } from './service/User.service.js';
 
 export default {
   name: 'App',
@@ -115,6 +116,19 @@ export default {
     search: _debounce(function() {
       this.$router.push({ name: 'Merchants', query: { q: this.searchQuery }});
     }, 500)
+  },
+
+  mounted: function() {
+      this.$auth.$watch('loading', (isLoading) => {
+        if (isLoading === false) {
+          this.$auth.getTokenSilently().then((authToken) => {
+           UserService.initUser(authToken);
+        }, err => {
+          console.log(err);
+        });
+        }
+      })  
+        
   }
 };
 </script>

@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import merchantRoutes from './routes/merchants.routes.js';
 import categoryRoutes from './routes/categories.routes.js';
@@ -16,8 +15,8 @@ const app = express();
 
 app.use(cors());
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 const env = process.env.NODE_ENV || 'development';
 console.log('environment: ' + env);
@@ -30,10 +29,10 @@ app.use('/api/categories',categoryRoutes);
 app.use('/api/nearby',nearbyRoutes);
 app.use('/api/addresses',addressRoutes)
 
-app.use('/api/user', checkJwt, userRoutes);
+app.use('/api/users', checkJwt, userRoutes);
 
 const checkScopes = jwtAuthz([ 'view:my-merchants' ]);
-app.get('/api/user/testscopes', checkJwt, checkScopes, function(req, res) {
+app.get('/api/users/testscopes', checkJwt, checkScopes, function(req, res) {
    res.json({
       message: 'This is a private scoped endpoint!'
    });
