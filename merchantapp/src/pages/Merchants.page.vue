@@ -4,9 +4,10 @@
             <BaseContent>
                 <template v-slot:left>
                     <v-row v-if="!displayCollapseFilters" justify="center" class="ma-4">
-                        <v-expansion-panels>
+                        <v-expansion-panels v-model="filtersPanelOpen">
                             <v-expansion-panel>
-                            <v-expansion-panel-header v-slot:default="{ open }">
+                            <v-expansion-panel-header>
+                                <template v-slot:default="{ open }">
                                 <v-row no-gutters>
                                 <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="open">mdi-filter</v-icon>
                                 <v-col class="mt-1" align-self="center">
@@ -17,6 +18,10 @@
                                     <v-btn color="secondary" class="ma-0 float-right" small @click.native.stop="clearFilters()">Reset</v-btn>
                                 </v-col>
                                 </v-row>
+                                </template>
+                                <template v-slot:actions>
+                                    <v-icon large>mdi-chevron-down</v-icon>
+                                </template>
                             </v-expansion-panel-header>
                             <v-expansion-panel-content eager>
                                 <MyLocation v-model="geo.enabled" v-bind:radius.sync="geo.radius" v-bind:location.sync="geo.location"/>
@@ -32,6 +37,9 @@
                                     v-model="merchantOrder"
                                     color="secondary"
                                 ></v-select>
+                                <v-btn color="secondary" @click="filtersPanelOpen = false; getMerchants()">
+                                    Search
+                                </v-btn>
                             </v-expansion-panel-content>
                             </v-expansion-panel>
                         </v-expansion-panels>
@@ -40,9 +48,10 @@
                 <div class="row">
                 <div class="merchantlist col">
                     <v-row v-if="displayCollapseFilters" justify="center">
-                        <v-expansion-panels>
+                        <v-expansion-panels v-model="filtersPanelOpen">
                             <v-expansion-panel>
-                            <v-expansion-panel-header v-slot:default="{ open }">
+                            <v-expansion-panel-header> 
+                                <template v-slot:default="{ open }">
                                 <v-row no-gutters>
                                 <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="open">mdi-filter</v-icon>
                                 <v-col class="mt-1" align-self="center">
@@ -53,12 +62,19 @@
                                     <v-btn color="secondary" class="ma-0 float-right" small @click.native.stop="clearFilters()">Reset</v-btn>
                                 </v-col>
                                 </v-row>
+                                </template>
+                                <template v-slot:actions>
+                                    <v-icon large>mdi-chevron-down</v-icon>
+                                </template>
                             </v-expansion-panel-header>
                             <v-expansion-panel-content eager>
                                 <MyLocation v-model="geo.enabled" v-bind:radius.sync="geo.radius" v-bind:location.sync="geo.location"/>
                                 <MerchantTags v-model="tags"/>
                                 <MerchantNeighbourhood v-model="neighbourhood"/>
                                 <MerchantCategories v-model="categories"/>
+                                <v-btn color="secondary" @click="filtersPanelOpen = false; getMerchants()">
+                                    Search
+                                </v-btn>
                             </v-expansion-panel-content>
                             </v-expansion-panel>
                         </v-expansion-panels>
@@ -288,7 +304,8 @@ export default {
                 { text: 'Title', value: '+TITLE' },
                 { text: 'Relevance', value: '+RANK' },
                 { text: 'Distance', value: '+DIST' } 
-            ]
+            ],
+            filtersPanelOpen: false
         }
     },
     computed: {

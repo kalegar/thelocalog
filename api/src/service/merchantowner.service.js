@@ -19,6 +19,13 @@ export const MerchantOwnerService = {
                 if (user.sub) {
                     userId = user.sub;
                 }
+
+                if (user && user[namespace]) {
+                    if (user[namespace].includes('admin')) {
+                        resolve(true);
+                        return;
+                    }
+                }
             
                 if (merchantId !== null && userId !== null) {
                     redisClient.get(`${redisPrefixMerchantOwner}${userId}`, (err, reply) => {
@@ -63,12 +70,6 @@ export const MerchantOwnerService = {
                         }
                     }); 
                     return;
-                }
-            
-                if (user && user[namespace]) {
-                    if (user[namespace].includes('admin')) {
-                        resolve(true);
-                    }
                 }
             
                 resolve(false);

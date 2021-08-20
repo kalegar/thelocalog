@@ -155,23 +155,24 @@ def parse_row(row,fields,maincategory,prev_name):
                 tagid = result[0]
             cur.execute(u"INSERT INTO \"MerchantTags\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"TagId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,tagid))
     # INSERT CATEGORIES
+    categories = []
     if row[fields['Related Categories']] != None and len(row[fields['Related Categories']]) > 0:
         categories = [(s.strip(),) for s in list(filter(lambda x: x != None and len(x) >= 3,row[fields['Related Categories']].replace("\r\n"," ").replace("\n"," ").split(",")))]
-        categories.append((maincategory,))
-        for category in categories:
-            cur.execute(u"SELECT id FROM \"Categories\" WHERE \"category\" = UPPER(%s)",category)
-            catid = None
-            result = cur.fetchone()
-            if (result == None):
-                print("No exact match found for category '" + category[0] + "'. Trying similar categories...")
-                cur.execute(u"SELECT id FROM \"Categories\" WHERE \"category\" iLike '%%' || UPPER(%s) || '%%'",category)
-                results = cur.fetchall()
-                for result in results:
-                    catid = result[0]
-                    cur.execute(u"INSERT INTO \"MerchantCategories\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"CategoryId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,catid))
-            else:
+    categories.append((maincategory,))
+    for category in categories:
+        cur.execute(u"SELECT id FROM \"Categories\" WHERE \"category\" = UPPER(%s)",category)
+        catid = None
+        result = cur.fetchone()
+        if (result == None):
+            print("No exact match found for category '" + category[0] + "'. Trying similar categories...")
+            cur.execute(u"SELECT id FROM \"Categories\" WHERE \"category\" iLike '%%' || UPPER(%s) || '%%'",category)
+            results = cur.fetchall()
+            for result in results:
                 catid = result[0]
                 cur.execute(u"INSERT INTO \"MerchantCategories\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"CategoryId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,catid))
+        else:
+            catid = result[0]
+            cur.execute(u"INSERT INTO \"MerchantCategories\" (\"createdAt\",\"updatedAt\",\"MerchantId\",\"CategoryId\") VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",(datetime.datetime.now(), datetime.datetime.now(),merchantid,catid))
     # INSERT SOCIAL MEDIA LINKS
     for social in [('Twitter',row[fields['Twitter']]),('Facebook',row[fields['Facebook']]),('Instagram',row[fields['Instagram']]),('Pinterest',row[fields['Pinterest']])]:
         if (social[1] == ''): 
@@ -197,7 +198,7 @@ def parse_row(row,fields,maincategory,prev_name):
             print("Could not find '"+"./data/logos/"+merchant_name+".png'")
 
 def parse_sheet(sheet):
-    maincategory = sheet.title
+    maincategory = sheet.title.strip()
     use_name_as_cat = input(f"Is '{maincategory}' the category? (y(default)/n/skip/exit): ")
     if (use_name_as_cat == "n"):
         maincategory = input("Enter category:")
@@ -206,6 +207,7 @@ def parse_sheet(sheet):
     elif (use_name_as_cat == "exit" or use_name_as_cat == "e"):
         return False
     print('Category: ' + maincategory)
+    cur.execute(u"INSERT INTO \"Categories\"(category) VALUES(UPPER(%s)) ON CONFLICT DO NOTHING",(maincategory,))
     field_dict = {}
     first_row = True
     prev_name = None
