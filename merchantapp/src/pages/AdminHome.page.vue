@@ -42,7 +42,7 @@
                             <div class="col">
                             <h3>Tools</h3>
 
-                            <v-btn @click="populateGeometry()" :loading="populateGeoLoading">Populate Geometry</v-btn>
+                            <v-btn class="toolbutton" @click="populateGeometry()" :loading="populateGeoLoading">Populate Geometry</v-btn>
                             <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
                                 {{ snackbar.text }}
                                 <template v-slot:action="{ attrs }">
@@ -62,6 +62,7 @@
                             >
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-btn
+                                        class="toolbutton"
                                         v-bind="attrs"
                                         v-on="on"
                                         @click="showUploadDialog()"
@@ -108,9 +109,23 @@
                             </v-dialog>
 
                             <v-btn
-                                @click="clearHoursCache()"
+                                class="toolbutton"
+                                @click="clearHoursCache"
                                 :loading="clearHoursCacheLoading"
                             >Clear Hours Cache</v-btn>
+
+                            <v-btn
+                                class="toolbutton"
+                                @click="clearCategoriesCache"
+                                :loading="clearCategoriesCacheLoading"
+                            >Clear Categories Cache</v-btn>
+
+                            <v-btn
+                                class="toolbutton"
+                                @click="clearMerchantQueryCache"
+                                :loading="clearMerchantQueryLoading"
+                            >Clear Merchant Cache</v-btn>
+
                             </div>
                         </div>
                     </v-col>
@@ -144,6 +159,8 @@ export default {
             uploadedLogo: null,
             uploadedLogoMerchantId: '',
             clearHoursCacheLoading: false,
+            clearCategoriesCacheLoading: false,
+            clearMerchantQueryLoading: false,
             snackbar: {
                 color: 'primary',
                 show: false,
@@ -213,6 +230,52 @@ export default {
                     const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
                     this.makeToast(`${err}${msg}`,'danger');
                 });
+            });
+        },
+        clearCategoriesCache: function() {
+            const url = `/api/admin/categories/clearcache`;
+            this.clearCategoriesCacheLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        this.makeToast(res.statusText,'danger');
+                        return;
+                    }
+                    this.makeToast(res.data.message,'success');
+                    this.getPopulateGeometryCount();
+                })
+                .catch(err => {
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast(`${err}${msg}`,'danger');
+                }).then(() => {this.clearCategoriesCacheLoading = false;});
+            });
+        },
+        clearMerchantQueryCache: function() {
+            const url = `/api/admin/merchants/clearcache`;
+            this.clearMerchantQueryLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        this.makeToast(res.statusText,'danger');
+                        return;
+                    }
+                    this.makeToast(res.data.message,'success');
+                    this.getPopulateGeometryCount();
+                })
+                .catch(err => {
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast(`${err}${msg}`,'danger');
+                }).then(() => {this.clearMerchantQueryLoading = false;});
             });
         },
         populateGeometry: function() {
@@ -315,4 +378,7 @@ export default {
 </script>
 
 <style scoped>
+.toolbutton {
+    margin: 0.3rem;
+}
 </style>

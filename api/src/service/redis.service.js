@@ -28,6 +28,7 @@ export const redisPrefixHours = 'HRS/';
 export const redisPrefixCategory = "CAT/";
 export const redisPrefixNeighbourhood = "NBD/";
 export const redisPrefixRequest = "REQ/";
+export const redisPrefixMerchantOwner = "MOW/";
 export const redisExpiryTime = 604800;
 export const redisExpiryTimeDay = 86400;
 export const redisExpiryTimeShort = 3600;

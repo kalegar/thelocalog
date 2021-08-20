@@ -7,13 +7,13 @@ import { Merchant, MerchantClaim, User, Address } from '../database/models';
 import { GoogleAPIService } from '../service/google-api.service.js';
 import { LoggingService } from '../service/logging.service.js';
 import { Utils } from '../util.js';
-import { redisClient, redisPrefixHours } from '../service/redis.service.js';
+import { redisClient, redisPrefixHours, redisPrefixRequest, redisPrefixCategory } from '../service/redis.service.js';
 
 const router = Router();
 
 //endpoint to authenticate administrators
-router.get("/", async(req, res) => {
-    return res.status(200).json({ message: 'Authenticated.'});
+router.get("/", async (req, res) => {
+    return res.status(200).json({ message: 'Authenticated.' });
 })
 
 // Retrieve all Merchant Claims
@@ -65,7 +65,7 @@ router.put("/claims/:claimId/accept", async (req, res) => {
             await claim.destroy();
             return res.status(200).json(claim);
         } else {
-            return res.status(404).json({ message: 'The claim with the specified ID was not found.'});
+            return res.status(404).json({ message: 'The claim with the specified ID was not found.' });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -83,26 +83,62 @@ router.put("/claims/:claimId/deny", async (req, res) => {
             await claim.destroy();
             return res.status(202).json({ message: 'Success' });
         } else {
-            return res.status(404).json({ message: 'The claim with the specified ID was not found.'});
+            return res.status(404).json({ message: 'The claim with the specified ID was not found.' });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-router.get("/hours/clearcache", async(req, res) => {
-    redisClient.KEYS(`${redisPrefixHours}*`, function(err, result) {
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ message: err.message });
-        }
-        const count = result.length;
-        for (const key of result) {
-            redisClient.DEL(key);
-        }
-        return res.status(200).json({ message: `Cleared ${count} keys.` });
-    });
+router.get("/hours/clearcache", async (req, res) => {
+    try {
+        redisClient.KEYS(`${redisPrefixHours}*`, function (err, result) {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            }
+            const count = result.length;
+            for (const key of result) {
+                redisClient.DEL(key);
+            }
+            return res.status(200).json({ message: `Cleared ${count} keys.` });
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
+
+router.get("/merchants/clearcache", async (req, res) => {
+    try {
+        redisClient.KEYS(`${redisPrefixRequest}*`, function (err, result) {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            }
+            const count = result.length;
+            for (const key of result) {
+                redisClient.DEL(key);
+            }
+            return res.status(200).json({ message: `Cleared ${count} keys.` });
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get("/categories/clearcache", async (req, res) => {
+    try {
+        redisClient.del(redisPrefixCategory + 'ALL', async (err, reply) => {
+            if (reply) {
+                return res.status(200).json({ message: 'Cache Cleared.' });
+            } else if (err) {
+                return res.status(500).json({ message: 'Redis Server Error.' });
+            } else {
+                return res.status(500).json({ message: 'No response from Redis' });
+            }
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+})
 
 router.get("/populategeo", async (req, res) => {
     try {
@@ -120,35 +156,35 @@ router.get("/populategeo", async (req, res) => {
         }
         const addresses = queryResult.rows;
         if (queryResult.count == 0) {
-            return res.status(200).json({ message: 'All addresses have geometry. '});
+            return res.status(200).json({ message: 'All addresses have geometry. ' });
         }
         let responseMessage = '';
         let count = 0;
         for (const address of addresses) {
             if (address.placeid) {
-                const placeDetails = await GoogleAPIService.getPlaceDetails(address.placeid,'geometry');
+                const placeDetails = await GoogleAPIService.getPlaceDetails(address.placeid, 'geometry');
                 if (!placeDetails) {
                     LoggingService.log("Address placeid not found. Clearing.");
                     address.placeid = null;
                 } else {
                     if (placeDetails.geometry && placeDetails.geometry.location) {
-                        address.geom = Utils.createGeom(placeDetails.geometry.location.lng,placeDetails.geometry.location.lat);
+                        address.geom = Utils.createGeom(placeDetails.geometry.location.lng, placeDetails.geometry.location.lat);
                         LoggingService.log('Address geom was updated. Saving...');
-                        await address.save({fields: ['geom']});
+                        await address.save({ fields: ['geom'] });
                         LoggingService.log('Saved!');
-                        count ++;
+                        count++;
                     }
                 }
             }
             if (!address.placeid) {
-                const merchants = await address.getMerchants({attributes: ['title'], paranoid: false});
-                const place = await GoogleAPIService.getPlace(merchants[0].title,address);
+                const merchants = await address.getMerchants({ attributes: ['title'], paranoid: false });
+                const place = await GoogleAPIService.getPlace(merchants[0].title, address);
                 if (place) {
                     address.placeid = place.place_id;
                     if (place.geometry && place.geometry.location) {
-                        address.geom = Utils.createGeom(place.geometry.location.lng,place.geometry.location.lat);
-                        await address.save({fields: ['geom', 'placeid']});
-                        count ++;
+                        address.geom = Utils.createGeom(place.geometry.location.lng, place.geometry.location.lat);
+                        await address.save({ fields: ['geom', 'placeid'] });
+                        count++;
                     }
                 } else {
                     responseMessage = responseMessage + `Skipped address id ${address.id} (${merchants[0].title}, ${address.full}), no results found. \n`;
@@ -158,7 +194,7 @@ router.get("/populategeo", async (req, res) => {
 
 
         responseMessage = `Updated ${count} of ${queryResult.count} address geometries. \n${responseMessage}`;
-        return res.status(200).json({ message: responseMessage});
+        return res.status(200).json({ message: responseMessage });
 
     } catch (error) {
         res.status(500).json({ message: error.message });
