@@ -1,25 +1,29 @@
 <template>
-    <v-container fluid v-if="categories.length">
-        <v-row>
-            <div class="text-body mb-3">Filter By Category:</div>
-            <v-spacer></v-spacer>
-            <v-btn class="clear-categories" v-if="value.length" @click="value = []; updateInput();" color="secondary" small>Clear Categories</v-btn>
-        </v-row>
-        <v-row>
-            <v-col>
-                <v-checkbox 
-                v-for="category in categories" 
-                v-model="value"
-                :key="category"
-                :label="category"
-                :value="category"
-                color="secondary"
-                @change="updateInput"
-                class="my-n3">
-                </v-checkbox>
-            </v-col>
-        </v-row>
-    </v-container>
+    <v-expansion-panels flat v-if="categories.length">
+        <v-expansion-panel>
+            <v-expansion-panel-header class="px-0">
+                Filter By Category:
+                <v-spacer></v-spacer>
+                <v-btn class="clear-categories mx-3" v-if="value.length" @click.stop="value = []; updateInput();" color="secondary" small>Clear</v-btn>
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+                <v-row class="px-0 mx-n6 mt-1">
+                    <v-col class="px-0">
+                        <v-checkbox 
+                        v-for="category in categories" 
+                        v-model="value"
+                        :key="category"
+                        :label="category"
+                        :value="category"
+                        color="secondary"
+                        @change="updateInput"
+                        class="my-n3">
+                        </v-checkbox>
+                    </v-col>
+                </v-row>
+            </v-expansion-panel-content>
+        </v-expansion-panel>
+    </v-expansion-panels>
 </template>
 
 <script>

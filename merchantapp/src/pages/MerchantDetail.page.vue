@@ -118,30 +118,32 @@
             v-if="!loading && merchant"
             key="merchant"
           >
-            <v-row class="title">
-              <div class="my-auto d-block d-sm-inline">
-                <h1 v-if="!editing">{{ merchant.title }}</h1>
-                <v-text-field
-                  class="text-h4"
-                  height="40"
-                  v-else
-                  large
-                  v-model="merchant.title"
-                  label="Merchant Title"
-                ></v-text-field>
-              </div>
-              <v-spacer></v-spacer>
-              <div class="col d-block d-sm-inline" v-if="logo && logo.length">
-                <img
-                  class="logo"
-                  :src="'data:image/png;base64,' + logo[0].image"
-                />
-              </div>
-            </v-row>
-            <div class="row mt-8">
-              <div class="col mt-n4">
-                <v-card>
-                  <v-card-text>
+            <v-row>
+              <div class="col">
+                <v-card rounded="lg" elevation="3">
+                  <v-row class="pt-4">
+                    <v-col class="d-flex align-center justify-space-around" order="last" order-md="first">
+                      <div class="mx-4">
+                        <h1 v-if="!editing">{{ merchant.title }}</h1>
+                        <v-text-field
+                          class="text-h4"
+                          height="40"
+                          v-else
+                          large
+                          v-model="merchant.title"
+                          label="Merchant Title"
+                        ></v-text-field>
+                      </div>
+                    </v-col>
+                    <v-col class="d-flex align-center justify-center" v-if="logo && logo.length">
+                      <img
+                        class="logo"
+                        :src="'data:image/png;base64,' + logo[0].image"
+                      />
+                    </v-col>
+                  </v-row>
+                  <v-divider class="mx-4 my-4"></v-divider>
+                  <v-card-text class="mt-4">
                     <p v-if="!editing">{{ merchant.description }}</p>
                     <v-textarea
                       v-else
@@ -216,7 +218,7 @@
                   </v-card-text>
                 </v-card>
               </div>
-            </div>
+            </v-row>
             <v-row v-if="isOwner && 1==0">
                 <v-col>
                     <v-card>
@@ -266,7 +268,7 @@
                         </div>
                       </template>
                     </v-expansion-panel-header>
-                    <v-expansion-panel-content>
+                    <v-expansion-panel-content class="mx-n4">
                       <v-row v-if="editing" class="mb-2">
                         <v-dialog
                           max-width="600"
@@ -281,6 +283,7 @@
                               :loading="deleteAddressLoading"
                               v-bind="attrs"
                               v-on="on"
+                              class="ml-2"
                               >Delete<v-icon right dark
                                 >mdi-delete</v-icon
                               ></v-btn
@@ -319,7 +322,7 @@
                           </v-card>
                         </v-dialog>
                       </v-row>
-                      <v-card class="addresscard" elevation="6">
+                      <v-card class="addresscard" elevation="2">
                         <GoogleMapsEmbed
                           :mapParams="encodeAddress(merchant.title, address)"
                         />
@@ -354,16 +357,22 @@
                                     v-model="address.address1"
                                     label="Address Line 1"
                                   ></v-text-field>
+                                  <v-expand-transition>
                                   <v-text-field
+                                    v-if="address.address1 && address.address1.length"
                                     class="mt-2"
                                     v-model="address.address2"
                                     label="Address Line 2"
                                   ></v-text-field>
+                                  </v-expand-transition>
+                                  <v-expand-transition>
                                   <v-text-field
+                                    v-if="address.address2 && address.address2.length"
                                     class="mt-2"
                                     v-model="address.address3"
                                     label="Address Line 3"
                                   ></v-text-field>
+                                  </v-expand-transition>
                                   <v-text-field
                                     class="mt-2"
                                     v-model="address.city"
@@ -853,7 +862,7 @@ h1 {
   margin-top: 1rem;
 }
 .addresscard {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   padding-bottom: 1rem;
 }
 .merchant {

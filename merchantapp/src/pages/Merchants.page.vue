@@ -235,7 +235,6 @@ export default {
             }
         },
         "shouldGetMerchants": function(newValue, oldValue) {
-            console.log('should get: ' + this.shouldGetMerchants);
             if (newValue && (oldValue !== newValue)) {
                 this.getMerchants();
             }
@@ -321,7 +320,8 @@ export default {
                 categories: [],
                 tags: [],
                 neighbourhood: [],
-                includeDeleted: false
+                includeDeleted: false,
+                searchquery: this.searchquery
             });
         },
         onResize : _throttle(function() {

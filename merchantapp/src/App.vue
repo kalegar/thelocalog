@@ -85,9 +85,10 @@ export default {
   components: {
   },
 
-  data: () => ({
+  data: function() {
+    return {
     searchQuery: ''
-  }),
+  }},
 
   watch: {
     "searchQuery": function() {
