@@ -126,15 +126,13 @@ router.get("/merchants/clearcache", async (req, res) => {
 
 router.get("/categories/clearcache", async (req, res) => {
     try {
-        redisClient.del(redisPrefixCategory + 'ALL', async (err, reply) => {
-            if (reply) {
-                return res.status(200).json({ message: 'Cache Cleared.' });
-            } else if (err) {
+        redisClient.DEL(redisPrefixCategory + 'ALL', async (err, reply) => {
+            if (err) {
                 return res.status(500).json({ message: 'Redis Server Error.' });
-            } else {
-                return res.status(500).json({ message: 'No response from Redis' });
+            }else{
+                return res.status(200).json({ message: `Cleared ${reply} keys.` });
             }
-        })
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
