@@ -96,7 +96,8 @@ export const GoogleAPIService = {
     },
 
     getPlaceHelper: async function(query) {
-        const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${encodeURI(query)}&inputtype=textquery&fields=formatted_address,name,place_id,geometry`);
+        const cleanQuery = encodeURIComponent(query);
+        const place = await axios.get(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key=${process.env.GOOGLE_PLACES_API_KEY}&input=${cleanQuery}&inputtype=textquery&fields=formatted_address,name,place_id,geometry`);
         if (place) {
             if (place.data.status == "ZERO_RESULTS") {
                 return null;

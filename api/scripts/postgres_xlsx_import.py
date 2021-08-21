@@ -179,6 +179,7 @@ def parse_row(row,fields,maincategory,prev_name):
             continue
         if social[1] != None:
             if valid_url(social[1]):
+                cur.execute(u"DELETE FROM \"SocialMediaLinks\" WHERE \"MerchantId\" = %s AND name = UPPER(%s) AND \"displayName\" = %s and url = %s",(merchantid,social[0],social[0],social[1]))
                 cur.execute(u"INSERT INTO \"SocialMediaLinks\" (\"MerchantId\",name,\"displayName\",url) VALUES(%s, UPPER(%s), %s, %s) ON CONFLICT DO NOTHING",(merchantid,social[0],social[0],social[1]))
             else:
                 print('Failed to insert social media link for ' + social[0] + ', invalid url: ' + social[1])

@@ -16,9 +16,7 @@ import adminRole from '../middleware/admin.auth.js';
 import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
-import redisService, { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
-import { GoogleAPIService } from "../service/google-api.service";
-import { LoggingService } from "../service/logging.service";
+import { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
 
 const handleValidationErrors = function(error,res) {
     if (error.name.includes('Validation')) {
@@ -343,7 +341,7 @@ router.get("/:id", async (req, res) => {
 // Update a merchant by id
 router.put("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
-        const { title, description, website, deletedAt, onlineShopping, inStoreShopping, Addresses } = req.body;
+        const { title, description, website, deletedAt, onlineShopping, inStoreShopping } = req.body;
 
         let updatedMerchant = {
             title, description, website, deletedAt, onlineShopping, inStoreShopping
@@ -362,79 +360,6 @@ router.put("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
             return res.status(404).json({ message: 'The merchant with the given id was not found' });
         
         const merchant = merchants[1][0].dataValues;
-
-        if (Addresses && Array.isArray(Addresses)) {
-            Merchant.findOne({where: {id: req.params.id }, include: { model: Address, include: { model: Contact}}}).then((merch) => {
-                const currentAddresses = merch.Addresses;
-                if (typeof currentAddresses !== 'undefined' || currentAddresses.length > 0) {
-                for (const address of Addresses) {
-                    let temp = currentAddresses.filter(addr => addr.id = address.id);
-                    if (temp.length <= 0) {
-                        LoggingService.log('Tried to update an address for a different merchant!!');
-                        continue;
-                    }
-
-                    const currAddr = temp[0];
-
-                    if (Utils.areAddressesEqual(address,currAddr)) {
-                        if ((address.hasOwnProperty('Contact')) && Utils.areContactsEqual(address.Contact,currAddr.Contact)) {
-                            LoggingService.log('Address unchanged. skipping.');
-                            continue;
-                        }
-                    }
-    
-                    let newAddress = {
-                        address1: address.address1,
-                        address2: address.address2,
-                        address3: address.address3,
-                        city: address.city,
-                        province: address.province,
-                        postalcode: address.postalcode,
-                        neighbourhood: address.neighbourhood,
-                        full: Utils.getFullAddress(address),
-                    }
-        
-                    GoogleAPIService.getPlace(title, address).then(function(place) {
-                        if (place) {
-                            newAddress.placeid = place.place_id;
-                            if (place.geometry && place.geometry.location) {
-                                newAddress.geom = Utils.createGeom(place.geometry.location.lng,place.geometry.location.lat);
-                            }
-                        } else {
-                            newAddress.placeid = null;
-                            newAddress.geom = null;
-                        }
-                    }).catch((err) => console.log(err)).then(() => {
-                        Address.update(
-                            newAddress,
-                            {
-                                returning: false,
-                                where: { id : address.id }
-                            }
-                        )
-        
-                        if (address.Contact) {
-                            Contact.update(
-                                {
-                                email: address.Contact.email,
-                                email2: address.Contact.email2,
-                                phone: address.Contact.phone,
-                                phone2: address.Contact.phone2
-                                },
-                                {
-                                    returning: false,
-                                    where: { id : address.Contact.id }
-                                }
-                            )
-                        }
-                    })
-                    
-                }
-                }else{
-                    LoggingService.log('No addresses on current merchant. Aborting address updates.');
-                }
-            }).catch((err) => console.log(err));
-        }
 
         return res.status(200).json({ merchant });
     } catch (error) {

@@ -2,15 +2,16 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
-import { Merchant, Address } from '../database/models';
+import { Merchant, Address, Contact } from '../database/models';
 import checkJwt from '../middleware/authentication.js';
-import adminRole from '../middleware/admin.auth.js';
+import ownsMerchant from '../middleware/merchantOwner.middleware.js';
 import { Utils } from '../util.js';
+import { GoogleAPIService } from "../service/google-api.service";
 
 const router = Router({mergeParams: true});
 
 // Create a new Merchant Address
-router.post("/", checkJwt, adminRole, async (req, res) => {
+router.post("/", checkJwt, ownsMerchant, async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
         const { address, city, province, country, postalcode, neighbourhood } = req.body;
@@ -76,44 +77,97 @@ router.get("/", async (req, res) => {
 });
 
 // Update an address by id
-router.put("/:id", checkJwt, adminRole, async (req, res) => {
+router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
     try {
-        const merchantId = req.params.merchantId;
-        const { address, city, province, country, postalcode } = req.body;
+        const { address: addr, address1: addr1, address2: addr2, address3: addr3, city, province, country, postalcode, neighbourhood, Contact: cont } = req.body;
 
-        let addressLines = address ? address.split("\n") : [];
-        let address1 = addressLines.length > 0 ? addressLines[0] : '';
-        let address2 = addressLines.length > 1 ? addressLines[1] : '';
-        let address3 = addressLines.length > 2 ? addressLines[2] : '';
+        let address1 = addr1;
+        let address2 = addr2;
+        let address3 = addr3;
 
-        const addresses = await Address.update(
-        {  address1,
+        if (addr) {
+            let addressLines = addr ? addr.split("\n") : [];
+            address1 = addressLines.length > 0 ? addressLines[0] : '';
+            address2 = addressLines.length > 1 ? addressLines[1] : '';
+            address3 = addressLines.length > 2 ? addressLines[2] : '';
+        }
+
+        const merchant = await Merchant.findOne({
+            where: { id: req.params.merchantId },
+            include: {
+                model: Address,
+                where: {
+                    id: req.params.id
+                }
+            }
+        });
+
+        if (!merchant) {
+            return res.status(404).json({message: 'Merchant not found.'});
+        }
+        if (!merchant.Addresses || !Array.isArray(merchant.Addresses) || !merchant.Addresses.length) {
+            return res.status(404).json({message: 'Address not found.'});
+        }
+
+        const address = {
+            address1, address2, address3, city, province, postalcode, country, neighbourhood, Contact: cont
+        }
+
+        let newAddress = {
+            address1,
             address2,
             address3,
             city,
             province,
             country,
-            postalcode
-        },
-        {
-            returning: true,
-            where: { id: req.params.id }
+            postalcode,
+            neighbourhood,
+            full: Utils.getFullAddress(address),
         }
-        );
-    
-        if (addresses[0] === 0)
-            return res.status(404).json({ message: 'The address with the given id was not found' });
-        
-        const updatedAddress = addresses[1][0].dataValues;
 
-        return res.status(200).json({ updatedAddress });
+        GoogleAPIService.getPlace(merchant.title, address).then(function(place) {
+            if (place) {
+                newAddress.placeid = place.place_id;
+                if (place.geometry && place.geometry.location) {
+                    newAddress.geom = Utils.createGeom(place.geometry.location.lng,place.geometry.location.lat);
+                }
+            } else {
+                newAddress.placeid = null;
+                newAddress.geom = null;
+            }
+        }).catch((err) => console.log(err)).then(() => {
+            Address.update(
+                newAddress,
+                {
+                    returning: false,
+                    where: { id : req.params.id }
+                }
+            )
+
+            if (address.Contact) {
+                Contact.update(
+                    {
+                    email: address.Contact.email,
+                    email2: address.Contact.email2,
+                    phone: address.Contact.phone,
+                    phone2: address.Contact.phone2
+                    },
+                    {
+                        returning: false,
+                        where: { id : address.Contact.id }
+                    }
+                )
+            }
+
+            return res.status(200).json({ newAddress });
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
 // Delete an address by id
-router.delete("/:id", checkJwt, adminRole, async (req, res) => {
+router.delete("/:id", checkJwt, ownsMerchant, async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
         const merchant = await Merchant.findOne({ where: {id: merchantId}, include: {model: Address, where: {id: req.params.id}}});
