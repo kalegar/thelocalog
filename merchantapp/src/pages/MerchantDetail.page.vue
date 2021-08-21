@@ -28,25 +28,6 @@
               "
               >Restore<v-icon right dark>mdi-restore</v-icon></v-btn
             >
-            <v-btn class="ma-1" v-if="!editing" v-on:click="editing = true"
-              >Edit<v-icon right dark>mdi-pencil</v-icon></v-btn
-            >
-            <v-btn
-              class="ma-1"
-              v-if="editing"
-              :loading="saveMerchantLoading"
-              v-on:click="saveMerchant()"
-              >Save<v-icon right dark>mdi-content-save</v-icon></v-btn
-            >
-            <v-btn
-              class="ma-1"
-              v-if="editing"
-              v-on:click="
-                editing = false;
-                getMerchant();
-              "
-              >Cancel<v-icon right dark>mdi-cancel</v-icon></v-btn
-            >
             <v-dialog v-model="dialog.show" persistent max-width="290">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -120,7 +101,7 @@
           >
             <v-row>
               <v-col>
-                <merchant-detail-card :merchant="merchant" :logo="logo" :editing="editing"></merchant-detail-card>
+                <merchant-detail-card :merchant="merchant" :logo="logo" :canEdit="isAdminOrOwner" v-on:save-success="merchantSaved(true,$event)" v-on:save-error="merchantSaved(false,$event)"></merchant-detail-card>
               </v-col>
             </v-row>
             <v-row v-if="isOwner && 1==0">
@@ -173,7 +154,7 @@
                       </template>
                     </v-expansion-panel-header>
                     <v-expansion-panel-content class="mx-n4">
-                      <v-row v-if="editing" class="mb-2">
+                      <v-row v-if="isAdminOrOwner" class="mb-2">
                         <v-dialog
                           max-width="600"
                           transition="dialog-bottom-transition"
@@ -184,10 +165,11 @@
                               color="danger"
                               dark
                               small
+                              right
                               :loading="deleteAddressLoading"
                               v-bind="attrs"
                               v-on="on"
-                              class="ml-2"
+                              class="ml-8 mt-4"
                               >Delete<v-icon right dark
                                 >mdi-delete</v-icon
                               ></v-btn
@@ -226,7 +208,7 @@
                           </v-card>
                         </v-dialog>
                       </v-row>
-                      <address-card :merchant="merchant" :address="address" :hours="hours[index]" :editing="editing"></address-card>
+                      <address-card :merchant="merchant" :address="address" :hours="hours[index]" :canEdit="isAdminOrOwner" v-on:save-success="merchantSaved(true,$event)" v-on:save-error="merchantSaved(false,$event)"></address-card>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -300,7 +282,6 @@ export default {
       saveMerchantLoading: false,
       uploadLogoLoading: false,
       uploadedLogo: null,
-      editing: false,
       snackbar: {
         color: "primary",
         show: false,
@@ -405,6 +386,14 @@ export default {
         }
       );
     },
+    merchantSaved: function(success,result) {
+      if (success) {
+        this.makeToast(result, 'success', 5000);
+      }else{
+        this.makeToast(result, "danger", 7000);
+      }
+      this.getMerchant();
+    },
     saveMerchant: function () {
       this.saveMerchantLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
@@ -414,12 +403,11 @@ export default {
               this.makeToast(result, "success", 5000);
             },
             (err) => {
-              this.makeToast(err, "danger");
+              this.makeToast(err, "danger", 5000);
             }
           )
           .then(() => {
             this.saveMerchantLoading = false;
-            this.editing = false;
             this.getMerchant();
           });
       });
@@ -461,9 +449,15 @@ export default {
       });
     },
     makeToast: function (text, color, timeout = 2000) {
+      let txt = '';
+      if (Array.isArray(text)) {
+        txt = text.join(" ");
+      }else{
+        txt = text;
+      }
       this.snackbar.timeout = timeout;
       this.snackbar.color = color;
-      this.snackbar.text = text;
+      this.snackbar.text = txt;
       this.snackbar.show = true;
     },
     getMerchant: function () {

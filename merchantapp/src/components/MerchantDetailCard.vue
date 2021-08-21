@@ -1,5 +1,10 @@
 <template>
   <v-card rounded="lg" elevation="3">
+    <div v-if="canEdit" class="d-flex justify-end mr-9 mb-n9">
+      <v-btn fab top right class="mt-n4 mx-2" @click="startEditing"  v-if="!editing" ><v-icon>mdi-pencil</v-icon></v-btn>
+      <v-btn fab top right class="mt-n4 mx-2" @click="saveMerchant"  v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-content-save</v-icon></v-btn>
+      <v-btn fab top right class="mt-n4 mx-2" @click="cancelEditing" v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-cancel</v-icon></v-btn>
+    </div>
     <v-row class="pt-4">
       <v-col
         class="d-flex align-center justify-space-around"
@@ -64,7 +69,7 @@
             <v-checkbox
               v-model="merchant.inStoreShopping"
               dense
-              class="mt-n1"
+              class="mt-4"
             ></v-checkbox>
           </div>
           <v-spacer></v-spacer>
@@ -84,7 +89,7 @@
             <v-checkbox
               v-model="merchant.onlineShopping"
               dense
-              class="mt-n1"
+              class="mt-4"
             ></v-checkbox>
           </div>
           <v-spacer></v-spacer>
@@ -94,24 +99,60 @@
         v-if="merchant.SocialMediaLinks && merchant.SocialMediaLinks.length"
         class="my-2"
       ></v-divider>
-      <social-media-links class="mb-1" :links="merchant.SocialMediaLinks" />
+      <social-media-links class="mb-1" :links="merchant.SocialMediaLinks" :canEdit="canEdit" :merchantId="merchant.id" v-on:save-success="$emit('save-success',$event);" v-on:save-error="$emit('save-error',$event);"/>
     </v-card-text>
   </v-card>
 </template>
 
 <script>
 import SocialMediaLinks from "./SocialMediaLinks.vue";
+import { MerchantService } from "../service/Merchant.service.js";
+
 export default {
   name: "MerchantDetailCard",
   components: { SocialMediaLinks },
   props: {
     merchant: Object,
     logo: Array,
-    editing: Boolean,
+    canEdit: {
+      type: Boolean,
+      default: false
+    },
   },
   data: function () {
-    return {};
+    return {
+      editing: false,
+      saveMerchantLoading: false
+    };
   },
+  methods: {
+    startEditing: function() {
+      if (this.canEdit) {
+        this.editing = true;
+      }
+    },
+    cancelEditing: function() {
+      this.editing = false;
+    },
+    saveMerchant: function() {
+      this.saveMerchantLoading = true;
+      this.$auth.getTokenSilently().then((authToken) => {
+        MerchantService.saveMerchant(this.merchant.id, authToken, this.merchant)
+          .then(
+            (result) => {
+              this.$emit('save-success',[result]);
+            },
+            (err) => {
+              this.$emit('save-error',[err]);
+            }
+          )
+          .then(() => {
+            this.saveMerchantLoading = false;
+            this.editing = false;
+          });
+      });
+    }
+  }
 };
 </script>
 

@@ -2,6 +2,11 @@
   <v-card class="addresscard" elevation="2">
     <google-maps-embed :mapParams="encodeAddress(merchant.title, address)" />
     <v-card-text>
+      <div v-if="canEdit" class="d-flex justify-end mr-9 mb-n4">
+        <v-btn fab top right class="mt-n12 mx-2" @click="startEditing"  v-if="!editing"><v-icon>mdi-pencil</v-icon></v-btn>
+        <v-btn fab top right class="mt-n12 mx-2" @click="saveAddress"   v-if="editing" :loading="saveAddressLoading" :disabled="saveAddressLoading"><v-icon>mdi-content-save</v-icon></v-btn>
+        <v-btn fab top right class="mt-n12 mx-2" @click="cancelEditing" v-if="editing" :loading="saveAddressLoading" :disabled="saveAddressLoading"><v-icon>mdi-cancel</v-icon></v-btn>
+      </div>
       <v-container class="addressdetails fluid mt-n2">
         <div class="row d-block d-sm-flex">
           <div class="col address" align="justify-content-center">
@@ -179,6 +184,8 @@
 <script>
 import GoogleMapsEmbed from "./GoogleMapsEmbed.vue";
 import { Utils } from "../utils/util.js";
+import { MerchantService } from "../service/Merchant.service.js";
+
 export default {
   components: { GoogleMapsEmbed },
   name: "AddressCard",
@@ -186,10 +193,12 @@ export default {
     address: Object,
     merchant: Object,
     hours: Object,
-    editing: Boolean,
+    canEdit: Boolean,
   },
   data: function () {
     return {
+      editing: false,
+      saveAddressLoading: false,
       provinces: [
         { prov: "Alberta", abbr: "AB" },
         { prov: "British Columbia", abbr: "BC" },
@@ -208,6 +217,32 @@ export default {
     };
   },
   methods: {
+    startEditing: function() {
+      if (this.canEdit) {
+        this.editing = true;
+      }
+    },
+    cancelEditing: function() {
+      this.editing = false;
+    },
+    saveAddress: function() {
+      this.saveAddressLoading = true;
+      this.$auth.getTokenSilently().then((authToken) => {
+        MerchantService.saveAddress(this.merchant.id, authToken, this.address)
+          .then(
+            (result) => {
+              this.$emit('save-success',result);
+            },
+            (err) => {
+              this.$emit('save-error',err);
+            }
+          )
+          .then(() => {
+            this.saveAddressLoading = false;
+            this.editing = false;
+          });
+      });
+    },
     encodeAddress: function (title, address) {
       if (address.placeid) {
         return encodeURI(`q=place_id:${address.placeid}`);

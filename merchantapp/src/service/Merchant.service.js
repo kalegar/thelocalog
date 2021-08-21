@@ -287,4 +287,151 @@ export const MerchantService = {
         });
     },
 
+    saveAddress: function(merchantId,authToken,address) {
+        const url = `/api/merchants/${merchantId}/addresses/${address.id}`;
+        return new Promise((resolve,reject) => {
+            axios.put(url, address,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject(`Error updating address: ${res.statusText} ${res.data.message}`);
+                }else{
+                    resolve('Address Updated! You may need to refresh to see changes.');
+                }
+            })
+            .catch(err => {
+                const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error updating address: ${err}${msg}`);
+            });
+        });
+    },
+
+    addSocialMediaLink: function(merchantId, authToken, socialMediaLink) {
+        const url = `/api/merchants/${merchantId}/socialmedia/`
+        return new Promise((resolve,reject) => {
+            axios.post(url, socialMediaLink,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 201) {
+                    reject(`Error creating social media link: ${res.statusText} ${res.data.message}`);
+                }else{
+                    resolve('Social Media Link Created.');
+                }
+            })
+            .catch(err => {
+                const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error creating social media link: ${err}${msg}`);
+            });
+        });
+    },
+
+    addSocialMediaLinks: function(merchantId, authToken, socialMediaLinks) {
+        if (!merchantId || !merchantId.length) {
+            return Promise.reject(['Invalid merchant id.']);
+        }
+        if (!socialMediaLinks || !Array.isArray(socialMediaLinks)) {
+            return Promise.reject(['Not an array.']);
+        }
+        if (socialMediaLinks.length == 0) {
+            return Promise.resolve('');
+        }
+        return new Promise((resolve, reject) => {
+            const promises = [];
+            socialMediaLinks.forEach((aLink) => {promises.push(this.addSocialMediaLink(merchantId, authToken, aLink));});
+            Promise.allSettled(promises).then((results) => {
+                let errors = [];
+                results.forEach((result) => {
+                    if (result.status === "rejected") {
+                        errors.push(result.reason);
+                    }
+                });
+                if (errors.length > 0) {
+                    reject(errors);
+                }else {
+                    resolve(`Created ${socialMediaLinks.length} social media links.`);
+                }
+            });
+        });
+    },
+
+    saveSocialMediaLink: function(merchantId, authToken, socialMediaLink) {
+        const url = `/api/merchants/${merchantId}/socialmedia/${socialMediaLink.id}`;
+        return new Promise((resolve,reject) => {
+            axios.put(url, socialMediaLink,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject(`Error updating social media link: ${res.statusText} ${res.data.message}`);
+                }else{
+                    resolve('Social Media Link Updated! You may need to refresh to see changes.');
+                }
+            })
+            .catch(err => {
+                const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error updating social media link: ${err}${msg}`);
+            });
+        });
+    },
+
+    saveSocialMediaLinks: function(merchantId, authToken, socialMediaLinks) {
+        if (!merchantId || !merchantId.length) {
+            return Promise.reject(['Invalid merchant id.']);
+        }
+        if (!socialMediaLinks || !Array.isArray(socialMediaLinks)) {
+            return Promise.reject(['Not an array.']);
+        }
+        return new Promise((resolve, reject) => {
+            const promises = [];
+            socialMediaLinks.forEach((aLink) => {promises.push(this.saveSocialMediaLink(merchantId, authToken, aLink));});
+            Promise.allSettled(promises).then((results) => {
+                let errors = [];
+                results.forEach((result) => {
+                    if (result.status === "rejected") {
+                        errors.push(result.reason);
+                    }
+                });
+                if (errors.length > 0) {
+                    reject(errors);
+                }else {
+                    resolve(`Updated ${socialMediaLinks.length} social media links.`);
+                }
+            });
+        });
+    },
+
+    deleteSocialMediaLink: function(merchantId, authToken, socialMediaLinkId) {
+        return new Promise((resolve, reject) => {
+            const url = `/api/merchants/${merchantId}/socialmedia/${socialMediaLinkId}`;
+            axios.delete(url,
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        reject(`Error deleting social media link: ${res.statusText} ${res.data.message}`);
+                    }else{
+                        resolve('Social Media Link Deleted.');
+                    }
+                })
+                .catch(err => {
+                    const msg = (err.response && err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    reject(`Error deleting social media link: ${err}${msg}`);
+                });
+        })
+    }
+
 }
