@@ -3,11 +3,14 @@ import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
 import { Merchant, Category } from '../database/models';
+import { Op, QueryTypes } from 'sequelize';
+import checkJwt from '../middleware/authentication.js';
+import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 
 const router = Router({mergeParams: true});
 
 // Add a category to this merchant
-router.post("/", async (req, res) => {
+router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
         const { category, force } = req.body;
 
@@ -59,13 +62,58 @@ router.post("/", async (req, res) => {
     }
 });
 
+//Set the categories for this merchant. Will delete all existing categories on the merchant first, then attach the supplied categories.
+router.put("/bulk", checkJwt, userOwnsMerchant, async (req, res) => {
+    try {
+
+        const merchant = await Merchant.findOne({
+            where: {id : req.params.merchantId }
+        });
+
+        if (!merchant) {
+            return res.status(404).json({ message: 'Merchant not found.' });
+        }
+
+        const { categories } = req.body;
+        let categoryArray = [];
+        if (Array.isArray(categories)) {
+            categoryArray = categories.map((cat) => cat.toUpperCase());
+        }else{
+            categoryArray = [categories.toUpperCase()];
+        }
+
+        const deleteSQL = `DELETE FROM "MerchantCategories" WHERE "MerchantId" = :merchantId`;
+        Merchant.sequelize.query(deleteSQL, { type: QueryTypes.DELETE, raw: true, replacements: { merchantId: req.params.merchantId }}).then(
+            () => {
+                Category.findAll({ where: {
+                    category: {
+                        [Op.in]: categoryArray
+                    }
+                }}).then((results) => {
+                    merchant.addCategories(results);
+                });
+            }
+        )
+
+        res.status(202).json({ message: `Set ${categoryArray.length} categories.`});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Retrieve all categories for this merchant
 router.get("/", async (req, res) => {
     try {
         const merchant = await Merchant.findOne({
-            where: { id: req.params.merchantId }
+            where: { id: req.params.merchantId },
+            include: {
+                model: Category,
+                through: {
+                    attributes: []
+                }
+            }
         });
-        const categories = await merchant.getCategories();
+        const categories = merchant.Categories;
         return res.status(200).json({ categories });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -73,7 +121,7 @@ router.get("/", async (req, res) => {
 });
 
 // Remove a category from this merchant by id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
         const merchant = await Merchant.findOne({

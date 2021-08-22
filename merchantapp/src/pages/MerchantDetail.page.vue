@@ -104,14 +104,10 @@
                 <merchant-detail-card :merchant="merchant" :logo="logo" :canEdit="isAdminOrOwner" v-on:save-success="merchantSaved(true,$event)" v-on:save-error="merchantSaved(false,$event)"></merchant-detail-card>
               </v-col>
             </v-row>
-            <v-row v-if="isOwner && 1==0">
-                <v-col>
-                    <v-card>
-                        <v-card-title>Categories and Tags</v-card-title>
-                        <v-card-text>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
+            <v-row v-if="isAdminOrOwner">
+              <v-col>
+                <merchant-categories-tags :merchantId="id" :canEdit="isAdminOrOwner"></merchant-categories-tags>
+              </v-col>
             </v-row>
             <div class="addresses row" v-if="merchant.Addresses">
               <div class="col">
@@ -244,6 +240,7 @@ import CreateAddressModal from "../components/CreateAddressModal.vue";
 import { UserService } from "../service/User.service";
 import AddressCard from '../components/AddressCard.vue';
 import MerchantDetailCard from '../components/MerchantDetailCard.vue';
+import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
 
 export default {
   name: "MerchantDetail",
@@ -257,7 +254,8 @@ export default {
     BaseContent,
     CreateAddressModal,
     AddressCard,
-    MerchantDetailCard
+    MerchantDetailCard,
+    MerchantCategoriesTags
   },
   computed: {
     isAdmin: function () {
@@ -298,7 +296,7 @@ export default {
       },
       selectedAddress: [0],
       deleteAddressDialog: false,
-      deleteAddressLoading: false,
+      deleteAddressLoading: false
     };
   },
   methods: {
@@ -482,7 +480,7 @@ export default {
         .then(() => {
           this.loading = false;
         });
-    },
+    }
   },
   updated: function () {
     document.title =

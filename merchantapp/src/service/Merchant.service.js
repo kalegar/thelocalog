@@ -116,6 +116,107 @@ export const MerchantService = {
         });
     },
 
+    getMerchantTags: function(id,textOnly = false) {
+        const url = `/api/merchants/${id}/tags`;
+        return new Promise((resolve, reject) => {
+            axios.get(url)
+            .then((res) => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                if (textOnly) {
+                    resolve(res.data.tags.map((tag) => tag.tag));
+                }else{
+                    resolve(res.data.tags);
+                }
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
+    setMerchantTags: function(id, authToken, tags) {
+        const url = `/api/merchants/${id}/tags/bulk`;
+        return new Promise((resolve, reject) => {
+            axios.put(url, { tags },
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+            .then((res) => {
+                if (res.status != 202) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.statusText);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
+    setMerchantCategories: function(id, authToken, categories) {
+        const url = `/api/merchants/${id}/categories/bulk`;
+        return new Promise((resolve, reject) => {
+            axios.put(url, { categories },
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+            .then((res) => {
+                if (res.status != 202) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.statusText);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
+    getMerchantCategories: function(id, textOnly = false, pretty = true) {
+        const url = `/api/merchants/${id}/categories`;
+        return new Promise((resolve, reject) => {
+            axios.get(url)
+            .then((res) => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                if (textOnly) {
+                    if (pretty) {
+                        resolve(
+                            res.data.categories.map((cat) => cat.category)
+                            .map((cat) => {
+                                let words = cat.split(" ");
+                                return words
+                                    .map(
+                                    (word) =>
+                                        word[0].toUpperCase() + word.toLowerCase().substring(1)
+                                    )
+                                    .join(" ");
+                                })
+                        );
+                    }else{
+                        resolve(res.data.categories.map((cat) => cat.category));
+                    }
+                }else{
+                    resolve(res.data.categories);
+                }
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
     deleteMerchant: function(id,authToken) {
         const url = `/api/merchants/${id}`;
         return new Promise((resolve,reject) => {
@@ -432,6 +533,39 @@ export const MerchantService = {
                     reject(`Error deleting social media link: ${err}${msg}`);
                 });
         })
+    },
+
+    getCategories: function(pretty = true) {
+        return new Promise((resolve, reject) => {
+            const url = `/api/categories`;
+            axios
+            .get(url)
+            .then((res) => {
+                if (res.status != 200) {
+                    reject('Error retrieving categories.');
+                    return;
+                }
+                let categories = res.data.categories
+                    .map((cat) => cat.category)
+                    .filter((cat) => cat !== null);
+                if (pretty) {
+                    categories = categories.map((cat) => {
+                    let words = cat.split(" ");
+                    return words
+                        .map(
+                        (word) =>
+                            word[0].toUpperCase() + word.toLowerCase().substring(1)
+                        )
+                        .join(" ");
+                    });
+                }
+                resolve(categories);
+                return;
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
     }
 
 }

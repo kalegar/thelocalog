@@ -3,11 +3,14 @@ import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
 import { Merchant, Tag } from '../database/models';
+import { QueryTypes } from 'sequelize';
+import checkJwt from '../middleware/authentication.js';
+import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 
 const router = Router({mergeParams: true});
 
 // Create a new Merchant Tag
-router.post("/", async (req, res) => {
+router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
         const { tag } = req.body;
         const merchantId = req.params.merchantId;
@@ -34,13 +37,56 @@ router.post("/", async (req, res) => {
     }
 });
 
+//Create bulk merchant tags and attach them to this merchant.
+router.put("/bulk", checkJwt, userOwnsMerchant, async (req, res) => {
+    try {
+
+        const merchant = await Merchant.findOne({
+            where: {id : req.params.merchantId }
+        });
+
+        if (!merchant) {
+            return res.status(404).json({ message: 'Merchant not found.' });
+        }
+
+        const { tags } = req.body;
+        let tagArray = [];
+        if (Array.isArray(tags)) {
+            tagArray = tags;
+        }else{
+            tagArray = [tags];
+        }
+
+        const sql = `DELETE FROM "MerchantTags" WHERE "MerchantId" = :merchantId`;
+        Merchant.sequelize.query(sql, { type: QueryTypes.DELETE, raw: true, replacements: { merchantId: req.params.merchantId }}).then(
+            () => {
+                for (const tag of tagArray) {
+                    merchant.createTag({ tag: tag }).catch(() => {
+                        Tag.findOne({ where: { tag: tag.toUpperCase() }}).then((existingTag) => merchant.addTag(existingTag));
+                    })
+                }
+            }
+        )
+
+        res.status(202).json({ message: `Inserted/Updated ${tagArray.length} tags.`});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Retrieve all Tags
 router.get("/", async (req, res) => {
     try {
         const merchant = await Merchant.findOne({
-            where: { id: req.params.merchantId }
+            where: { id: req.params.merchantId },
+            include: {
+                model: Tag,
+                through: {
+                    attributes: []
+                }
+            }
         });
-        const tags = await merchant.getTags({through: {attributes: []}});
+        const tags = merchant.Tags;
         return res.status(200).json({ tags });
     } catch (error) {
         res.status(500).json({ message: error.message });
