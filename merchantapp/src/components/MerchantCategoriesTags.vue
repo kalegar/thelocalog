@@ -58,8 +58,10 @@ export default {
             editing: false,
             saveLoading: false,
             selectedCategories: [],
+            merchantCategories: [],
             categories: [],
             selectedTags: [],
+            merchantTags: [],
             tags: []
         }
     },
@@ -79,6 +81,8 @@ export default {
         },
         cancelEditing: function() {
             this.editing = false;
+            this.selectedCategories = [...this.merchantCategories];
+            this.selectedTags = [...this.merchantTags];
         },
         saveData: function() {
             this.saveLoading = true;
@@ -89,23 +93,27 @@ export default {
                 ]).then(() => {
                     this.editing = false;
                     this.saveLoading = false;
+                    this.merchantCategories = [...this.selectedCategories];
+                    this.merchantTags       = [...this.selectedTags];
                 }).catch(() => {
                     this.editing = false;
                     this.saveLoading = false;
-                    this.getMerchantTags();
-                    this.getMerchantCategories();
+                    this.selectedCategories = [...this.merchantCategories];
+                    this.selectedTags = [...this.merchantTags];
                 });
             },
             () => {
                 this.editing = false;
                 this.saveLoading = false;
+                this.selectedCategories = [...this.merchantCategories];
+                this.selectedTags = [...this.merchantTags];
             });
         },
         getCategories: function() {
             MerchantService.getCategories().then(
                 (res) => {
                 this.categories = res.sort();
-                this.getMerchantCategories();
+                this.getMerchantCategories(true);
                 },
                 () => {
                 console.log('error');
@@ -113,30 +121,38 @@ export default {
                 }
             );
         },
-        getMerchantTags: function() {
+        getMerchantTags: function(apply = false) {
             MerchantService.getMerchantTags(this.merchantId,true).then(
                 (res) => {
-                this.selectedTags = res.sort();
+                this.merchantTags = res.sort();
                 },
                 () => {
-                this.tags = []
+                this.merchantTags = []
                 }
-            );
+            ).then(() => {
+                if (apply) {
+                    this.selectedTags = [...this.merchantTags];
+                }
+            });
         },
-        getMerchantCategories: function() {
+        getMerchantCategories: function(apply = false) {
             MerchantService.getMerchantCategories(this.merchantId,true).then(
                 (res) => {
-                this.selectedCategories = res.sort();
+                this.merchantCategories = res.sort();
                 },
                 () => {
-                this.selectedCategories = []
+                this.merchantCategories = []
                 }
-            );
+            ).then(() => {
+                if (apply) {
+                    this.selectedCategories = [...this.merchantCategories];
+                }
+            });
         }
     },
     mounted: function() {
         this.getCategories();
-        this.getMerchantTags();
+        this.getMerchantTags(true);
     }
 }
 </script>
