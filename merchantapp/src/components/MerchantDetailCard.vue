@@ -5,14 +5,16 @@
       <v-btn fab top right class="mt-n4 mx-2" @click="saveMerchant"  v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-content-save</v-icon></v-btn>
       <v-btn fab top right class="mt-n4 mx-2" @click="cancelEditing" v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-cancel</v-icon></v-btn>
     </div>
-    <v-row class="pt-4">
+    <v-row class="pt-4" justify="center">
       <v-col
-        class="d-flex align-center justify-space-around"
+        class="d-flex flex-grow-1 align-center justify-space-around"
         order="last"
-        order-md="first"
+        order-sm="first"
+        cols="12"
+        sm="auto"
       >
         <div class="mx-4">
-          <h1 v-if="!editing">{{ merchant.title }}</h1>
+          <p v-if="!editing" class="text-h5 text-sm-h4 text-md-h3 text-lg-h2 font-weight-medium">{{ merchant.title }}</p>
           <v-text-field
             class="text-h4"
             height="40"
@@ -26,8 +28,10 @@
       <v-col
         class="d-flex align-center justify-center"
         v-if="logo && logo.length"
+        cols="12"
+        sm="auto"
       >
-        <img class="logo" :src="'data:image/png;base64,' + logo[0].image" />
+        <v-img class="logo px-4" contain :src="'data:image/png;base64,' + logo[0].image" />
       </v-col>
     </v-row>
     <v-divider class="mx-4 my-4"></v-divider>
