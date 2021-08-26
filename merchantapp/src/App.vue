@@ -14,14 +14,14 @@
               contain
               :src="require('./assets/logo.svg')"
               transition="scale-transition"
-              :width="$vuetify.breakpoint.mobile ? 70 : 80" 
+              :width="logoWidth" 
             />
         </router-link>
       </div>
 
       <v-spacer></v-spacer>
 
-      <v-responsive min-width="40" :max-width="$vuetify.breakpoint.mobile ? 200 : 450" min-height="20" content-class="compact">
+      <v-responsive min-width="40" :max-width="searchbarWidth" min-height="20" class="mx-n2">
         <v-text-field
           dense
           flat
@@ -103,6 +103,20 @@ export default {
       },
       theme(){
         return (this.$vuetify.theme.dark) ? 'dark' : 'light'
+      },
+      searchbarWidth: function() {
+        switch (this.$vuetify.breakpoint.name) {
+          case 'xs': return 210;
+          case 'sm': return 300;
+          case 'md': return 450;
+          default: return 550;
+        }
+      },
+      logoWidth: function() {
+        switch (this.$vuetify.breakpoint.name) {
+          case 'xs': return 60;
+          default: return 80;
+        }
       }
   },
 
@@ -136,7 +150,7 @@ export default {
 </script>
 
 <style>
-@media (max-width: 649.98px) { 
+@media (max-width: 499.98px) { 
   .compact {
     transform: scale(0.9);
     transform-origin: left
