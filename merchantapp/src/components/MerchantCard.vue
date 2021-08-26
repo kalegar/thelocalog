@@ -8,7 +8,7 @@
       :elevation="hover ? 12 : 4"
       :to="{
         name: 'MerchantDetail',
-        params: { id: merchant.id, geoLocation: geo.location },
+        params: { id: hashedId, geoLocation: geo.location },
       }"
     >
       <v-list-item three-line class="mb-n2">
@@ -53,11 +53,22 @@
 </template>
 
 <script>
+import hashidsMixin from '../mixins/hashids.mixin.js';
+
 export default {
+  mixins: [hashidsMixin],
   name: "MerchantCard",
   props: {
       merchant: Object,
       geo: Object
+  },
+  computed: {
+    hashedId: function() {
+      if (this.merchant && this.merchant.id)
+        return this.uuidToHash(this.merchant.id)
+      else
+        return '';
+    }
   }
 };
 </script>

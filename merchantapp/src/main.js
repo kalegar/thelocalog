@@ -14,7 +14,8 @@ import Profile from './pages/Profile.page.vue';
 import MerchantClaim from './pages/MerchantClaim.page.vue';
 import MerchantClaimDetail from './pages/MerchantClaimDetail.page.vue';
 import AdminHome from './pages/AdminHome.page.vue';
-import vuetify from './plugins/vuetify'
+import vuetify from './plugins/vuetify';
+import Hashids from 'hashids';
 
 const routes = [
   { path: '/', redirect: '/merchants' },
@@ -29,6 +30,22 @@ const routes = [
 const router = new VueRouter({
   routes
 });
+
+const hashids = new Hashids('Localog');
+
+var hashidsMixin = {
+  methods: {
+    uuidToHash: function(uuid) {
+      if (uuid && uuid.length)
+        return hashids.encodeHex(uuid.replaceAll('-',''))
+      else
+        return null;
+    },
+    hashToUuid: function(hash) {
+      return hashids.decode(hash);
+    }
+  }
+}
 
 // Use Auth0Plugin
 Vue.use(Auth0Plugin, {
@@ -45,6 +62,7 @@ Vue.use(Auth0Plugin, {
 Vue.config.productionTip = false
 
 new Vue({
+  mixins: [hashidsMixin],
   render: h => h(App),
   vuetify,
   router

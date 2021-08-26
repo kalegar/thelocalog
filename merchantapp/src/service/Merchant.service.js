@@ -1,4 +1,20 @@
 import axios from 'axios';
+import Hashids from 'hashids';
+
+const hashids = new Hashids('Localog');
+
+// const encodeMerchantId = function(id) {
+//     return hashids.encode(id.replaceAll('-',''));
+// }
+
+const decodeMerchantId = function(hash) {
+    try {
+        const decoded = hashids.decodeHex(hash);
+        return `${decoded.slice(0,8)}-${decoded.slice(8,12)}-${decoded.slice(12,16)}-${decoded.slice(16,20)}-${decoded.slice(20,32)}`;
+    } catch {
+        return '';
+    }
+}
 
 let cancelToken;
 
@@ -95,7 +111,7 @@ export const MerchantService = {
     },
 
     getMerchant: function(id,include = 'address,social,contact') {
-        const url = `/api/merchants/${id}`;
+        const url = `/api/merchants/${decodeMerchantId(id)}`;
         return new Promise((resolve,reject) => {
             axios.get(url, {
                 params: {
@@ -117,7 +133,7 @@ export const MerchantService = {
     },
 
     getMerchantTags: function(id,textOnly = false) {
-        const url = `/api/merchants/${id}/tags`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/tags`;
         return new Promise((resolve, reject) => {
             axios.get(url)
             .then((res) => {
@@ -138,7 +154,7 @@ export const MerchantService = {
     },
 
     setMerchantTags: function(id, authToken, tags) {
-        const url = `/api/merchants/${id}/tags/bulk`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/tags/bulk`;
         return new Promise((resolve, reject) => {
             axios.put(url, { tags },
                 {
@@ -160,7 +176,7 @@ export const MerchantService = {
     },
 
     setMerchantCategories: function(id, authToken, categories) {
-        const url = `/api/merchants/${id}/categories/bulk`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/categories/bulk`;
         return new Promise((resolve, reject) => {
             axios.put(url, { categories },
                 {
@@ -182,7 +198,7 @@ export const MerchantService = {
     },
 
     getMerchantCategories: function(id, textOnly = false, pretty = true) {
-        const url = `/api/merchants/${id}/categories`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/categories`;
         return new Promise((resolve, reject) => {
             axios.get(url)
             .then((res) => {
@@ -218,7 +234,7 @@ export const MerchantService = {
     },
 
     deleteMerchant: function(id,authToken) {
-        const url = `/api/merchants/${id}`;
+        const url = `/api/merchants/${decodeMerchantId(id)}`;
         return new Promise((resolve,reject) => {
             axios.delete(url,
             {
@@ -241,7 +257,7 @@ export const MerchantService = {
     },
 
     saveMerchant: function(id,authToken,merchant) {
-        const url = `/api/merchants/${id}`;
+        const url = `/api/merchants/${decodeMerchantId(id)}`;
         return new Promise((resolve,reject) => {
             axios.put(url, merchant,
             {
@@ -286,7 +302,7 @@ export const MerchantService = {
     },
 
     createAddress: function(merchantId, address, authToken) {
-        const url = `/api/merchants/${merchantId}/addresses`;
+        const url = `/api/merchants/${decodeMerchantId(merchantId)}/addresses`;
         return new Promise((resolve, reject) => {
             axios.post(url, address,
                 {
@@ -308,7 +324,7 @@ export const MerchantService = {
     },
 
     deleteAddress: function(merchantId, addressId, authToken) {
-        const url = `/api/merchants/${merchantId}/addresses/${addressId}`;
+        const url = `/api/merchants/${decodeMerchantId(merchantId)}/addresses/${addressId}`;
         return new Promise((resolve, reject) => {
             axios.delete(url,
             {
@@ -330,7 +346,7 @@ export const MerchantService = {
     },
 
     getLogo: function(id) {
-        const url = `/api/merchants/${id}/images`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/images`;
         return new Promise((resolve,reject) => {
             axios.get(url,{ params: { type: 'LOGO' }})
             .then(res => {
@@ -347,7 +363,7 @@ export const MerchantService = {
     },
 
     getBusinessHours: function(id) {
-        const url = `/api/merchants/${id}/hours`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/hours`;
         return new Promise((resolve,reject) => {
             axios.get(url)
             .then(res => {
@@ -364,7 +380,7 @@ export const MerchantService = {
     },
 
     uploadLogo: function(id,authToken,logo) {
-        const url = `/api/merchants/${id}/images/logo`;
+        const url = `/api/merchants/${decodeMerchantId(id)}/images/logo`;
         return new Promise((resolve,reject) => {
             let formData = new FormData();
             formData.append('logo',logo);
@@ -389,7 +405,7 @@ export const MerchantService = {
     },
 
     saveAddress: function(merchantId,authToken,address) {
-        const url = `/api/merchants/${merchantId}/addresses/${address.id}`;
+        const url = `/api/merchants/${decodeMerchantId(merchantId)}/addresses/${address.id}`;
         return new Promise((resolve,reject) => {
             axios.put(url, address,
             {
@@ -412,7 +428,7 @@ export const MerchantService = {
     },
 
     addSocialMediaLink: function(merchantId, authToken, socialMediaLink) {
-        const url = `/api/merchants/${merchantId}/socialmedia/`
+        const url = `/api/merchants/${decodeMerchantId(merchantId)}/socialmedia/`
         return new Promise((resolve,reject) => {
             axios.post(url, socialMediaLink,
             {
@@ -464,7 +480,7 @@ export const MerchantService = {
     },
 
     saveSocialMediaLink: function(merchantId, authToken, socialMediaLink) {
-        const url = `/api/merchants/${merchantId}/socialmedia/${socialMediaLink.id}`;
+        const url = `/api/merchants/${decodeMerchantId(merchantId)}/socialmedia/${socialMediaLink.id}`;
         return new Promise((resolve,reject) => {
             axios.put(url, socialMediaLink,
             {
@@ -514,7 +530,7 @@ export const MerchantService = {
 
     deleteSocialMediaLink: function(merchantId, authToken, socialMediaLinkId) {
         return new Promise((resolve, reject) => {
-            const url = `/api/merchants/${merchantId}/socialmedia/${socialMediaLinkId}`;
+            const url = `/api/merchants/${decodeMerchantId(merchantId)}/socialmedia/${socialMediaLinkId}`;
             axios.delete(url,
                 {
                     headers: {

@@ -3,7 +3,7 @@
     <v-list-item
       :to="{
         name: 'MerchantDetail',
-        params: { id: merchant.id, geoLocation: geo.location },
+        params: { id: hashedId, geoLocation: geo.location },
       }"
     >
       <div class="mt-n2" v-if="merchant.distance">
@@ -37,11 +37,22 @@
 </template>
 
 <script>
+import hashidsMixin from '../mixins/hashids.mixin.js';
+
 export default {
+    mixins: [hashidsMixin],
     name: 'MerchantListItem',
     props: {
         merchant: Object,
         geo: Object
+    },
+    computed: {
+      hashedId: function() {
+        if (this.merchant && this.merchant.id)
+          return this.uuidToHash(this.merchant.id)
+        else
+          return '';
+      }
     }
 };
 </script>
