@@ -6,21 +6,22 @@
       dark
     >
       <div class="d-flex align-center">
+        
         <router-link :to="{ name: 'Merchants' }">
-        <v-img
-          alt="Localog Logo"
-          class="shrink mr-2"
-          contain
-          :src="require('./assets/logo.svg')"
-          transition="scale-transition"
-          width="80"
-        />
+            <v-img
+              alt="Localog Logo"
+              class="shrink mr-2"
+              contain
+              :src="require('./assets/logo.svg')"
+              transition="scale-transition"
+              :width="$vuetify.breakpoint.mobile ? 70 : 80" 
+            />
         </router-link>
       </div>
 
       <v-spacer></v-spacer>
 
-      <v-responsive min-width="40" max-width="450" content-class="compact">
+      <v-responsive min-width="40" :max-width="$vuetify.breakpoint.mobile ? 200 : 450" min-height="20" content-class="compact">
         <v-text-field
           dense
           flat
@@ -137,7 +138,7 @@ export default {
 <style>
 @media (max-width: 649.98px) { 
   .compact {
-    transform: scale(0.875);
+    transform: scale(0.9);
     transform-origin: left
   }
 }

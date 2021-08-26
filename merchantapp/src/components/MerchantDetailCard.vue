@@ -1,9 +1,9 @@
 <template>
   <v-card rounded="lg" elevation="3">
     <div v-if="canEdit" class="d-flex justify-end mr-9 mb-n9">
-      <v-btn fab top right class="mt-n4 mx-2" @click="startEditing"  v-if="!editing" ><v-icon>mdi-pencil</v-icon></v-btn>
-      <v-btn fab top right class="mt-n4 mx-2" @click="saveMerchant"  v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-content-save</v-icon></v-btn>
-      <v-btn fab top right class="mt-n4 mx-2" @click="cancelEditing" v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-cancel</v-icon></v-btn>
+      <v-btn fab top right class="mt-n4 mx-2 edit-btn" @click="startEditing"  v-if="!editing" ><v-icon>mdi-pencil</v-icon></v-btn>
+      <v-btn fab top right class="mt-n4 mx-2 edit-btn" @click="saveMerchant"  v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-content-save</v-icon></v-btn>
+      <v-btn fab top right class="mt-n4 mx-2 edit-btn" @click="cancelEditing" v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-cancel</v-icon></v-btn>
     </div>
     <v-row class="pt-4" justify="center">
       <v-col
@@ -31,7 +31,7 @@
         cols="12"
         sm="auto"
       >
-        <v-img class="logo px-4" max-width="325" contain :src="'data:image/png;base64,' + logo[0].image" />
+        <v-img class="logo px-4" max-width="300" contain :src="'data:image/png;base64,' + logo[0].image" />
       </v-col>
     </v-row>
     <v-divider class="mx-4 my-4"></v-divider>
@@ -161,4 +161,7 @@ export default {
 </script>
 
 <style scoped>
+button.edit-btn {
+  z-index: 1
+}
 </style>
