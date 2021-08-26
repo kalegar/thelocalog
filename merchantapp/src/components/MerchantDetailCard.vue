@@ -31,7 +31,7 @@
         cols="12"
         sm="auto"
       >
-        <v-img class="logo px-4" contain :src="'data:image/png;base64,' + logo[0].image" />
+        <v-img class="logo px-4" max-width="325" contain :src="'data:image/png;base64,' + logo[0].image" />
       </v-col>
     </v-row>
     <v-divider class="mx-4 my-4"></v-divider>
