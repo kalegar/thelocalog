@@ -1,17 +1,17 @@
 <template>
-    <div class="container-fluid content">
-        <div class="row">
-            <div class="d-none d-md-block col-3" align = "center">
+    <v-container fluid>
+        <v-row :dense="$vuetify.breakpoint.mobile" :no-gutters="$vuetify.breakpoint.mobile">
+            <v-col cols="12" md="4" lg="3" align = "center">
                 <slot name="left"></slot>
-            </div>
-            <div class="col-xs-12 col-md-9 col-xl-7" align="center">
+            </v-col>
+            <v-col cols="12" md="8" lg="9" xl="7" align="center">
                 <slot></slot>
-            </div>
-            <div class="d-none d-xl-block col-xl-2" align="center">
+            </v-col>
+            <v-col cols="2" class="d-none d-xl-block" align="center">
                 <slot name="right"></slot>
-            </div>
-        </div>
-    </div>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
 
 <script>

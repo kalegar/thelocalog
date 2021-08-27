@@ -13,7 +13,7 @@
     >
       <v-list-item three-line class="mb-n2">
         <v-list-item-content>
-          <h3>{{ merchant.title }}</h3>
+          <div class="text-h6 font-weight-bold">{{ merchant.title }}</div>
         </v-list-item-content>
 
         <v-list-item-avatar tile size="100"

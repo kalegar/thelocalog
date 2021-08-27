@@ -3,7 +3,7 @@
         <BasePage v-on:headerclicked="refreshScreen()">
             <BaseContent>
                 <template v-slot:left>
-                    <v-row v-if="!displayCollapseFilters" justify="center" class="ma-4">
+                    <v-row justify="center" class="ma-4">
                         <v-expansion-panels v-model="filtersPanelOpen">
                             <v-expansion-panel>
                             <v-expansion-panel-header>
@@ -45,40 +45,8 @@
                         </v-expansion-panels>
                     </v-row>
                 </template>
-                <div class="row">
-                <div class="merchantlist col">
-                    <v-row v-if="displayCollapseFilters" justify="center">
-                        <v-expansion-panels v-model="filtersPanelOpen">
-                            <v-expansion-panel>
-                            <v-expansion-panel-header> 
-                                <template v-slot:default="{ open }">
-                                <v-row no-gutters>
-                                <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="open">mdi-filter</v-icon>
-                                <v-col class="mt-1" align-self="center">
-                                Search Filters
-                                </v-col>
-                                <v-col class="mt-1 mr-2" align-self="center" v-if="hasSearchFilters">
-                                    <v-spacer></v-spacer>
-                                    <v-btn color="secondary" class="ma-0 float-right" small @click.native.stop="clearFilters()">Reset</v-btn>
-                                </v-col>
-                                </v-row>
-                                </template>
-                                <template v-slot:actions>
-                                    <v-icon large>mdi-chevron-down</v-icon>
-                                </template>
-                            </v-expansion-panel-header>
-                            <v-expansion-panel-content eager>
-                                <MyLocation v-model="geo.enabled" v-bind:radius.sync="geo.radius" v-bind:location.sync="geo.location"/>
-                                <MerchantTags v-model="tags"/>
-                                <MerchantNeighbourhood v-model="neighbourhood"/>
-                                <MerchantCategories v-model="categories"/>
-                                <v-btn color="secondary" @click="filtersPanelOpen = false; getMerchants()">
-                                    Search
-                                </v-btn>
-                            </v-expansion-panel-content>
-                            </v-expansion-panel>
-                        </v-expansion-panels>
-                    </v-row>
+                <v-row>
+                <v-col class="merchantlist col mx-0 mx-sm-4 mt-2">
                     <v-row>
                         <v-col v-if="!searchquery">
                             <h1>Local Shops</h1>
@@ -88,8 +56,10 @@
                         </v-col>
                         <v-col class="d-none d-sm-block" sm="2">
                             <v-btn-toggle
-                                v-model="merchantLayout"
+                                v-model="selectedMerchantLayout"
                                 mandatory
+                                borderless
+                                class="elevation-2"
                                 color="primary"
                             >
                                 <v-btn>
@@ -101,7 +71,6 @@
                             </v-btn-toggle>
                         </v-col>
                     </v-row>
-                    <Loading :loading="loading && 1==2"/>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
                     <div v-if="merchantLayout == 1">
                         <transition name="fade" mode="out-in">
@@ -151,15 +120,15 @@
                         </div>
                         </transition>  
                     </div>  
-                </div>
-                </div>
+                </v-col>
+                </v-row>
                 <transition name="fade" mode="out-in">
                     <div class="row" v-if="!loading" key="footer">
                         <div class="col align-self-center" align="center">
                             <v-pagination
                                 v-model="page"
                                 :length="pages"
-                                total-visible="7"
+                                :total-visible="paginationNumVisible"
                                 circle
                             ></v-pagination>
                         </div>
@@ -191,7 +160,6 @@
 </template>
 
 <script>
-import Loading from '../components/Loading.vue'
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 import MerchantCategories from '../components/MerchantCategories.vue'
@@ -200,7 +168,6 @@ import MerchantNeighbourhood from '../components/MerchantNeighbourhood.vue'
 import MyLocation from '../components/MyLocation.vue';
 
 import { Utils } from '../utils/util.js';
-import _throttle from 'lodash/debounce';
 import MerchantCard from '../components/MerchantCard.vue';
 import MerchantListItem from '../components/MerchantListItem.vue';
 import AdvertisementCard from '../components/AdvertisementCard.vue';
@@ -259,7 +226,6 @@ export default {
     components: {
         BasePage,
         BaseContent,
-        Loading,
         MerchantCategories,
         MerchantTags,
         MerchantNeighbourhood,
@@ -283,8 +249,7 @@ export default {
                 location: {},
                 radius: 10
             },
-            merchantLayout: 0,
-            merchantCardCols: 4,
+            selectedMerchantLayout: 0,
             shouldGetMerchants: false,
             //SEARCH FILTERS:
                 searchquery: '',
@@ -292,8 +257,6 @@ export default {
                 tags: [],
                 neighbourhood: [],
                 includeDeleted: false,
-
-            displayCollapseFilters: false,
             perPageOptions: [
                 { text: '10 Per Page', value: '10' },
                 { text: '25 Per Page', value: '25' },
@@ -314,6 +277,28 @@ export default {
         },
         isAdmin: function() {
             return this.$auth.isAuthenticated && this.$auth.user[this.$auth.rolesKey] && this.$auth.user[this.$auth.rolesKey].includes('admin');
+        },
+        paginationNumVisible: function() {
+            switch (this.$vuetify.breakpoint.name) {
+                case 'xs': return 7;
+                case 'sm': return 8;
+                case 'md': return 10;
+                default: return 12;
+            }
+        },
+        merchantLayout: function() {
+            return this.$vuetify.breakpoint.xs ? 1 : this.selectedMerchantLayout;
+        },
+        merchantCardCols: function() {
+            if (this.$vuetify.breakpoint.width < 700) {
+                return 12;
+            }else if (this.$vuetify.breakpoint.width < 1264) {
+                return 6;
+            }else if (this.$vuetify.breakpoint.width < 2300) {
+                return 4;
+            }else {
+                return 3;
+            }
         }
     },
     methods: {
@@ -341,22 +326,6 @@ export default {
                 searchquery: this.searchquery
             });
         },
-        onResize : _throttle(function() {
-            const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-
-            if (vw < 600) {
-                this.merchantLayout = 1;
-                this.merchantCardCols = 12;
-                this.displayCollapseFilters = true;
-            }else if (vw < 1264) {
-                this.merchantCardCols = 6;
-                this.displayCollapseFilters = false;
-            }else{
-                this.merchantCardCols = 4;
-                this.displayCollapseFilters = false;
-            }
-
-        },250,{leading: true}),
         getMerchants: function(filters = null) {
 
             if (filters) {
@@ -401,7 +370,6 @@ export default {
         document.title = 'Directory - The Localog';
     },
     mounted: function() {
-
         if (this.query) {
             this.searchquery = this.query;
         }
@@ -418,7 +386,7 @@ export default {
         }
 
         if (localStorage.merchantLayout) {
-            this.merchantLayout = Number(localStorage.merchantLayout);
+            this.selectedMerchantLayout = Number(localStorage.merchantLayout);
         }
 
         if (localStorage.merchantOrder) {
@@ -435,13 +403,6 @@ export default {
                 vm.selected = event.state.selected;
             }
         }
-    },
-    created: function() {
-        window.addEventListener("resize", this.onResize);
-        this.onResize();
-    },
-    destroyed: function() {
-        window.removeEventListener("resize", this.onResize);
     }
 }
 </script>
@@ -452,9 +413,6 @@ h1{
   margin-bottom: 1rem;
 }
 .merchantlist {
-    margin-top: 2rem;
-    margin-left: 2rem;
-    margin-right: 2rem;
     width: 100%;
 }
 .sidebar {

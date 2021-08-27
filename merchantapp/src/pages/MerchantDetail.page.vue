@@ -20,7 +20,6 @@
               class="ma-1"
               v-else
               color="success"
-              light
               :loading="saveMerchantLoading"
               v-on:click="
                 merchant.deletedAt = null;
@@ -33,6 +32,7 @@
                 <v-btn
                   v-bind="attrs"
                   v-on="on"
+                  color="secondary"
                   @click="showUploadDialog()"
                   :loading="uploadLogoLoading"
                   >Upload Logo</v-btn
