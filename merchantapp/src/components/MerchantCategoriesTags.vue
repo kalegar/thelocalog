@@ -18,6 +18,7 @@
                 multiple
                 :menu-props="{ offsetY: true, offsetOverflow: true, maxHeight: '200px' }"
                 :readonly="!editing"
+                color="secondary"
                 ></v-select>
             </v-col>
             </v-row>
@@ -34,6 +35,7 @@
                 hint="Enter tags seperated by spaces."
                 :delimiters="[' ']"
                 :readonly="!editing"
+                color="secondary"
                 ></v-combobox>
             </v-col>
             </v-row>

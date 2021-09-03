@@ -9,6 +9,7 @@
           label="Filter by Keyword(s):"
           @change="updateInput"
           :delimiters="delimiters"
+          append-icon=""
         >
           <template v-slot:selection="{ attrs, item, select, selected }">
             <v-chip

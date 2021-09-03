@@ -4,9 +4,9 @@
             <template v-slot:header>
             </template>
             <BaseContent>
-            <div class="container mt-3">
-                <div class="row">
-                    <div class="col" v-if="merchant && !submitted">
+            <v-container class="mt-3">
+                <v-row>
+                    <v-col v-if="merchant && !submitted">
                         <v-card>
                         <v-card-title>
                         <h1>Claim {{merchant.title}}</h1>
@@ -56,13 +56,24 @@
                         </v-form>
                         </v-card-text>
                         </v-card>
-                    </div>
-                    <div class="col" v-if="submitted">
+                    </v-col>
+                    <v-col v-if="error && error.length">
+                        <p>An error occurred.</p>
+                        <p>{{error}}</p>
+                        <v-btn dark color="secondary" :to="{ name: 'MerchantDetail',  params: { id: merchant.id} }">Go Back</v-btn>
+                    </v-col>
+                    <v-col v-else-if="submitted">
                         <p>Your claim has been submitted!</p>
                         <v-btn dark color="secondary" :to="{ name: 'Merchants' }">Back To Directory</v-btn>
-                    </div>
-                </div>
-            </div>
+                    </v-col>
+                    <v-overlay :value="loading">
+                        <v-progress-circular
+                            indeterminate
+                            size="64"
+                        ></v-progress-circular>
+                    </v-overlay>
+                </v-row>
+            </v-container>
             </BaseContent>
         </BasePage>
     </div>
@@ -91,6 +102,8 @@ export default {
             },
             logo: [],
             submitted: false,
+            loading: false,
+            error: '',
             textAreaMaxLength: 500,
             textAreaRules: [v => v ? (v.length <= 500 || 'Text over character limit will be truncated.') : true]
         }
@@ -99,7 +112,7 @@ export default {
         onSubmit: function() {
             event.preventDefault();
             const url = `/api/merchants/${this.id}/claims`;
-
+            this.loading = true;
             this.$auth.getTokenSilently().then((authToken) => {
                 axios.post(url, { text: this.form.text.substring(0,Math.min(this.form.text.length,this.textAreaMaxLength)), email: this.form.email }, {
                     headers: {
@@ -109,15 +122,15 @@ export default {
                 .then(res => {
                     this.submitted = true;
                     if (res.status != 201) {
-                        console.log('Error creating claim');
-                        const error = new Error(res.statusText);
-                        throw error;
+                        this.error = res.statusText;
                     }
                 })
                 .catch(err => {
+                    this.error = err;
                     console.log(err);
-                });
-            });
+                })
+                .then(() => this.loading = false);
+            }).catch(() => this.loading = false);
         },
         onReset: function() {
 

@@ -8,8 +8,8 @@
         <v-btn fab top right class="mt-n12 mx-2" @click="cancelEditing" v-if="editing" :loading="saveAddressLoading" :disabled="saveAddressLoading"><v-icon>mdi-cancel</v-icon></v-btn>
       </div>
       <v-container class="addressdetails fluid mt-n2">
-        <div class="row d-block d-sm-flex">
-          <div class="col address" align="justify-content-center">
+        <v-row class="d-block d-sm-flex">
+          <v-col class="address" align="justify-content-center">
             <h3 class="mb-2">Address:</h3>
             <div v-if="!editing">
               <p>{{ address.address1 }}</p>
@@ -33,6 +33,7 @@
                 class="mt-2"
                 v-model="address.address1"
                 label="Address Line 1"
+                color="secondary"
               ></v-text-field>
               <v-expand-transition>
                 <v-text-field
@@ -40,6 +41,7 @@
                   class="mt-2"
                   v-model="address.address2"
                   label="Address Line 2"
+                  color="secondary"
                 ></v-text-field>
               </v-expand-transition>
               <v-expand-transition>
@@ -48,12 +50,14 @@
                   class="mt-2"
                   v-model="address.address3"
                   label="Address Line 3"
+                  color="secondary"
                 ></v-text-field>
               </v-expand-transition>
               <v-text-field
                 class="mt-2"
                 v-model="address.city"
                 label="City"
+                color="secondary"
               ></v-text-field>
               <v-select
                 class="mt-2"
@@ -62,6 +66,7 @@
                 item-text="prov"
                 item-value="abbr"
                 label="Province"
+                color="secondary"
               ></v-select>
               <v-text-field
                 class="mt-2"
@@ -69,6 +74,7 @@
                 maxlength="2"
                 counter
                 label="Country"
+                color="secondary"
               ></v-text-field>
               <v-text-field
                 class="mt-2"
@@ -76,6 +82,7 @@
                 maxlength="20"
                 counter
                 label="Postal Code"
+                color="secondary"
               ></v-text-field>
               <v-text-field
                 class="mt-2"
@@ -83,10 +90,11 @@
                 maxlength="70"
                 counter
                 label="Neighbourhood"
+                color="secondary"
               ></v-text-field>
             </div>
-          </div>
-          <div class="col hours mt-3-xs" v-if="hours">
+          </v-col>
+          <v-col class="hours mt-3-xs" v-if="hours">
             <h3 class="mb-2">Hours:</h3>
             <p v-if="hours.status">
               {{ hours.status }}
@@ -96,8 +104,8 @@
                 {{ hour }}
               </p>
             </div>
-          </div>
-        </div>
+          </v-col>
+        </v-row>
         <v-row>
           <v-col class="contact" v-if="address.Contact">
             <h3 class="mb-2">Contact Info:</h3>
@@ -115,6 +123,7 @@
                     v-model="address.Contact.email"
                     label="Email Address 1"
                     prepend-icon="mdi-email"
+                    color="secondary"
                   ></v-text-field
                 ></v-list-item-title>
               </v-list-item-content>
@@ -133,6 +142,7 @@
                     v-model="address.Contact.email2"
                     label="Email Address 2"
                     prepend-icon="mdi-email"
+                    color="secondary"
                   ></v-text-field
                 ></v-list-item-title>
               </v-list-item-content>
@@ -151,6 +161,7 @@
                     v-model="address.Contact.phone"
                     label="Phone 1"
                     prepend-icon="mdi-phone"
+                    color="secondary"
                   ></v-text-field
                 ></v-list-item-title>
               </v-list-item-content>
@@ -169,12 +180,12 @@
                     v-model="address.Contact.phone2"
                     label="Phone 2"
                     prepend-icon="mdi-phone"
+                    color="secondary"
                   ></v-text-field
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-col>
-          <v-col> </v-col>
         </v-row>
       </v-container>
     </v-card-text>

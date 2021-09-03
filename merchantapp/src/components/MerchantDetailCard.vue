@@ -23,6 +23,7 @@
             large
             v-model="merchant.title"
             label="Merchant Title"
+            color="secondary"
           ></v-text-field>
         </div>
       </v-col>
@@ -37,12 +38,14 @@
     </v-row>
     <v-divider class="mx-4 my-4"></v-divider>
     <v-card-text class="mt-4">
-      <p v-if="!editing">{{ merchant.description }}</p>
+      <p v-if="!editing" class="description text-body-1 font-weight-medium">{{ merchant.description }}</p>
       <v-textarea
         v-else
         v-model="merchant.description"
         label="Description"
-        rows="3"
+        auto-grow
+        color="secondary"
+        filled
       ></v-textarea>
       <div v-if="merchant.website" class="mt-4">
         <a v-if="!editing" :href="merchant.website" target="_blank">{{
@@ -53,6 +56,8 @@
           class="mt-2"
           v-model="merchant.website"
           label="Website"
+          color="secondary"
+          filled
         ></v-text-field>
       </div>
       <div class="online-shopping mt-6">
@@ -75,6 +80,7 @@
               v-model="merchant.inStoreShopping"
               dense
               class="mt-4"
+              color="secondary"
             ></v-checkbox>
           </div>
           <v-spacer></v-spacer>
@@ -95,6 +101,7 @@
               v-model="merchant.onlineShopping"
               dense
               class="mt-4"
+              color="secondary"
             ></v-checkbox>
           </div>
           <v-spacer></v-spacer>
@@ -173,5 +180,8 @@ export default {
 <style scoped>
 button.edit-btn {
   z-index: 1
+}
+p.description {
+  white-space: pre-wrap;
 }
 </style>

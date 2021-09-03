@@ -6,11 +6,13 @@
           chips
           clearable
           color="secondary"
+          item-color="secondary"
           label="Filter by Neighbourhood:"
           @change="updateInput"
           :delimiters="delimiters"
           :items="neighbourhoods"
           :allow-overflow="false"
+          :menu-props="menuProps"
         >
           <template v-slot:selection="{ attrs, item, select, selected }">
             <v-chip
@@ -35,6 +37,11 @@ export default {
     model: {
       prop: 'modelValue',
       event: 'change'
+    },
+    computed: {
+      menuProps: function() {
+        return this.$vuetify.breakpoint.mobile ? { offsetY: true, offsetOverflow: true, maxHeight: '200px' } : { offsetY: true, offsetOverflow: true };
+      }
     },
     props: {
       modelValue: {

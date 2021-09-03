@@ -148,6 +148,8 @@
                             label="Results Per Page"
                             solo
                             v-model="perpage"
+                            color="secondary"
+                            item-color="secondary"
                         ></v-select>
                     </div>
                     <div class="admin-filters" v-if="isAdmin">

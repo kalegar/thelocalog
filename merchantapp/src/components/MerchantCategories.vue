@@ -1,40 +1,32 @@
 <template>
-  <v-expansion-panels flat v-if="categories.length">
-    <v-expansion-panel>
-      <v-expansion-panel-header class="px-0">
-        Filter By Category:
-        <v-spacer></v-spacer>
-        <v-btn
-          class="clear-categories mx-3"
-          v-if="value.length"
-          @click.stop="
-            value = [];
-            updateInput();
-          "
-          color="secondary"
-          small
-          >Clear</v-btn
-        >
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
-        <v-row class="px-0 mx-n6 mt-1">
-          <v-col class="px-0">
-            <v-checkbox
-              v-for="category in categories"
-              v-model="value"
-              :key="category"
-              :label="category"
-              :value="category"
-              color="secondary"
-              @change="updateInput"
-              class="my-n3"
-            >
-            </v-checkbox>
-          </v-col>
-        </v-row>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-expansion-panels>
+  <div class="categories-div" v-if="categories.length">
+      <v-combobox
+        v-model="value"
+        multiple
+        chips
+        clearable
+        color="secondary"
+        label="Filter by Category:"
+        @change="updateInput"
+        :delimiters="delimiters"
+        :items="categories"
+        :allow-overflow="false"
+        :menu-props="menuProps"
+        item-color='secondary'
+      >
+        <template v-slot:selection="{ attrs, item, select, selected }">
+          <v-chip
+            v-bind="attrs"
+            :input-value="selected"
+            close
+            @click="select"
+            @click:close="remove(item)"
+          >
+            <strong>{{ item }}</strong>
+          </v-chip>
+        </template>
+      </v-combobox>
+  </div>
 </template>
 
 <script>
@@ -45,6 +37,18 @@ export default {
   model: {
     prop: "modelValue",
     event: "change",
+  },
+  data: function() {
+    return {
+      value: [],
+      categories: [],
+      delimiters: [',',';']
+    }
+  },
+  computed: {
+    menuProps: function() {
+      return this.$vuetify.breakpoint.mobile ? { offsetY: true, offsetOverflow: true, maxHeight: '200px' } : { offsetY: true, offsetOverflow: true };
+    }
   },
   props: {
     modelValue: {
@@ -88,15 +92,13 @@ export default {
       this.$emit("change", this.value);
       if (store) this.save();
     },
+    remove: function(item) {
+        this.value.splice(this.value.indexOf(item), 1)
+        this.value = [...this.value]
+    },
     save: function () {
       localStorage.selectedMerchantCategories = this.value.join(";");
     },
-  },
-  data: function () {
-    return {
-      value: [],
-      categories: [],
-    };
   },
   mounted: function () {
     this.getCategories();

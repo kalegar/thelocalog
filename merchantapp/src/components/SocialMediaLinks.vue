@@ -20,14 +20,16 @@
                         v-on:change="link.name = $event.toUpperCase()"
                         dense
                         label="Type"
+                        color="secondary"
+                        item-color="secondary"
                     >
                     <template v-slot:prepend>
-                            <v-icon :color="getColor(link.name)">{{getSocialIcon(link.name)}}</v-icon>
+                        <v-icon :color="getColor(link.name)">{{getSocialIcon(link.name)}}</v-icon>
                     </template>
                     </v-select>
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field dense v-model="link.url" label="URL"></v-text-field>
+                    <v-text-field dense v-model="link.url" label="URL" color="secondary"></v-text-field>
                 </v-card-text>
                 <div class="d-flex justify-center mt-n7" v-show="!saveLoading">
                     <v-btn fab @click="deleteSocialMediaLink(link)" small class="mx-1 mb-n4" color="red darken-1" :loading="deleteLoading === link.id" :disabled="deleteLoading.length > 0"><v-icon small>mdi-delete</v-icon></v-btn>
