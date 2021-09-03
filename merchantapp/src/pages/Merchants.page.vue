@@ -48,11 +48,12 @@
                 <v-row>
                 <v-col class="merchantlist col mx-0 mx-sm-4 mt-2">
                     <v-row>
-                        <v-col v-if="!searchquery">
-                            <h1>Local Shops</h1>
-                        </v-col>
-                        <v-col v-else>
-                            <h1>Results for '<em>{{searchquery}}</em>'</h1>
+                        <v-col>
+                            <v-row>
+                                <h1 v-if="!searchquery">Local Shops</h1>
+                                <h1 v-else>Results for '<em>{{searchquery}}</em>'</h1>
+                                <create-merchant-modal fab text="" button-class="ml-3" small v-if="isAdmin"></create-merchant-modal>
+                            </v-row>
                         </v-col>
                         <v-col class="d-none d-sm-block" sm="2">
                             <v-btn-toggle
@@ -151,7 +152,6 @@
                     </div>
                     <div class="admin-filters" v-if="isAdmin">
                         <v-checkbox large v-model="includeDeleted" v-on:change="getMerchants()" label="Include Deleted Merchants"></v-checkbox>
-                        <create-merchant-modal></create-merchant-modal>
                     </div>
                 </template>
             </BaseContent>

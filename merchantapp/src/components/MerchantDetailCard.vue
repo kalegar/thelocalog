@@ -1,5 +1,6 @@
 <template>
-  <v-card rounded="lg" elevation="3">
+  <v-skeleton-loader v-if="loading || !merchant" type="article,image"></v-skeleton-loader>
+  <v-card v-else rounded="lg" elevation="3">
     <div v-if="canEdit" class="d-flex justify-end mr-9 mb-n9">
       <v-btn fab top right class="mt-n4 mx-2 edit-btn" @click="startEditing"  v-if="!editing" ><v-icon>mdi-pencil</v-icon></v-btn>
       <v-btn fab top right class="mt-n4 mx-2 edit-btn" @click="saveMerchant"  v-if="editing" :loading="saveMerchantLoading" :disabled="saveMerchantLoading"><v-icon>mdi-content-save</v-icon></v-btn>
@@ -31,7 +32,7 @@
         cols="12"
         sm="auto"
       >
-        <v-img class="logo px-4" max-width="300" contain :src="'data:image/png;base64,' + logo[0].image" />
+        <v-img class="logo px-4" :max-width="logoMaxWidth" contain :src="'data:image/png;base64,' + logo[0].image" />
       </v-col>
     </v-row>
     <v-divider class="mx-4 my-4"></v-divider>
@@ -122,12 +123,21 @@ export default {
       type: Boolean,
       default: false
     },
+    loading: {
+      type: Boolean,
+      default: false
+    }
   },
   data: function () {
     return {
       editing: false,
       saveMerchantLoading: false
     };
+  },
+  computed: {
+    logoMaxWidth: function() {
+      return this.$vuetify.breakpoint.xs ? 250 : 300;
+    }
   },
   methods: {
     startEditing: function() {

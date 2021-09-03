@@ -8,9 +8,12 @@
             <v-btn
                 v-bind="attrs"
                 v-on="on"
+                :fab="fab"
+                :class="buttonClass"
+                :small="small"
             >
                 <v-icon>mdi-plus</v-icon>
-                Create Merchant
+                {{text}}
             </v-btn>
         </template>
         <v-card>
@@ -83,6 +86,24 @@ export default {
             title: '',
             description: '',
             website: ''
+        }
+    },
+    props: {
+        fab: {
+            type: Boolean,
+            default: false
+        },
+        text: {
+            type: String,
+            default: 'Create Merchant'
+        },
+        'button-class': {
+            type: String,
+            default: ''
+        },
+        small: {
+            type: Boolean,
+            default: false
         }
     },
     methods: {

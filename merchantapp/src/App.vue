@@ -5,7 +5,7 @@
       color="primary"
       dark
     >
-      <div class="d-flex align-center mr-n2 mr-sm-2">
+      <div class="d-flex align-center mr-sm-2 my-1">
         <router-link :to="{ name: 'Merchants' }">
             <v-img
               alt="Localog Logo"

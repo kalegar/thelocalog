@@ -89,19 +89,13 @@
           </template>
         </v-snackbar>
         <transition name="fade" mode="out-in">
-          <div v-if="loading" key="skeleton">
-            <div class="container" style="text-align: left; margin-top: 2em">
-              <v-skeleton-loader type="article,image"></v-skeleton-loader>
-            </div>
-          </div>
           <div
             class="merchant container"
-            v-if="!loading && merchant"
             key="merchant"
           >
             <v-row>
               <v-col>
-                <merchant-detail-card :merchant="merchant" :logo="logo" :canEdit="isAdminOrOwner" v-on:save-success="merchantSaved(true,$event)" v-on:save-error="merchantSaved(false,$event)"></merchant-detail-card>
+                <merchant-detail-card :merchant="merchant" :logo="logo" :canEdit="isAdminOrOwner" :loading="loading" v-on:save-success="merchantSaved(true,$event)" v-on:save-error="merchantSaved(false,$event)"></merchant-detail-card>
               </v-col>
             </v-row>
             <v-row v-if="isAdminOrOwner">
@@ -109,7 +103,7 @@
                 <merchant-categories-tags :merchantId="id" :canEdit="isAdminOrOwner"></merchant-categories-tags>
               </v-col>
             </v-row>
-            <div class="addresses row" v-if="merchant.Addresses">
+            <div class="addresses row" v-if="merchant && merchant.Addresses">
               <div class="col">
                 <create-address-modal
                   v-if="isAdminOrOwner"
@@ -211,7 +205,7 @@
               </div>
             </div>
             <div class="merchant-footer row align-items-center">
-              <div class="col" v-if="!isOwner">
+              <div class="col" v-if="!isOwner && merchant">
                 <p>
                   Do you own this business? Click
                   <router-link
