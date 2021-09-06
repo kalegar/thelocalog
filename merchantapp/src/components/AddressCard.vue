@@ -107,20 +107,20 @@
           </v-col>
         </v-row>
         <v-row>
-          <v-col class="contact" v-if="address.Contact">
+          <v-col class="contact" v-if="editing || hasContactDetails">
             <h3 class="mb-2">Contact Info:</h3>
-            <v-list-item v-if="address.Contact.email || editing">
+            <v-list-item v-if="editing || contact.email">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'mailto:' + address.Contact.email"
+                  ><a :href="'mailto:' + contact.email"
                     ><v-icon left>mdi-email</v-icon
-                    >{{ address.Contact.email }}</a
+                    >{{ contact.email }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="address.Contact.email"
+                    v-model="contact.email"
                     label="Email Address 1"
                     prepend-icon="mdi-email"
                     color="secondary"
@@ -128,18 +128,18 @@
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-if="address.Contact.email2 || editing">
+            <v-list-item v-if="editing || contact.email2">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'mailto:' + address.Contact.email2"
+                  ><a :href="'mailto:' + contact.email2"
                     ><v-icon left>mdi-email</v-icon
-                    >{{ address.Contact.email2 }}</a
+                    >{{ contact.email2 }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="address.Contact.email2"
+                    v-model="contact.email2"
                     label="Email Address 2"
                     prepend-icon="mdi-email"
                     color="secondary"
@@ -147,18 +147,18 @@
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-if="address.Contact.phone || editing">
+            <v-list-item v-if="editing || contact.phone">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'tel:+' + address.Contact.phone"
+                  ><a :href="'tel:+' + contact.phone"
                     ><v-icon left>mdi-phone</v-icon
-                    >{{ formatPhone(address.Contact.phone) }}</a
+                    >{{ formatPhone(contact.phone) }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="address.Contact.phone"
+                    v-model="contact.phone"
                     label="Phone 1"
                     prepend-icon="mdi-phone"
                     color="secondary"
@@ -166,18 +166,18 @@
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-if="address.Contact.phone2 || editing">
+            <v-list-item v-if="editing || contact.phone2">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'tel:+' + address.Contact.phone2"
+                  ><a :href="'tel:+' + contact.phone2"
                     ><v-icon left>mdi-phone</v-icon
-                    >{{ formatPhone(address.Contact.phone2) }}</a
+                    >{{ formatPhone(contact.phone2) }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="address.Contact.phone2"
+                    v-model="contact.phone2"
                     label="Phone 2"
                     prepend-icon="mdi-phone"
                     color="secondary"
@@ -210,6 +210,7 @@ export default {
     return {
       editing: false,
       saveAddressLoading: false,
+      contact: {},
       provinces: [
         { prov: "Alberta", abbr: "AB" },
         { prov: "British Columbia", abbr: "BC" },
@@ -227,10 +228,30 @@ export default {
       ],
     };
   },
+  watch: {
+    address: {
+      immediate: true,
+      handler (val, oldVal) {
+        if (oldVal !== val) {
+          if ('Contact' in this.address && this.address.Contact != null) {
+            this.contact = this.address.Contact;
+          }
+        }
+      }
+    }
+  },
+  computed: {
+    hasContactDetails: function() {
+      return 'email' in this.contact || 'email2' in this.contact || 'phone' in this.contact || 'phone2' in this.contact;
+    }
+  },
   methods: {
     startEditing: function() {
       if (this.canEdit) {
         this.editing = true;
+        if ('Contact' in this.address && this.address.Contact != null) {
+          this.contact = this.address.Contact;
+        }
       }
     },
     cancelEditing: function() {
@@ -238,6 +259,7 @@ export default {
     },
     saveAddress: function() {
       this.saveAddressLoading = true;
+      this.address.Contact = this.contact;
       this.$auth.getTokenSilently().then((authToken) => {
         MerchantService.saveAddress(this.merchant.id, authToken, this.address)
           .then(

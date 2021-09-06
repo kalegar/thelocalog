@@ -145,18 +145,20 @@ router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
             )
 
             if (address.Contact) {
-                Contact.update(
+                console.log('INSERTING CONTACT');
+                Contact.upsert(
                     {
+                    id: address.Contact.id,
+                    AddressId: req.params.id,
                     email: address.Contact.email,
                     email2: address.Contact.email2,
                     phone: address.Contact.phone,
                     phone2: address.Contact.phone2
                     },
                     {
-                        returning: false,
-                        where: { id : address.Contact.id }
+                        returning: false
                     }
-                )
+                ).catch((err) => console.log(err));
             }
 
             return res.status(200).json({ newAddress });
