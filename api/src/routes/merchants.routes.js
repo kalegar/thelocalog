@@ -163,7 +163,7 @@ router.get("/", async (req, res) => {
                 replacements.neighbourhoodlike = '%' + neighbourhood + '%';
             }
 
-            if (deleted !== true)  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
+            if (deleted !== 'true')  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
 
             if (typeof onlineShopping !== 'undefined') {
                 q = q.replace("6=6",filterOnlineShopping);
@@ -262,7 +262,7 @@ router.get("/", async (req, res) => {
 
         query.order = [ ['title','ASC'] ];
 
-        if (deleted) {
+        if (deleted === 'true') {
             query.paranoid = false;
         }
 
