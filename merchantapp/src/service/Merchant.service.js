@@ -66,8 +66,10 @@ export const MerchantService = {
                         throw error;
                     }
                     let tempMerchants = res.data.merchants.rows;
-                    for (let i = 4; i < tempMerchants.length; i += 7) {
-                        tempMerchants.splice(i, 0, { advertisement: true });
+                    if (!(process.env.VUE_APP_DISABLE_ADVERTISEMENTS) || (process.env.VUE_APP_DISABLE_ADVERTISEMENTS !== 'true')) {
+                        for (let i = 4; i < tempMerchants.length; i += 7) {
+                            tempMerchants.splice(i, 0, { advertisement: true });
+                        }
                     }
                     let result = {
                         merchants: tempMerchants,
