@@ -47,12 +47,12 @@
         color="secondary"
         filled
       ></v-textarea>
-      <div v-if="merchant.website" class="mt-4">
-        <a v-if="!editing" :href="merchant.website" target="_blank">{{
+      <div v-if="merchant.website || editing" class="mt-4">
+        <a v-if="merchant.website && !editing" :href="merchant.website" target="_blank">{{
           merchant.website
         }}</a>
         <v-text-field
-          v-else
+          v-if="editing"
           class="mt-2"
           v-model="merchant.website"
           label="Website"
