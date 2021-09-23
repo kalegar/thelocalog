@@ -3,8 +3,21 @@
     <BasePage>
       <template v-slot:header> </template>
       <BaseContent>
-        <template v-slot:left v-if="isAdminOrOwner && !loading && merchant">
-          <div class="mt-4 sidebar">
+        <template v-slot:left v-if="!loading && merchant">
+          <div class="mt-8 sidebar">
+            <v-container>
+            <v-row class="mx-1">
+              <v-btn
+                class="ma-1"
+                color="secondary"
+                dark
+                block
+                :to="{
+                  name: 'Merchants'
+                }"
+              >Back To Results</v-btn>
+            </v-row>
+            <v-row v-if="isAdminOrOwner">
             <h4 v-if="isAdmin">Admin Tools</h4>
             <h4 v-else>Owner Tools</h4>
             <v-btn
@@ -74,6 +87,8 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
+            </v-row>
+            </v-container>
           </div>
         </template>
         <v-snackbar
