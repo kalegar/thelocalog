@@ -4,20 +4,21 @@
       <template v-slot:header> </template>
       <BaseContent>
         <template v-slot:left v-if="!loading && merchant">
-          <div class="mt-8 sidebar">
+          <div class="mt-6 sidebar">
             <v-container>
-            <v-row class="mx-1">
+            <v-row class="mx-1" no-gutters>
+              <v-col>
               <v-btn
                 class="ma-1"
                 color="secondary"
                 dark
                 block
-                :to="{
-                  name: 'Merchants'
-                }"
+                v-on:click="goBack"
               >Back To Results</v-btn>
+              </v-col>
             </v-row>
             <v-row v-if="isAdminOrOwner">
+              <v-col>
             <h4 v-if="isAdmin">Admin Tools</h4>
             <h4 v-else>Owner Tools</h4>
             <v-btn
@@ -87,6 +88,7 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
+              </v-col>
             </v-row>
             </v-container>
           </div>
@@ -309,6 +311,9 @@ export default {
     };
   },
   methods: {
+    goBack: function() {
+      this.$router.go(-1);
+    },
     getIsOwner: function () {
       this.$auth.getTokenSilently().then((authToken) => {
         UserService.isMerchantOwner(this.merchant.id, authToken).then(
@@ -319,7 +324,7 @@ export default {
             this.isOwner = false;
           }
         );
-      });
+      }).catch(() => {});
     },
     showUploadDialog: function () {
       this.uploadedLogo = null;

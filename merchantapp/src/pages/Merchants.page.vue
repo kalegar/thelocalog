@@ -1,6 +1,6 @@
 <template>
     <div class="merchants">
-        <BasePage v-on:headerclicked="refreshScreen()">
+        <BasePage>
             <BaseContent>
                 <template v-slot:left>
                     <v-row justify="center" class="ma-4">
@@ -47,12 +47,12 @@
                 </template>
                 <v-row>
                 <v-col class="merchantlist col mx-0 mx-sm-4 mt-2">
-                    <v-row>
+                    <v-row class="mb-1">
                         <v-col>
-                            <v-row>
-                                <h1 v-if="!searchquery">Local Shops</h1>
+                            <v-row no-gutters align-content="center">
+                                <h1 v-if="!searchquery" class="mb-n1">Local Shops</h1>
                                 <h1 v-else>Results for '<em>{{searchquery}}</em>'</h1>
-                                <create-merchant-modal fab text="" button-class="ml-3" small v-if="isAdmin"></create-merchant-modal>
+                                <create-merchant-modal fab text="" button-class="ml-3 my-auto" small v-if="isAdmin"></create-merchant-modal>
                             </v-row>
                         </v-col>
                         <v-col class="d-none d-sm-block" sm="2">
@@ -74,7 +74,7 @@
                     </v-row>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
                     <div v-if="merchantLayout == 1">
-                        <transition name="fade" mode="out-in">
+                        <v-fade-transition name="fade" mode="out-in">
                         <div v-if="loading" key="skeleton">
                             <v-row>
                                 <v-col v-for="n in parseInt(perpage)" v-bind:key="n" :cols="merchantCardCols">
@@ -95,10 +95,10 @@
                                 </v-col>
                             </v-row>
                         </div>
-                        </transition>
+                        </v-fade-transition>
                     </div>
                     <div v-if="merchantLayout == 0">
-                        <transition name="fade" mode="out-in">
+                        <v-fade-transition name="fade" mode="out-in">
                         <div v-if="loading" key="list-skeleton">
                             <v-skeleton-loader
                                 v-for="n in parseInt(perpage)" v-bind:key="n"
@@ -119,11 +119,11 @@
                                 </template>
                             </v-list>
                         </div>
-                        </transition>  
+                        </v-fade-transition>  
                     </div>  
                 </v-col>
                 </v-row>
-                <transition name="fade" mode="out-in">
+                <v-fade-transition name="fade" mode="out-in">
                     <div class="row" v-if="!loading" key="footer">
                         <div class="col align-self-center" align="center">
                             <v-pagination
@@ -134,9 +134,9 @@
                             ></v-pagination>
                         </div>
                     </div>
-                </transition>
+                </v-fade-transition>
                 <p v-if="error">
-                    An error occurred.
+                    An error occurred. {{error}}
                 </p>
                 <template v-slot:right>
                     <div class="dropdown sidebar">
@@ -330,17 +330,14 @@ export default {
         },
         getMerchants: function(filters = null) {
 
+            this.loading = true;
+
             if (filters) {
                 this.page = 1;
                 for (const key in filters) {
                     this[key] = filters[key];
                 }
             }
-
-            this.loading = true;
-
-            this.page = Utils.clamp(this.page,1,Math.max(this.pages,1));
-
             let options = {
                 searchquery: this.searchquery,
                 categories: this.categories,
@@ -354,15 +351,15 @@ export default {
             };
 
             MerchantService.getMerchants(options).then(result => {
-                this.loading = false;
                 this.shouldGetMerchants = false;
                 this.merchants = result.merchants;
-                this.page = result.page;
                 this.pages = result.pages;
-            }, err => {
+                this.page = Utils.clamp(result.page,1,Math.max(this.pages,1));
                 this.loading = false;
+            }, err => {
                 this.shouldGetMerchants = false;
                 if (!err.cancelled) {
+                    this.loading = false;
                     console.log(err);
                 }
             });
@@ -376,15 +373,12 @@ export default {
             this.searchquery = this.query;
         }
 
-        let retrieve = true;
         if (localStorage.merchantsPerPage) {
-            this.perpage = localStorage.merchantsPerPage;
-            retrieve = false;
+            this.perpage = Number(localStorage.merchantsPerPage);
         }
 
         if (localStorage.merchantsCurrentPage) {
-            this.page = localStorage.merchantsCurrentPage;
-            retrieve = false;
+            this.page =  Number(localStorage.merchantsCurrentPage);
         }
 
         if (localStorage.merchantLayout) {
@@ -394,16 +388,15 @@ export default {
         if (localStorage.merchantOrder) {
             this.merchantOrder = localStorage.merchantOrder;
         }
-
-        if (retrieve)
-            this.getMerchants();
+        
+        this.getMerchants();
 
         let vm = this;
 
         window.onpopstate = function(event) {
             if (event.state) {
                 vm.selected = event.state.selected;
-            }
+          }
         }
     }
 }
@@ -420,13 +413,13 @@ h1{
 .sidebar {
     margin: 1rem 1rem 1rem 1rem;
 }
-.fade-enter-active {
+/* .fade-enter-active {
   transition: opacity .5s;
 }
 .fade-leave-active {
   transition: opacity .25s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+.fade-enter, .fade-leave-to  {
   opacity: 0;
-}
+} */
 </style>

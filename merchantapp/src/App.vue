@@ -168,8 +168,8 @@ export default {
         if (isLoading === false) {
           this.$auth.getTokenSilently().then((authToken) => {
            UserService.initUser(authToken);
-        }, err => {
-          console.log(err);
+        }, () => {
+          // Do Nothing
         });
         }
       })  
