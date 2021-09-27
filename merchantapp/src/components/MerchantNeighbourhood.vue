@@ -80,7 +80,7 @@ export default {
                 this.save();
         },
         save: function() {
-            localStorage.selectedMerchantNeighbourhood = this.value.join(';');
+            sessionStorage.selectedMerchantNeighbourhood = this.value.join(';');
         }
     },
     watch: {
@@ -91,8 +91,8 @@ export default {
     },
     mounted: function() {
         this.getNeighbourhoods();
-        if (localStorage.selectedMerchantNeighbourhood) {
-            this.value = localStorage.selectedMerchantNeighbourhood.split(';');
+        if (sessionStorage.selectedMerchantNeighbourhood) {
+            this.value = sessionStorage.selectedMerchantNeighbourhood.split(';');
             this.updateInput(false);
         }
     }

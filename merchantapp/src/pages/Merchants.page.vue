@@ -186,7 +186,7 @@ export default {
     watch: {
         "merchantOrder": function(newVal) {
             this.getMerchants();
-            localStorage.merchantOrder = newVal;
+            sessionStorage.merchantOrder = newVal;
         },
         "perpage": function(newVal) {
             this.getMerchants();
@@ -194,7 +194,7 @@ export default {
         },
         "page": function(newVal) {
             this.getMerchants();
-            localStorage.merchantsCurrentPage = newVal;
+            sessionStorage.merchantsCurrentPage = newVal;
         },
         "query": function() {
             this.getMerchants({ searchquery: this.query });
@@ -377,18 +377,18 @@ export default {
             this.perpage = Number(localStorage.merchantsPerPage);
         }
 
-        if (localStorage.merchantsCurrentPage) {
-            this.page =  Number(localStorage.merchantsCurrentPage);
-        }
-
         if (localStorage.merchantLayout) {
             this.selectedMerchantLayout = Number(localStorage.merchantLayout);
         }
 
-        if (localStorage.merchantOrder) {
-            this.merchantOrder = localStorage.merchantOrder;
+        if (sessionStorage.merchantsCurrentPage) {
+            this.page =  Number(sessionStorage.merchantsCurrentPage);
         }
-        
+
+        if (sessionStorage.merchantOrder) {
+            this.merchantOrder = sessionStorage.merchantOrder;
+        }
+
         this.getMerchants();
 
         let vm = this;

@@ -62,12 +62,12 @@ export default {
           this.save();
       },
       save: function() {
-        localStorage.selectedMerchantTags = this.value.join(';');
+        sessionStorage.selectedMerchantTags = this.value.join(';');
       }
     },
     mounted: function() {
-        if (localStorage.selectedMerchantTags) {
-            this.value = localStorage.selectedMerchantTags.split(';');
+        if (sessionStorage.selectedMerchantTags) {
+            this.value = sessionStorage.selectedMerchantTags.split(';');
             this.updateInput(false);
         }
     }

@@ -97,13 +97,13 @@ export default {
         this.value = [...this.value]
     },
     save: function () {
-      localStorage.selectedMerchantCategories = this.value.join(";");
+      sessionStorage.selectedMerchantCategories = this.value.join(";");
     },
   },
   mounted: function () {
     this.getCategories();
-    if (localStorage.selectedMerchantCategories) {
-      this.value = localStorage.selectedMerchantCategories.split(";");
+    if (sessionStorage.selectedMerchantCategories) {
+      this.value = sessionStorage.selectedMerchantCategories.split(";");
       this.updateInput(false);
     }
   },

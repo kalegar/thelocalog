@@ -89,19 +89,19 @@ export default {
             this.save();
       }, 500),
       save: function() {
-          localStorage.useGeoLocation = this.value ? 'true' : 'false';
-          localStorage.geoLocation = this.location;
-          localStorage.geoRadius = this.radius;
+          sessionStorage.useGeoLocation = this.value ? 'true' : 'false';
+          sessionStorage.geoLocation = this.location;
+          sessionStorage.geoRadius = this.radius;
       },
       loadFromLocalStorage: function() {
-          if (localStorage.useGeoLocation) {
-            this.value = (localStorage.useGeoLocation === 'true');
+          if (sessionStorage.useGeoLocation) {
+            this.value = (sessionStorage.useGeoLocation === 'true');
           }
-          if (localStorage.geoLocation) {
-            this.location = localStorage.geoLocation;
+          if (sessionStorage.geoLocation) {
+            this.location = sessionStorage.geoLocation;
           }
-          if (localStorage.geoRadius) {
-            this.radius = localStorage.geoRadius;
+          if (sessionStorage.geoRadius) {
+            this.radius = sessionStorage.geoRadius;
           }
       }
   }
