@@ -9,6 +9,7 @@
 *.gitpat
 
 /build/localog
+/build/backup.sql
 
 *.env
 

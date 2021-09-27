@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import App from './App.vue'
 
 import { domain, clientId, audience } from "../auth_config.json";
+import { socketioDomain } from "../socketio_config.json";
 
 import { Auth0Plugin, authGuard } from "./auth";
 import VueSocketIOExt from 'vue-socket.io-extended';
@@ -32,7 +33,8 @@ const router = new VueRouter({
   routes
 });
 
-const socket = io('http://localhost:3000');
+const iodomain = process.env.NODE_ENV !== 'development' ? socketioDomain : 'http://localhost:3000';
+const socket = io(iodomain);
 
 Vue.use(VueSocketIOExt, socket);
 
