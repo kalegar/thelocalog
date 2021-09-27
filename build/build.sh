@@ -18,3 +18,4 @@ cp ../merchantapp/package*.json ./localog/merchantapp
 cp ./prod.env ./localog/.env
 rm -r ../api/dist
 rm -r ../merchantapp/dist
+read -n 1 -s -r -p "Press any key to continue"

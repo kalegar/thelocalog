@@ -221,9 +221,9 @@
                 </v-expansion-panels>
               </div>
             </div>
-            <div class="merchant-footer row align-items-center">
-              <div class="col" v-if="!isOwner && merchant">
-                <p>
+            <v-row class="merchant-footer align-items-center">
+              <v-col>
+                <p v-if="!isOwner && merchant">
                   Do you own this business? Click
                   <router-link
                     class="claim-link"
@@ -232,8 +232,11 @@
                   >
                   to claim it.
                 </p>
-              </div>
-            </div>
+                <p v-if="pageViewers > 1">
+                  {{pageViewers - 1}} others are viewing this page.
+                </p>
+              </v-col>
+            </v-row>
           </div>
         </transition>
         <Loading :loading="loading" />
@@ -307,7 +310,8 @@ export default {
       },
       selectedAddress: [0],
       deleteAddressDialog: false,
-      deleteAddressLoading: false
+      deleteAddressLoading: false,
+      pageViewers: 1
     };
   },
   methods: {
@@ -512,7 +516,15 @@ export default {
         clearInterval(interv);
       }
     }, 1000);
+    this.$socket.client.emit('view-merchant', { merchantId: this.id });
   },
+  sockets: {
+      currentViewers: function(data) {
+        if ('viewers' in data) {
+          this.pageViewers = data.viewers;
+        }
+      }
+  }
 };
 </script>
 

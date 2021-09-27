@@ -16,6 +16,12 @@ router.get("/", async (req, res) => {
     return res.status(200).json({ message: 'Authenticated.' });
 })
 
+//Retrieve count of connected clients
+router.get('/connectedclients', (req,res) => {
+    const clients = req.app.get('io').engine.clientsCount;
+    res.status(200).json({ clients });
+ });
+
 // Retrieve all Merchant Claims
 router.get("/claims", async (req, res) => {
     try {

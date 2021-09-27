@@ -5,6 +5,8 @@ import App from './App.vue'
 import { domain, clientId, audience } from "../auth_config.json";
 
 import { Auth0Plugin, authGuard } from "./auth";
+import VueSocketIOExt from 'vue-socket.io-extended';
+import { io } from 'socket.io-client';
 
 Vue.use(VueRouter);
 
@@ -14,7 +16,7 @@ import Profile from './pages/Profile.page.vue';
 import MerchantClaim from './pages/MerchantClaim.page.vue';
 import MerchantClaimDetail from './pages/MerchantClaimDetail.page.vue';
 import AdminHome from './pages/AdminHome.page.vue';
-import vuetify from './plugins/vuetify'
+import vuetify from './plugins/vuetify';
 
 const routes = [
   { path: '/', redirect: '/merchants' },
@@ -29,6 +31,10 @@ const routes = [
 const router = new VueRouter({
   routes
 });
+
+const socket = io('http://localhost:3000');
+
+Vue.use(VueSocketIOExt, socket);
 
 // Use Auth0Plugin
 Vue.use(Auth0Plugin, {

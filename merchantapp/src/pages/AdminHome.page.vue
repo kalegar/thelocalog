@@ -8,6 +8,12 @@
                 <v-row>
                     <v-col>
                         <h1>Admin</h1>
+                        <v-row>
+                            <v-col>
+                                <h4 v-if="connectedClients <= 1">There is 1 client currently connected to the Localog.</h4>
+                                <h4 v-else>There are {{connectedClients}} clients currently connected to the Localog.</h4>
+                            </v-col>
+                        </v-row>
                         <div class="row claims">
                             <div class="col">
                             <h3>Claims</h3>
@@ -150,6 +156,7 @@ export default {
     },
     data: function() {
         return {
+            connectedClients: 0,
             claims: [],
             isAdmin: false,
             populateGeoResponse: '',
@@ -178,6 +185,24 @@ export default {
         }
     },
     methods: {
+        getConnectedClients: function() {
+            const url = `/api/admin/connectedclients`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        return;
+                    }
+                    this.connectedClients = res.data.clients;
+                })
+                .catch(() => {
+                });
+            });
+        },
         getClaims: function() {
             this.$auth.getTokenSilently().then((authToken) => {
                 AdminService.getMerchantClaims(authToken).then(res => {
@@ -366,6 +391,7 @@ export default {
                 }else{
                     this.isAdmin = true;
                     this.getClaims();
+                    this.getConnectedClients();
                 }
             })
             .catch(() => {
