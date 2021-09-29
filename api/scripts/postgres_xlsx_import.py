@@ -70,7 +70,7 @@ def parse_row(row,fields,maincategory,prev_name):
     result = cur.fetchone()
     update = False
     if (result != None):
-        print("Skipping merchant " + merchant_name + ". Already in DB.");
+        print("Skipping merchant " + merchant_name + ". Already in DB.")
         return
         # merchantid = result[0]
         # update = True

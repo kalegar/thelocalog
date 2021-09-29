@@ -77,7 +77,7 @@ const parseSort = function(value,allowed) {
 // Retrieve all merchants
 router.get("/", async (req, res) => {
     try {
-        const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort,o: onlineShopping} = req.query;
+        const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort,o: onlineShopping, franchise, independent, canadian} = req.query;
 
         let query = {attributes: ['id','title','website','description']}
 
@@ -93,7 +93,7 @@ router.get("/", async (req, res) => {
 
         const sortByDistance = (lat && lon);
 
-        if (search || tags || categories || neighbourhood || sortByDistance || onlineShopping) {
+        if (search || tags || categories || neighbourhood || sortByDistance || onlineShopping || franchise || independent || canadian) {
             const searchArray        = Utils.toListSQL(search,true,' ');
             const tagArray           = Utils.toListSQL(tags);
             const categoryArray      = Utils.toListSQL(categories);
@@ -127,8 +127,14 @@ router.get("/", async (req, res) => {
                 "OR (query @@ m.textsearch))";
             const filterOnlineShopping =
                 "(m.\"onlineShopping\" = :onlineShopping)";
+            const filterFranchise =
+                "(m.\"franchise\" = :franchise)";
+            const independentFilter = 
+                "(m.\"independent\" = :independent)";
+            const canadianOwnedFilter = 
+                "(m.\"canadianOwned\" = :canadianOwned)";
             
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6";
+            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6 AND 7=7 AND 8=8 AND 9=9";
             let replacements = {};
 
             let selectClause = "m.id,m.title,m.description,m.website";
@@ -167,7 +173,22 @@ router.get("/", async (req, res) => {
 
             if (typeof onlineShopping !== 'undefined') {
                 q = q.replace("6=6",filterOnlineShopping);
-                replacements.onlineShopping = (onlineShopping == 1);
+                replacements.onlineShopping = (onlineShopping == 1) || (onlineShopping === 'true');
+            }
+
+            if (typeof franchise !== 'undefined') {
+                q = q.replace("7=7", filterFranchise);
+                replacements.franchise = (franchise == 1) || (franchise === 'true');
+            }
+
+            if (typeof independent !== 'undefined') {
+                q = q.replace("8=8", independentFilter);
+                replacements.independent = (independent == 1) || (independent === 'true');
+            }
+
+            if (typeof canadian !== 'undefined') {
+                q = q.replace("9=9", canadianOwnedFilter);
+                replacements.canadianOwned = (canadian == 1) || (canadian === 'true');
             }
 
             /////////////////////
@@ -341,10 +362,10 @@ router.get("/:id", async (req, res) => {
 // Update a merchant by id
 router.put("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
-        const { title, description, website, deletedAt, onlineShopping, inStoreShopping } = req.body;
+        const { title, description, website, deletedAt, onlineShopping, inStoreShopping, franchise, independent, canadian } = req.body;
 
         let updatedMerchant = {
-            title, description, website, deletedAt, onlineShopping, inStoreShopping
+            title, description, website, deletedAt, onlineShopping, inStoreShopping, franchise, independent, canadian
         };
 
         const merchants = await Merchant.update(

@@ -29,7 +29,11 @@ module.exports = (sequelize, DataTypes) => {
     type: DataTypes.STRING,
     description: DataTypes.TEXT,
     onlineShopping: DataTypes.BOOLEAN,
-    inStoreShopping: DataTypes.BOOLEAN
+    inStoreShopping: DataTypes.BOOLEAN,
+    franchise: DataTypes.BOOLEAN,
+    marketVendor: DataTypes.BOOLEAN,
+    independent: DataTypes.BOOLEAN,
+    canadianOwned: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Merchant',

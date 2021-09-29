@@ -21,7 +21,7 @@
             height="40"
             v-else
             large
-            v-model="merchant.title"
+            v-model="title"
             label="Merchant Title"
             color="secondary"
           ></v-text-field>
@@ -41,7 +41,7 @@
       <p v-if="!editing" class="description text-body-1 font-weight-medium">{{ merchant.description }}</p>
       <v-textarea
         v-else
-        v-model="merchant.description"
+        v-model="description"
         label="Description"
         auto-grow
         color="secondary"
@@ -54,7 +54,7 @@
         <v-text-field
           v-if="editing"
           class="mt-2"
-          v-model="merchant.website"
+          v-model="website"
           label="Website"
           color="secondary"
           filled
@@ -77,10 +77,11 @@
           </div>
           <div v-else>
             <v-checkbox
-              v-model="merchant.inStoreShopping"
+              v-model="inStoreShopping"
               dense
               class="mt-4"
               color="secondary"
+              :indeterminate="inStoreShopping == null"
             ></v-checkbox>
           </div>
           <v-spacer></v-spacer>
@@ -98,12 +99,38 @@
           </div>
           <div v-else>
             <v-checkbox
-              v-model="merchant.onlineShopping"
+              v-model="onlineShopping"
               dense
               class="mt-4"
               color="secondary"
+              :indeterminate="onlineShopping == null"
             ></v-checkbox>
           </div>
+          <v-spacer></v-spacer>
+        </v-row>
+        <v-row v-if="editing" class="franchise-independent mb-4" justify="center" align="center">
+          <v-spacer></v-spacer>
+          <h4 class="mr-1 text-caption text-md-body-2 font-weight-medium">
+            Independent:
+          </h4>
+          <v-checkbox
+            v-model="independent"
+            dense
+            class="mt-4"
+            color="secondary"
+            :indeterminate="independent == null"
+          ></v-checkbox>
+          <v-spacer></v-spacer>
+          <h4 class="mr-1 text-caption text-md-body-2 font-weight-medium">
+            Franchise:
+          </h4>
+          <v-checkbox
+            v-model="franchise"
+            dense
+            class="mt-4"
+            color="secondary"
+            :indeterminate="franchise == null"
+          ></v-checkbox>
           <v-spacer></v-spacer>
         </v-row>
       </div>
@@ -138,8 +165,24 @@ export default {
   data: function () {
     return {
       editing: false,
-      saveMerchantLoading: false
+      saveMerchantLoading: false,
+
+      //Fields:
+      title: '',
+      description: '',
+      website: '',
+      inStoreShopping: null,
+      onlineShopping: null,
+      franchise: null,
+      independent: null,
+      canadianOwned: null
+
     };
+  },
+  watch: {
+    'merchant': function() {
+      this.copyMerchantToInternalFields();
+    }
   },
   computed: {
     logoMaxWidth: function() {
@@ -147,17 +190,36 @@ export default {
     }
   },
   methods: {
+    copyMerchantToInternalFields: function() {
+      this.title = this.merchant.title;
+      this.description = this.merchant.description;
+      this.website = this.merchant.website;
+      this.inStoreShopping = this.merchant.inStoreShopping;
+      this.onlineShopping = this.merchant.onlineShopping;
+      this.franchise = this.merchant.franchise;
+      this.independent = this.merchant.independent;
+      this.canadianOwned = this.merchant.canadianOwned;
+    },
     startEditing: function() {
       if (this.canEdit) {
         this.editing = true;
       }
     },
     cancelEditing: function() {
+      this.copyMerchantToInternalFields();
       this.editing = false;
     },
     saveMerchant: function() {
       this.saveMerchantLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
+        this.merchant.title = this.title;
+        this.merchant.description = this.description;
+        this.merchant.website = this.website;
+        this.merchant.inStoreShopping = this.inStoreShopping;
+        this.merchant.onlineShopping = this.onlineShopping;
+        this.merchant.franchise = this.franchise;
+        this.merchant.independent = this.independent;
+        this.merchant.canadianOwned = this.canadianOwned;
         MerchantService.saveMerchant(this.merchant.id, authToken, this.merchant)
           .then(
             (result) => {

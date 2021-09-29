@@ -29,6 +29,20 @@
                                 <MerchantNeighbourhood v-model="neighbourhood"/>
                                 <MerchantCategories v-model="categories"/>
                                 <v-select
+                                    v-model="franchise"
+                                    label="Franchise"
+                                    :items="franchiseOptions"
+                                    clearable
+                                    color="secondary"
+                                ></v-select>
+                                <!-- <v-select
+                                    v-model="canadianOwned"
+                                    label="Canadian Owned"
+                                    :items="canadianOwnedOptions"
+                                    clearable
+                                    color="secondary"
+                                ></v-select> -->
+                                <v-select
                                     class="my-2"
                                     :items="merchantOrderOptions"
                                     item-text="text"
@@ -211,6 +225,14 @@ export default {
         "categories": function() {
             this.shouldGetMerchants = true;
         },
+        "franchise": function() {
+            this.shouldGetMerchants = true;
+            sessionStorage.franchise = this.franchise;
+        },
+        "canadianOwned": function() {
+            this.shouldGetMerchants = true;
+            sessionStorage.canadianOwned = this.canadianOwned;
+        },
         "geo.enabled": function() {
             this.shouldGetMerchants = true;
         },
@@ -259,6 +281,17 @@ export default {
                 tags: [],
                 neighbourhood: [],
                 includeDeleted: false,
+                franchise: '',
+                canadianOwned: '',
+                independent: false,
+            franchiseOptions: [
+                { text: 'Independent', value: 'false' },
+                { text: 'Franchise', value: 'true' }
+            ],
+            canadianOwnedOptions: [
+                { text: 'Canadian Owned', value: 'true' },
+                { text: 'Non-Canadian Owned', value: 'false' }
+            ],
             perPageOptions: [
                 { text: '10 Per Page', value: '10' },
                 { text: '25 Per Page', value: '25' },
@@ -347,8 +380,16 @@ export default {
                 geo: this.geo,
                 page: this.page,
                 perpage: this.perpage,
-                sort: this.merchantOrder
+                sort: this.merchantOrder,
+                canadianOwned: this.canadianOwned
             };
+            if (this.franchise !== null) {
+                if (this.franchise === 'true') {
+                    options.franchise = 'true';
+                }else{
+                    options.independent = 'true';
+                }
+            }
 
             MerchantService.getMerchants(options).then(result => {
                 this.shouldGetMerchants = false;
@@ -387,6 +428,22 @@ export default {
 
         if (sessionStorage.merchantOrder) {
             this.merchantOrder = sessionStorage.merchantOrder;
+        }
+
+        if (sessionStorage.franchise) {
+            if (sessionStorage.franchise === 'null') {
+                this.franchise = null;
+            }else{
+                this.franchise = sessionStorage.franchise;
+            }
+        }
+
+        if (sessionStorage.canadianOwned) {
+            if (sessionStorage.canadianOwned === 'null') {
+                this.canadianOwned = null;
+            }else{
+                this.canadianOwned = sessionStorage.canadianOwned;
+            }
         }
 
         this.getMerchants();

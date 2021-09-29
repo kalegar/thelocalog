@@ -39,6 +39,18 @@ export const MerchantService = {
             params.s = options.searchquery;
         }
 
+        if ('franchise' in options && options.franchise !== '') {
+            params.franchise = options.franchise;
+        }
+
+        if ('canadianOwned' in options && options.canadianOwned !== '') {
+            params.canadian = options.canadianOwned;
+        }
+
+        if ('independent' in options && options.independent !== '') {
+            params.independent = options.independent;
+        }
+
         if (options.includeDeleted) {
             params.deleted = 'true';
         }
