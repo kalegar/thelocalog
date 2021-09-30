@@ -1,4 +1,14 @@
 export const Utils = {
+
+    forceNumber: (val) => {
+        let result = parseInt(val);
+        return isNaN(result) ? 0 : result;
+    },
+
+    numberOrNull: (val) => { 
+        let result = parseInt(val);
+        return isNaN(result) ? null : result;
+    },
     
     clamp: (num, min, max) => {return Math.min(Math.max(num, min), max)},
 

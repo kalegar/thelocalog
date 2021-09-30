@@ -94,6 +94,7 @@ router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
 
         const merchant = await Merchant.findOne({
             where: { id: req.params.merchantId },
+            paranoid: false,
             include: {
                 model: Address,
                 where: {
@@ -152,8 +153,8 @@ router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
                     AddressId: req.params.id,
                     email: address.Contact.email,
                     email2: address.Contact.email2,
-                    phone: address.Contact.phone,
-                    phone2: address.Contact.phone2
+                    phone: Utils.numberOrNull(address.Contact.phone),
+                    phone2: Utils.numberOrNull(address.Contact.phone2)
                     },
                     {
                         returning: false

@@ -37,7 +37,7 @@ router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
     }
 });
 
-//Create bulk merchant tags and attach them to this merchant.
+//Set the tags for this merchant. Will delete all existing tags on the merchant first, then upsert the supplied tags.
 router.put("/bulk", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
 

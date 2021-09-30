@@ -31,37 +31,37 @@
             <div v-else>
               <v-text-field
                 class="mt-2"
-                v-model="address.address1"
+                v-model="address1"
                 label="Address Line 1"
                 color="secondary"
               ></v-text-field>
               <v-expand-transition>
                 <v-text-field
-                  v-if="address.address1 && address.address1.length"
+                  v-if="address1 && address1.length"
                   class="mt-2"
-                  v-model="address.address2"
+                  v-model="address2"
                   label="Address Line 2"
                   color="secondary"
                 ></v-text-field>
               </v-expand-transition>
               <v-expand-transition>
                 <v-text-field
-                  v-if="address.address2 && address.address2.length"
+                  v-if="address2 && address2.length"
                   class="mt-2"
-                  v-model="address.address3"
+                  v-model="address3"
                   label="Address Line 3"
                   color="secondary"
                 ></v-text-field>
               </v-expand-transition>
               <v-text-field
                 class="mt-2"
-                v-model="address.city"
+                v-model="city"
                 label="City"
                 color="secondary"
               ></v-text-field>
               <v-select
                 class="mt-2"
-                v-model="address.province"
+                v-model="province"
                 :items="provinces"
                 item-text="prov"
                 item-value="abbr"
@@ -70,7 +70,7 @@
               ></v-select>
               <v-text-field
                 class="mt-2"
-                v-model="address.country"
+                v-model="country"
                 maxlength="2"
                 counter
                 label="Country"
@@ -78,7 +78,7 @@
               ></v-text-field>
               <v-text-field
                 class="mt-2"
-                v-model="address.postalcode"
+                v-model="postalcode"
                 maxlength="20"
                 counter
                 label="Postal Code"
@@ -86,7 +86,7 @@
               ></v-text-field>
               <v-text-field
                 class="mt-2"
-                v-model="address.neighbourhood"
+                v-model="neighbourhood"
                 maxlength="70"
                 counter
                 label="Neighbourhood"
@@ -109,18 +109,18 @@
         <v-row>
           <v-col class="contact" v-if="editing || hasContactDetails">
             <h3 class="mb-2">Contact Info:</h3>
-            <v-list-item v-if="editing || contact.email">
+            <v-list-item v-if="editing || email">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'mailto:' + contact.email"
+                  ><a :href="'mailto:' + email"
                     ><v-icon left>mdi-email</v-icon
-                    >{{ contact.email }}</a
+                    >{{ email }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="contact.email"
+                    v-model="email"
                     label="Email Address 1"
                     prepend-icon="mdi-email"
                     color="secondary"
@@ -128,18 +128,18 @@
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-if="editing || contact.email2">
+            <v-list-item v-if="editing || email2">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'mailto:' + contact.email2"
+                  ><a :href="'mailto:' + email2"
                     ><v-icon left>mdi-email</v-icon
-                    >{{ contact.email2 }}</a
+                    >{{ email2 }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="contact.email2"
+                    v-model="email2"
                     label="Email Address 2"
                     prepend-icon="mdi-email"
                     color="secondary"
@@ -147,18 +147,18 @@
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-if="editing || contact.phone">
+            <v-list-item v-if="editing || phone">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'tel:+' + contact.phone"
+                  ><a :href="'tel:+' + phone"
                     ><v-icon left>mdi-phone</v-icon
-                    >{{ formatPhone(contact.phone) }}</a
+                    >{{ formatPhone(phone) }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="contact.phone"
+                    v-model="phone"
                     label="Phone 1"
                     prepend-icon="mdi-phone"
                     color="secondary"
@@ -166,18 +166,18 @@
                 ></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-if="editing || contact.phone2">
+            <v-list-item v-if="editing || phone2">
               <v-list-item-content>
                 <v-list-item-title v-if="!editing"
-                  ><a :href="'tel:+' + contact.phone2"
+                  ><a :href="'tel:+' + phone2"
                     ><v-icon left>mdi-phone</v-icon
-                    >{{ formatPhone(contact.phone2) }}</a
+                    >{{ formatPhone(phone2) }}</a
                   ></v-list-item-title
                 >
                 <v-list-item-title v-else
                   ><v-text-field
                     class="mt-2"
-                    v-model="contact.phone2"
+                    v-model="phone2"
                     label="Phone 2"
                     prepend-icon="mdi-phone"
                     color="secondary"
@@ -210,7 +210,6 @@ export default {
     return {
       editing: false,
       saveAddressLoading: false,
-      contact: {},
       provinces: [
         { prov: "Alberta", abbr: "AB" },
         { prov: "British Columbia", abbr: "BC" },
@@ -226,40 +225,93 @@ export default {
         { prov: "Saskatchewan", abbr: "SK" },
         { prov: "Yukon", abbr: "YT" },
       ],
+      //editable fields:
+      address1: '',
+      address2: '',
+      address3: '',
+      city: '',
+      province: '',
+      postalcode: '',
+      neighbourhood: '',
+      country: '',
+      email: null,
+      email2: null,
+      phone: null,
+      phone2: null
     };
   },
   watch: {
     address: {
       immediate: true,
-      handler (val, oldVal) {
-        if (oldVal !== val) {
-          if ('Contact' in this.address && this.address.Contact != null) {
-            this.contact = this.address.Contact;
-          }
-        }
+      handler: function() {
+        this.copyToInternalFields();
       }
     }
   },
   computed: {
     hasContactDetails: function() {
-      return 'email' in this.contact || 'email2' in this.contact || 'phone' in this.contact || 'phone2' in this.contact;
+      console.log(this.address);
+      if (this.address == null)
+        return false;
+      return ('Contact' in this.address) && (this.address.Contact !== null) && ('email' in this.address.Contact || 'email2' in this.address.Contact || 'phone' in this.address.Contact || 'phone2' in this.address.Contact);
     }
   },
   methods: {
+    copyToInternalFields: function() {
+      //Address
+      this.address1      = this.address.address1;
+      this.address2      = this.address.address2;
+      this.address3      = this.address.address3;
+      this.city          = this.address.city;
+      this.province      = this.address.province;
+      this.postalcode    = this.address.postalcode;
+      this.neighbourhood = this.address.neighbourhood;
+      this.country       = this.address.country;
+      //Contact
+      if (this.hasContactDetails) {
+        this.email  = this.address.Contact.email;
+        this.email2 = this.address.Contact.email2;
+        this.phone  = this.address.Contact.phone;
+        this.phone2 = this.address.Contact.phone2;
+      }else{
+        this.email = null;
+        this.email2 = null;
+        this.phone = null;
+        this.phone2 = null;
+      }
+    },
+    copyToExternalFields: function() {
+      //Address
+      this.address.address1      = this.address1;
+      this.address.address2      = this.address2;
+      this.address.address3      = this.address3;
+      this.address.city          = this.city;
+      this.address.province      = this.province;
+      this.address.postalcode    = this.postalcode;
+      this.address.neighbourhood = this.neighbourhood;
+      this.address.country       = this.country;
+      //Contact
+      if (this.email || this.email2 || this.phone || this.phone2) {
+        this.address.Contact = { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2};
+      }
+      // this.address.Contact.email  = this.email;
+      // this.address.Contact.email2 = this.email2;
+      // this.address.Contact.phone  = this.phone;
+      // this.address.Contact.phone2 = this.phone2;
+    },
     startEditing: function() {
       if (this.canEdit) {
         this.editing = true;
-        if ('Contact' in this.address && this.address.Contact != null) {
-          this.contact = this.address.Contact;
-        }
+        this.copyToInternalFields();
       }
     },
     cancelEditing: function() {
       this.editing = false;
+      this.copyToInternalFields();
     },
     saveAddress: function() {
       this.saveAddressLoading = true;
-      this.address.Contact = this.contact;
+      this.copyToExternalFields();
       this.$auth.getTokenSilently().then((authToken) => {
         MerchantService.saveAddress(this.merchant.id, authToken, this.address)
           .then(

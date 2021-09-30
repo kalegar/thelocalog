@@ -181,7 +181,9 @@ export default {
   },
   watch: {
     'merchant': function() {
-      this.copyMerchantToInternalFields();
+      if (this.merchant !== null) {
+        this.copyMerchantToInternalFields();
+      }
     }
   },
   computed: {
