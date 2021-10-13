@@ -132,6 +132,12 @@
                                 :loading="clearMerchantQueryLoading"
                             >Clear Merchant Cache</v-btn>
 
+                            <v-btn
+                                class="toolbutton"
+                                @click="clearNeighbourhoodsCache"
+                                :loading="clearNeighbourhoodsCacheLoading"
+                            >Clear Neighbourhoods Cache</v-btn>
+
                             </div>
                         </div>
                     </v-col>
@@ -167,6 +173,7 @@ export default {
             uploadedLogoMerchantId: '',
             clearHoursCacheLoading: false,
             clearCategoriesCacheLoading: false,
+            clearNeighbourhoodsCacheLoading: false,
             clearMerchantQueryLoading: false,
             snackbar: {
                 color: 'primary',
@@ -272,12 +279,33 @@ export default {
                         return;
                     }
                     this.makeToast(res.data.message,'success');
-                    this.getPopulateGeometryCount();
                 })
                 .catch(err => {
                     const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
                     this.makeToast(`${err}${msg}`,'danger');
                 }).then(() => {this.clearCategoriesCacheLoading = false;});
+            });
+        },
+        clearNeighbourhoodsCache: function() {
+            const url = `/api/admin/neighbourhoods/clearcache`;
+            this.clearNeighbourhoodsCacheLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        this.makeToast(res.statusText,'danger');
+                        return;
+                    }
+                    this.makeToast(res.data.message,'success');
+                })
+                .catch(err => {
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast(`${err}${msg}`,'danger');
+                }).then(() => {this.clearNeighbourhoodsCacheLoading = false;});
             });
         },
         clearMerchantQueryCache: function() {

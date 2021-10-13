@@ -9,10 +9,7 @@
     <v-row class="pt-4" justify="center">
       <v-col
         class="d-flex flex-grow-1 align-center justify-space-around"
-        order="last"
-        order-sm="first"
         cols="12"
-        sm="auto"
       >
         <div class="mx-4">
           <p v-if="!editing" class="text-h5 text-sm-h4 text-md-h3 text-lg-h2 font-weight-medium">{{ merchant.title }}</p>
@@ -31,7 +28,6 @@
         class="d-flex align-center justify-center"
         v-if="logo && logo.length"
         cols="12"
-        sm="auto"
       >
         <v-img class="logo px-4" :max-width="logoMaxWidth" contain :src="'data:image/png;base64,' + logo[0].image" />
       </v-col>

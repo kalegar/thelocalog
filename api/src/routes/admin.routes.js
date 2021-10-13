@@ -7,7 +7,7 @@ import { Merchant, MerchantClaim, User, Address } from '../database/models';
 import { GoogleAPIService } from '../service/google-api.service.js';
 import { LoggingService } from '../service/logging.service.js';
 import { Utils } from '../util.js';
-import { redisClient, redisPrefixHours, redisPrefixRequest, redisPrefixCategory } from '../service/redis.service.js';
+import { redisClient, redisPrefixHours, redisPrefixRequest, redisPrefixCategory, redisPrefixNeighbourhood } from '../service/redis.service.js';
 
 const router = Router();
 
@@ -143,6 +143,20 @@ router.get("/categories/clearcache", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 })
+
+router.get("/neighbourhoods/clearcache", async(req, res) => {
+    try {
+        redisClient.DEL(redisPrefixNeighbourhood + 'ALL', async (err, reply) => {
+            if (err) {
+                return res.status(500).json({ message: 'Redis Server Error.' });
+            }else{
+                return res.status(200).json({ message: `Cleared ${reply} keys.` });
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 router.get("/populategeo", async (req, res) => {
     try {
