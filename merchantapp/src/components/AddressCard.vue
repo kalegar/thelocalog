@@ -250,7 +250,6 @@ export default {
   },
   computed: {
     hasContactDetails: function() {
-      console.log(this.address);
       if (this.address == null)
         return false;
       return ('Contact' in this.address) && (this.address.Contact !== null) && ('email' in this.address.Contact || 'email2' in this.address.Contact || 'phone' in this.address.Contact || 'phone2' in this.address.Contact);

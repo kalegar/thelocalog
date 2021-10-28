@@ -56,7 +56,6 @@ export const MerchantService = {
         }
 
         if (options.geo && options.geo.enabled && options.geo.location) {
-            console.log(options.geo);
             params.lat = options.geo.location.latitude;
             params.lon = options.geo.location.longitude;
             if (options.geo.radius) {
@@ -73,7 +72,6 @@ export const MerchantService = {
             })
                 .then(res => {
                     if (res.status != 200) {
-                        console.log('ERROR');
                         const error = new Error(res.statusText);
                         throw error;
                     }
