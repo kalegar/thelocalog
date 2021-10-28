@@ -386,7 +386,7 @@ export default {
             if (this.franchise !== null) {
                 if (this.franchise === 'true') {
                     options.franchise = 'true';
-                }else{
+                }else if (this.franchise == 'false'){
                     options.independent = 'true';
                 }
             }
