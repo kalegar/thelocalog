@@ -14,132 +14,192 @@
                                 <h4 v-else>There are {{connectedClients}} clients currently connected to the Localog.</h4>
                             </v-col>
                         </v-row>
-                        <div class="row claims">
-                            <div class="col">
-                            <h3>Claims</h3>
-                            <div class="claims" v-if="claims && claims.length">
-                                <v-list three-line>
-                                    <template v-for="(claim,index) in claims">
-                                            <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id.toString() }}" :key="'claim-'+claim.id">
-                                                <v-list-item-avatar>
-                                                    <v-icon>mdi-storefront</v-icon>
-                                                </v-list-item-avatar>
+                        <v-row>
+                            <v-tabs v-model="tab">
+                                <v-tab>Claims</v-tab>
+                                <v-tab>Tools</v-tab>
+                                <v-tab>Categories</v-tab>
+                            </v-tabs>
+                            <v-tabs-items v-model="tab" style="width: 100%; min-height: 300px;">
+                                <v-tab-item class="claims">
+                                    <v-card v-if="claims && claims.length">
+                                        <v-card-text>
+                                        <v-list three-line>
+                                            <template v-for="(claim,index) in claims">
+                                                    <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id.toString() }}" :key="'claim-'+claim.id">
+                                                        <v-list-item-avatar>
+                                                            <v-icon>mdi-storefront</v-icon>
+                                                        </v-list-item-avatar>
 
-                                                <v-list-item-content class="merchant-list-item">
-                                                    <v-list-item-title class="h5">{{claim.Merchant.title}}</v-list-item-title>
-                                                    <v-list-item-subtitle v-if="claim.email">{{claim.email}}</v-list-item-subtitle>
-                                                    <v-list-item-subtitle>{{claim.text}}</v-list-item-subtitle>
-                                                    <v-list-item-subtitle>{{claim.createdAt}}</v-list-item-subtitle>
-                                                </v-list-item-content>
-                                            </v-list-item>
-                                        <v-divider
-                                        :key="index"
-                                        class="mx-4"
-                                        ></v-divider>
-                                    </template>
-                                </v-list>
-                            </div>
-                            <div class="no-claims" v-else>
-                                <p>There are no claims.</p>
-                            </div>
-                            </div>
-                        </div>
-                        <div class="row tools">
-                            <div class="col">
-                            <h3>Tools</h3>
-
-                            <v-btn class="toolbutton" @click="populateGeometry()" :loading="populateGeoLoading">Populate Geometry</v-btn>
-                            <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
-                                {{ snackbar.text }}
-                                <template v-slot:action="{ attrs }">
-                                    <v-btn
-                                      text
-                                      v-bind="attrs"
-                                      @click="snackbar.show = false"
+                                                        <v-list-item-content class="merchant-list-item">
+                                                            <v-list-item-title class="h5">{{claim.Merchant.title}}</v-list-item-title>
+                                                            <v-list-item-subtitle v-if="claim.email">{{claim.email}}</v-list-item-subtitle>
+                                                            <v-list-item-subtitle>{{claim.text}}</v-list-item-subtitle>
+                                                            <v-list-item-subtitle>{{claim.createdAt}}</v-list-item-subtitle>
+                                                        </v-list-item-content>
+                                                    </v-list-item>
+                                                <v-divider
+                                                :key="index"
+                                                class="mx-4"
+                                                ></v-divider>
+                                            </template>
+                                        </v-list>
+                                        </v-card-text>
+                                    </v-card>
+                                    <v-card v-else>
+                                        <v-card-text>
+                                        There are no claims.
+                                        </v-card-text>
+                                    </v-card>
+                                </v-tab-item>
+                                <v-tab-item>
+                                    <v-btn class="toolbutton" @click="populateGeometry()" :loading="populateGeoLoading">Populate Geometry</v-btn>
+                                    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
+                                        {{ snackbar.text }}
+                                        <template v-slot:action="{ attrs }">
+                                            <v-btn
+                                            text
+                                            v-bind="attrs"
+                                            @click="snackbar.show = false"
+                                            >
+                                            Close
+                                            </v-btn>
+                                        </template>
+                                    </v-snackbar>
+                                    <v-dialog
+                                    v-model="dialog.show"
+                                    persistent
+                                    max-width="290"
                                     >
-                                    Close
-                                    </v-btn>
-                                </template>
-                            </v-snackbar>
-                            <v-dialog
-                              v-model="dialog.show"
-                              persistent
-                              max-width="290"
-                            >
-                                <template v-slot:activator="{ on, attrs }">
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn
+                                                class="toolbutton"
+                                                v-bind="attrs"
+                                                v-on="on"
+                                                @click="showUploadDialog()"
+                                                :loading="uploadLogoLoading"
+                                            >Upload Logo</v-btn>
+                                        </template>
+                                        <v-card>
+                                            <v-card-title class="text-h5">
+                                                {{dialog.title}}
+                                            </v-card-title>
+                                            <v-card-text>
+                                                {{dialog.text}}
+                                            </v-card-text>
+                                            <v-divider class="mx-4"></v-divider>
+                                            <v-card-text>
+                                                <v-text-field
+                                                v-model="uploadedLogoMerchantId" 
+                                                label="Merchant ID"
+                                                prepend-icon="mdi-storefront"
+                                                ></v-text-field>
+                                            </v-card-text>
+                                            <v-card-text>
+                                                <v-file-input
+                                                accept="image/png"
+                                                label="Upload Logo"
+                                                dense
+                                                v-model="uploadedLogo"
+                                                ></v-file-input>
+                                            </v-card-text>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn
+                                                    color="red darken-1"
+                                                    text
+                                                    @click="dialog.show = false"
+                                                >{{dialog.notext}}</v-btn>
+                                                <v-btn
+                                                    color="green darken-1"
+                                                    text
+                                                    @click="dialog.show = false; dialog.action()"
+                                                >{{dialog.yestext}}</v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
+
                                     <v-btn
                                         class="toolbutton"
-                                        v-bind="attrs"
-                                        v-on="on"
-                                        @click="showUploadDialog()"
-                                        :loading="uploadLogoLoading"
-                                    >Upload Logo</v-btn>
-                                </template>
-                                <v-card>
-                                    <v-card-title class="text-h5">
-                                        {{dialog.title}}
-                                    </v-card-title>
-                                    <v-card-text>
-                                        {{dialog.text}}
-                                    </v-card-text>
-                                    <v-divider class="mx-4"></v-divider>
-                                    <v-card-text>
-                                        <v-text-field
-                                          v-model="uploadedLogoMerchantId" 
-                                          label="Merchant ID"
-                                          prepend-icon="mdi-storefront"
-                                        ></v-text-field>
-                                    </v-card-text>
-                                    <v-card-text>
-                                        <v-file-input
-                                          accept="image/png"
-                                          label="Upload Logo"
-                                          dense
-                                          v-model="uploadedLogo"
-                                        ></v-file-input>
-                                    </v-card-text>
-                                    <v-card-actions>
-                                        <v-spacer></v-spacer>
-                                        <v-btn
-                                            color="red darken-1"
-                                            text
-                                            @click="dialog.show = false"
-                                        >{{dialog.notext}}</v-btn>
-                                        <v-btn
-                                            color="green darken-1"
-                                            text
-                                            @click="dialog.show = false; dialog.action()"
-                                        >{{dialog.yestext}}</v-btn>
-                                    </v-card-actions>
-                                </v-card>
-                            </v-dialog>
+                                        @click="clearHoursCache"
+                                        :loading="clearHoursCacheLoading"
+                                    >Clear Hours Cache</v-btn>
 
-                            <v-btn
-                                class="toolbutton"
-                                @click="clearHoursCache"
-                                :loading="clearHoursCacheLoading"
-                            >Clear Hours Cache</v-btn>
+                                    <v-btn
+                                        class="toolbutton"
+                                        @click="clearCategoriesCache"
+                                        :loading="clearCategoriesCacheLoading"
+                                    >Clear Categories Cache</v-btn>
 
-                            <v-btn
-                                class="toolbutton"
-                                @click="clearCategoriesCache"
-                                :loading="clearCategoriesCacheLoading"
-                            >Clear Categories Cache</v-btn>
+                                    <v-btn
+                                        class="toolbutton"
+                                        @click="clearMerchantQueryCache"
+                                        :loading="clearMerchantQueryLoading"
+                                    >Clear Merchant Cache</v-btn>
 
-                            <v-btn
-                                class="toolbutton"
-                                @click="clearMerchantQueryCache"
-                                :loading="clearMerchantQueryLoading"
-                            >Clear Merchant Cache</v-btn>
-
-                            <v-btn
-                                class="toolbutton"
-                                @click="clearNeighbourhoodsCache"
-                                :loading="clearNeighbourhoodsCacheLoading"
-                            >Clear Neighbourhoods Cache</v-btn>
-
-                            </div>
-                        </div>
+                                    <v-btn
+                                        class="toolbutton"
+                                        @click="clearNeighbourhoodsCache"
+                                        :loading="clearNeighbourhoodsCacheLoading"
+                                    >Clear Neighbourhoods Cache</v-btn>
+                                </v-tab-item>
+                                <v-tab-item>
+                                    <v-dialog v-model="categoryDialog" max-width="450"
+                                    >
+                                        <v-card
+                                        >
+                                            <v-card-title>Delete Category '{{toDeleteCategory}}'</v-card-title>
+                                            <v-card-text>Are you sure you want to delete '{{toDeleteCategory}}'?
+                                                {{categoryDialogText}}
+                                            </v-card-text>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn
+                                                    text
+                                                    @click="categoryDialog = false;"
+                                                >Cancel</v-btn>
+                                                <v-btn
+                                                    text
+                                                    @click="deleteCategory(toDeleteCategory); categoryDialog = false;"
+                                                >Delete</v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
+                                    <v-container>
+                                        <v-overlay absolute :value="categoryLoading">
+                                            <v-progress-circular
+                                                indeterminate
+                                                size="64"
+                                            ></v-progress-circular>
+                                        </v-overlay>
+                                        <v-row>
+                                            <v-col>
+                                            <v-text-field
+                                                v-model="newCategory"
+                                                label="Add Category"
+                                                @keydown="categoryKeydown($event)"
+                                            >
+                                                <template v-slot:append-outer>
+                                                    <v-btn fab small color="primary" @click="addCategory(newCategory); newCategory = ''">
+                                                    <v-icon>mdi-plus</v-icon>
+                                                    </v-btn>
+                                                </template>
+                                            </v-text-field>
+                                            </v-col>
+                                        </v-row>
+                                        <v-row>
+                                            <v-col >
+                                                <v-chip-group column>
+                                                    <v-chip v-for="(category) in categories" v-bind:key="category" close @click:close="confirmDeleteCategory(category)"> 
+                                                        {{category}}
+                                                    </v-chip>
+                                                </v-chip-group>
+                                            </v-col>
+                                        </v-row>
+                                    </v-container>
+                                </v-tab-item>
+                            </v-tabs-items>
+                        </v-row>
                     </v-col>
                 </v-row>
             </v-container>
@@ -153,6 +213,7 @@ import axios from 'axios';
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 import { AdminService } from '../service/Admin.service';
+import { MerchantService } from '../service/Merchant.service';
 
 export default {
     name: 'AdminHome',
@@ -162,6 +223,7 @@ export default {
     },
     data: function() {
         return {
+            tab: 0,
             connectedClients: 0,
             claims: [],
             isAdmin: false,
@@ -188,7 +250,13 @@ export default {
                 notext: '',
                 yestext: '',
                 action: null
-            }
+            },
+            categories: [],
+            newCategory: '',
+            categoryLoading: false,
+            categoryDialog: false,
+            toDeleteCategory: '',
+            categoryDialogText: ''
         }
     },
     methods: {
@@ -398,6 +466,51 @@ export default {
             this.snackbar.color = color;
             this.snackbar.text = text;
             this.snackbar.show = true;
+        },
+        categoryKeydown: function(event) {
+            if (event.key.toUpperCase() === 'ENTER') {
+                this.addCategory(this.newCategory);
+                this.newCategory = '';
+            }
+        },
+        addCategory: function(cat) {
+            const category = cat.split(' ').reduce((prev, curr) => prev + ' ' + curr.charAt(0).toUpperCase() + curr.slice(1),'').slice(1);
+            this.categoryLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                MerchantService.addCategory(category, authToken).then(res => {
+                    this.categories = res;
+                }, err => console.log(err)).then(() => this.categoryLoading = false);
+            })
+        },
+        confirmDeleteCategory: function(category) {
+            this.$auth.getTokenSilently().then((authToken) => {
+                MerchantService.getMerchantsForCategory(category, authToken).then((res) => {
+                    this.categoryDialogText = '';
+                    if (res.merchants) {
+                        if (res.merchants.length == 1) {
+                            this.categoryDialogText = `There is ${res.merchants.length} merchant attached to this category.`;
+                        }else{
+                            this.categoryDialogText = `There are ${res.merchants.length} merchants attached to this category.`;
+                        }
+                    }
+                    this.toDeleteCategory = category;
+                    this.categoryDialog = true;
+                }, err => console.log(err)).then(() => this.categoryLoading = false);
+            });
+        },
+        deleteCategory: function(category) {
+            this.categoryLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+                MerchantService.deleteCategory(category, authToken).then(() => {
+                    this.getCategories();
+                }, err => console.log(err)).then(() => this.categoryLoading = false);
+            });
+        },
+        getCategories: function() {
+            this.categoryLoading = true;
+            this.$auth.getTokenSilently().then((authToken) => {
+            MerchantService.getCategories(true,true,authToken).then(res => this.categories = res, err => console.log(err)).then(() => this.categoryLoading = false);
+            });
         }
     },
     updated: function() {
@@ -427,6 +540,7 @@ export default {
             });
         });
         this.getPopulateGeometryCount();
+        this.getCategories();
     }
 }
 </script>
@@ -434,5 +548,8 @@ export default {
 <style scoped>
 .toolbutton {
     margin: 0.3rem;
+}
+.claims {
+    width: 100%;
 }
 </style>

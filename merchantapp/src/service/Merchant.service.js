@@ -549,11 +549,16 @@ export const MerchantService = {
         })
     },
 
-    getCategories: function(pretty = true) {
+    getCategories: function(pretty = true, all = false, authToken = '') {
         return new Promise((resolve, reject) => {
-            const url = `/api/categories`;
+            const url = all ? `/api/categories/all` : `/api/categories`;
+            const headers = all ? {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            } : {};
             axios
-            .get(url)
+            .get(url, headers)
             .then((res) => {
                 if (res.status != 200) {
                     reject('Error retrieving categories.');
@@ -575,6 +580,102 @@ export const MerchantService = {
                 }
                 resolve(categories);
                 return;
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
+    },
+
+    getMerchantsForCategory: function(category,authToken) {
+        return new Promise((resolve, reject) => {
+            if (category == null || !category.length) {
+                reject('Null or empty category.');
+                return;
+            }
+            const url = `/api/categories/merchants/${category}`;
+            axios.get(url,{
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    reject('Error retrieving merchants for category.');
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            })
+
+        });
+    },
+
+    addCategory: function(category, authToken) {
+        return new Promise((resolve, reject) => {
+            if (category == null || category.length == 0) {
+                reject('Null or empty category');
+                return;
+            }
+            const url = `/api/categories/${category}`;
+            axios.post(url, {}, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then((res) => {
+                if (res.status == 400) {
+                    reject('Duplicate category.');
+                    return;
+                }
+                if (res.status != 201) {
+                    reject('Error adding category.');
+                    return;
+                }
+                if (!res.data.categories) {
+                    resolve([]);
+                }else{
+                    resolve(res.data.categories.map((cat) => {
+                        let words = cat.category.split(" ");
+                        return words
+                            .map(
+                            (word) =>
+                                word[0].toUpperCase() + word.toLowerCase().substring(1)
+                            )
+                            .join(" ");
+                        }));
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
+    },
+
+    deleteCategory: function(category, authToken) {
+        return new Promise((resolve, reject) => {
+            if (category == null || category.length == 0) {
+                reject('Null or empty category');
+                return;
+            }
+            const url = `/api/categories/${category}`;
+            axios.delete(url, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then((res) => {
+                if (res.status == 404) {
+                    reject('Category '+category+'does not exist.');
+                    return;
+                }
+                if (res.status != 200) {
+                    reject('Error deleting category.');
+                    return;
+                }
+                resolve();
             })
             .catch((err) => {
                 reject(err);

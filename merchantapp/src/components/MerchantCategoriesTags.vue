@@ -112,7 +112,8 @@ export default {
             });
         },
         getCategories: function() {
-            MerchantService.getCategories().then(
+            this.$auth.getTokenSilently().then((authToken) => {
+            MerchantService.getCategories(true,true,authToken).then(
                 (res) => {
                 this.categories = res.sort();
                 this.getMerchantCategories(true);
@@ -122,6 +123,7 @@ export default {
                 this.categories = []
                 }
             );
+            });
         },
         getMerchantTags: function(apply = false) {
             MerchantService.getMerchantTags(this.merchantId,true).then(

@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import {MerchantService} from "../service/Merchant.service";
 
 export default {
   name: "MerchantCategories",
@@ -58,35 +58,44 @@ export default {
   },
   methods: {
     getCategories: function () {
-      axios
-        .get("/api/categories")
-        .then((res) => {
-          if (res.status != 200) {
-            console.log("ERROR");
-            throw new Error(res.statusText);
-          }
-          this.categories = res.data.categories
-            .map((cat) => cat.category)
-            .filter((cat) => cat !== null)
-            .map((cat) => {
-              let words = cat.split(" ");
-              return words
-                .map(
-                  (word) =>
-                    word[0].toUpperCase() + word.toLowerCase().substring(1)
-                )
-                .join(" ");
-            });
-        })
-        .catch((err) => {
-          console.log(err);
+      MerchantService.getCategories().then(res => this.categories = res, err => {
+        console.log(err);
           this.error = err;
           if (err.json) {
             return err.json.then((json) => {
               this.error.message = json.message;
             });
           }
-        });
+      })
+      // axios
+      //   .get("/api/categories")
+      //   .then((res) => {
+      //     if (res.status != 200) {
+      //       console.log("ERROR");
+      //       throw new Error(res.statusText);
+      //     }
+      //     this.categories = res.data.categories
+      //       .map((cat) => cat.category)
+      //       .filter((cat) => cat !== null)
+      //       .map((cat) => {
+      //         let words = cat.split(" ");
+      //         return words
+      //           .map(
+      //             (word) =>
+      //               word[0].toUpperCase() + word.toLowerCase().substring(1)
+      //           )
+      //           .join(" ");
+      //       });
+      //   })
+      //   .catch((err) => {
+      //     console.log(err);
+      //     this.error = err;
+      //     if (err.json) {
+      //       return err.json.then((json) => {
+      //         this.error.message = json.message;
+      //       });
+      //     }
+      //   });
     },
     updateInput: function (store = true) {
       this.$emit("change", this.value);
