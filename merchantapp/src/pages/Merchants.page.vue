@@ -3,14 +3,14 @@
         <BasePage>
             <BaseContent>
                 <template v-slot:left>
-                    <v-row justify="center" class="ma-4">
+                    <v-row justify="center" class="my-4 mx-0">
                         <v-expansion-panels v-model="filtersPanelOpen">
                             <v-expansion-panel>
                             <v-expansion-panel-header>
                                 <template v-slot:default="{ open }">
-                                <v-row no-gutters>
-                                <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="open">mdi-filter</v-icon>
-                                <v-col class="mt-1" align-self="center">
+                                <v-row no-gutters class="mx-0">
+                                <v-icon :color="hasSearchFilters ? 'secondary' : ''" :large="!open" :x-large="open" class="mr-1 ml-n1">mdi-filter-variant</v-icon>
+                                <v-col class="mt-1 text-xs-body text-sm-h6" align-self="center">
                                 Search Filters
                                 </v-col>
                                 <v-col class="mt-1 mr-2" align-self="center" v-if="hasSearchFilters">
