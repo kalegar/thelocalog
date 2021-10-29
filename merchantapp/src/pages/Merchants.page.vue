@@ -69,21 +69,35 @@
                                 <create-merchant-modal fab text="" button-class="ml-3 my-auto" small v-if="isAdmin"></create-merchant-modal>
                             </v-row>
                         </v-col>
-                        <v-col class="d-none d-sm-block" sm="2">
-                            <v-btn-toggle
-                                v-model="selectedMerchantLayout"
-                                mandatory
-                                borderless
-                                class="elevation-2"
-                                color="primary"
-                            >
-                                <v-btn>
-                                    <v-icon>mdi-format-list-bulleted-square</v-icon>
-                                </v-btn>
-                                <v-btn>
-                                    <v-icon>mdi-view-grid-outline</v-icon>
-                                </v-btn>
-                            </v-btn-toggle>
+                        <v-col class="d-none d-sm-block">
+                            <v-row no-gutters>
+                                <v-spacer></v-spacer>
+                                <h3 class="mr-2 my-auto">Display Mode:</h3>
+                                <v-btn-toggle
+                                    v-model="selectedMerchantLayout"
+                                    mandatory
+                                    borderless
+                                    class="elevation-2"
+                                    color="primary"
+                                >
+                                    <v-tooltip top>
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn v-on="on" v-bind="attrs">
+                                                <v-icon>mdi-format-list-bulleted-square</v-icon>
+                                            </v-btn>
+                                        </template>
+                                        <span>List Results</span>
+                                    </v-tooltip>
+                                    <v-tooltip top>
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn v-on="on" v-bind="attrs">
+                                                <v-icon>mdi-view-grid-outline</v-icon>
+                                            </v-btn>
+                                        </template>
+                                        <span>Tile Results</span>
+                                    </v-tooltip>
+                                </v-btn-toggle>
+                            </v-row>
                         </v-col>
                     </v-row>
                     <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
