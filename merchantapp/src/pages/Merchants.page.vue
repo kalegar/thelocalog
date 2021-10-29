@@ -72,7 +72,7 @@
                         <v-col class="d-none d-sm-block">
                             <v-row no-gutters>
                                 <v-spacer></v-spacer>
-                                <h3 class="mr-2 my-auto">Display Mode:</h3>
+                                <h3 class="mr-2 my-auto">Results Display Mode:</h3>
                                 <v-btn-toggle
                                     v-model="selectedMerchantLayout"
                                     mandatory
