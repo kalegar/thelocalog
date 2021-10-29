@@ -252,7 +252,7 @@ export default {
     hasContactDetails: function() {
       if (this.address == null)
         return false;
-      return ('Contact' in this.address) && (this.address.Contact !== null) && ('email' in this.address.Contact || 'email2' in this.address.Contact || 'phone' in this.address.Contact || 'phone2' in this.address.Contact);
+      return ('Contact' in this.address) && (this.address.Contact !== null) && (this.address.Contact.email !== null || this.address.Contact.email2 !== null || this.address.Contact.phone !== null || this.address.Contact.phone2 !== null);
     }
   },
   methods: {
@@ -290,13 +290,14 @@ export default {
       this.address.neighbourhood = this.neighbourhood;
       this.address.country       = this.country;
       //Contact
-      if (this.email || this.email2 || this.phone || this.phone2) {
-        this.address.Contact = { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2};
+      if (this.email || this.email2 || this.phone || this.phone2 || ('Contact' in this.address && this.address.Contact !== null)) {
+        if ('Contact' in this.address && this.address.Contact !== null) {
+          Object.assign(this.address.Contact, { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2});
+          console.log(this.address.Contact);
+        }else{
+          this.address.Contact = { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2};
+        }
       }
-      // this.address.Contact.email  = this.email;
-      // this.address.Contact.email2 = this.email2;
-      // this.address.Contact.phone  = this.phone;
-      // this.address.Contact.phone2 = this.phone2;
     },
     startEditing: function() {
       if (this.canEdit) {

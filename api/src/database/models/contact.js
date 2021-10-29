@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Contact.init({
+    id: {type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true},
     AddressId: {type: DataTypes.INTEGER, allowNull: false },
     email: DataTypes.STRING,
     email2: DataTypes.STRING,

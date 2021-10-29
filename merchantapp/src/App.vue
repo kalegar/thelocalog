@@ -4,6 +4,7 @@
       app
       color="primary"
       dark
+      :height="headerHeight"
     >
       <div class="d-flex align-center mr-sm-2 my-1">
         <router-link :to="{ name: 'Merchants' }">
@@ -134,10 +135,10 @@ export default {
         }
       },
       logoWidth: function() {
-        switch (this.$vuetify.breakpoint.name) {
-          case 'xs': return 60;
-          default: return 80;
-        }
+        return this.$vuetify.breakpoint.mobile ? '70' : '100'
+      },
+      headerHeight: function() {
+        return this.$vuetify.breakpoint.mobile ? '60' : '80'
       },
       isDevelopment: function() {
         return process.env.NODE_ENV === 'development';
