@@ -15,10 +15,11 @@
     </v-container>
 </template>
 
-<script>
+<script lang="ts">
 import _debounce from 'lodash/debounce';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   name: 'MyLocation',
   model: {
       prop: 'modelValue',
@@ -105,7 +106,7 @@ export default {
           }
       }
   }
-}
+});
 </script>
 
 <style scoped>

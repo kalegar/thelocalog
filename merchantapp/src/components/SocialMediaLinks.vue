@@ -45,7 +45,7 @@
     </v-container>
 </template>
 
-<script>
+<script lang="ts">
 
 import { MerchantService } from '../service/Merchant.service.js';
 
@@ -56,7 +56,8 @@ const Icons = {
     PINTEREST: {icon:'mdi-pinterest', color: '#E60023'}
 }
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'SocialMediaLinks',
     props:  {
         links: Array,
@@ -170,5 +171,5 @@ export default {
             this.newLinks = [];
         }
     }
-}
+});
 </script>

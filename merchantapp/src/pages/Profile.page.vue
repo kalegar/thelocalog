@@ -54,12 +54,13 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 import axios from 'axios';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'Profile',
     components: {
         BasePage,
@@ -141,7 +142,7 @@ export default {
         });
         
     }
-}
+});
 </script>
 
 <style scoped>

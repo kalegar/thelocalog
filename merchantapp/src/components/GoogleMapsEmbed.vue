@@ -9,10 +9,11 @@
     </iframe>
 </template>
 
-<script>
+<script lang="ts">
 //import gplacesInit from '../utils/gplaces';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'GoogleMapsEmbed',
     props: {
         mapParams: String,
@@ -68,7 +69,7 @@ export default {
         //     }
         // });
     }
-}
+});
 </script>
 
 <style scoped>

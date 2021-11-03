@@ -37,8 +37,9 @@
   </v-hover>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue'
+export default Vue.extend({
     name: 'MerchantListItem',
     props: {
         merchant: Object,
@@ -62,7 +63,7 @@ export default {
         }
       }
     }
-};
+});
 </script>
 
 <style scoped>

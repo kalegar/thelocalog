@@ -139,11 +139,12 @@
   </v-card>
 </template>
 
-<script>
+<script lang="ts">
 import SocialMediaLinks from "./SocialMediaLinks.vue";
 import { MerchantService } from "../service/Merchant.service.js";
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   name: "MerchantDetailCard",
   components: { SocialMediaLinks },
   props: {
@@ -234,7 +235,7 @@ export default {
       });
     }
   }
-};
+});
 </script>
 
 <style scoped>

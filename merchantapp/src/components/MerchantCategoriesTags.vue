@@ -43,10 +43,11 @@
     </v-card>
 </template>
 
-<script>
+<script lang="ts">
 import { MerchantService } from '../service/Merchant.service.js';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'MerchantCategoriesTags',
     props: {
         merchantId: String,
@@ -158,5 +159,5 @@ export default {
         this.getCategories();
         this.getMerchantTags(true);
     }
-}
+});
 </script>

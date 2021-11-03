@@ -79,12 +79,13 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'MerchantClaim',
     props: {
         id: String
@@ -184,7 +185,7 @@ export default {
             }
         });
     }
-}
+});
 </script>
 
 <style scoped>

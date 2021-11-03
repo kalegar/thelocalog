@@ -245,7 +245,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Loading from "../components/Loading.vue";
 import BasePage from "./base/BasePage.page.vue";
 import BaseContent from "./base/BaseContent.page.vue";
@@ -256,7 +256,8 @@ import AddressCard from '../components/AddressCard.vue';
 import MerchantDetailCard from '../components/MerchantDetailCard.vue';
 import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   name: "MerchantDetail",
   props: {
     id: String,
@@ -525,7 +526,7 @@ export default {
         }
       }
   }
-};
+});
 </script>
 
 <style scoped>

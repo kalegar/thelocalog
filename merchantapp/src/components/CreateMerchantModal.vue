@@ -71,10 +71,11 @@
     </v-dialog>
 </template>
 
-<script>
+<script lang="ts">
 import { MerchantService } from '../service/Merchant.service';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'CreateMerchantModal',
     data: function() {
         return {
@@ -134,5 +135,5 @@ export default {
             }).catch(() => {this.saving = false;});
         }
     }
-}
+});
 </script>

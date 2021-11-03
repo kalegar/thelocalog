@@ -29,10 +29,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import {MerchantService} from "../service/Merchant.service";
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   name: "MerchantCategories",
   model: {
     prop: "modelValue",
@@ -122,7 +123,7 @@ export default {
       this.save();
     },
   },
-};
+});
 </script>
 
 <style scoped>

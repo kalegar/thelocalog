@@ -98,11 +98,12 @@
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
 import _debounce from 'lodash/debounce';
 import { UserService } from './service/User.service.js';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   name: 'App',
 
   components: {
@@ -141,7 +142,7 @@ export default {
         return this.$vuetify.breakpoint.mobile ? '60' : '80'
       },
       isDevelopment: function() {
-        return process.env.NODE_ENV === 'development';
+        return Vue.config.devtools === true;
       }
   },
 
@@ -176,7 +177,7 @@ export default {
       })  
         
   }
-};
+});
 </script>
 
 <style>

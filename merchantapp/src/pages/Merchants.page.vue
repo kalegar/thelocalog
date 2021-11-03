@@ -191,7 +191,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 import MerchantCategories from '../components/MerchantCategories.vue'
@@ -208,7 +208,8 @@ import { MerchantService } from '../service/Merchant.service';
 import AdvertisementListItem from '../components/AdvertisementListItem.vue';
 import CreateMerchantModal from '../components/CreateMerchantModal.vue';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'Merchants',
     props: {
         query: String
@@ -397,7 +398,9 @@ export default {
                 page: this.page,
                 perpage: this.perpage,
                 sort: this.merchantOrder,
-                canadianOwned: this.canadianOwned
+                canadianOwned: this.canadianOwned,
+                franchise: '',
+                independent: ''
             };
             if (this.franchise !== null) {
                 if (this.franchise === 'true') {
@@ -472,7 +475,7 @@ export default {
           }
         }
     }
-}
+});
 </script>
 
 <style scoped>

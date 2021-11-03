@@ -192,12 +192,13 @@
   </v-card>
 </template>
 
-<script>
+<script lang="ts">
 import GoogleMapsEmbed from "./GoogleMapsEmbed.vue";
 import { Utils } from "../utils/util.js";
 import { MerchantService } from "../service/Merchant.service.js";
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   components: { GoogleMapsEmbed },
   name: "AddressCard",
   props: {
@@ -351,7 +352,7 @@ export default {
       return formatted ? formatted : phone;
     },
   },
-};
+});
 </script>
 
 <style scoped>

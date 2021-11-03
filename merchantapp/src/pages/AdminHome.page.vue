@@ -208,14 +208,15 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 import { AdminService } from '../service/Admin.service';
 import { MerchantService } from '../service/Merchant.service';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'AdminHome',
     components: {
         BasePage,
@@ -542,7 +543,7 @@ export default {
         this.getPopulateGeometryCount();
         this.getCategories();
     }
-}
+});
 </script>
 
 <style scoped>

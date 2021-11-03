@@ -32,12 +32,13 @@
     </base-page>
 </template>
 
-<script>
+<script lang="ts">
 import BaseContent from './base/BaseContent.page.vue';
 import BasePage from './base/BasePage.page.vue';
 import { AdminService } from '../service/Admin.service.js';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   components: { BasePage, BaseContent },
     name: 'MerchantClaimDetail',
     props: {
@@ -84,5 +85,5 @@ export default {
     mounted: function() {
         this.getClaim();
     }
-}
+});
 </script>

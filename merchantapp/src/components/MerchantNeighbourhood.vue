@@ -29,10 +29,11 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
     name: 'MerchantNeighbourhood',
     model: {
       prop: 'modelValue',
@@ -96,7 +97,7 @@ export default {
             this.updateInput(false);
         }
     }
-}
+});
 </script>
 
 <style scoped>
