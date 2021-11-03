@@ -257,12 +257,19 @@ import MerchantDetailCard from '../components/MerchantDetailCard.vue';
 import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
 
 import Vue from 'vue'
-export default Vue.extend({
-  name: "MerchantDetail",
+import Component from 'vue-class-component';
+import { Socket } from 'vue-socket.io-extended';
+
+const MerchantDetailProps = Vue.extend({
   props: {
     id: String,
     geoLocation: Object,
-  },
+  }
+});
+
+@Component({})
+export default class MerchantDetail extends MerchantDetailProps {
+  
   components: {
     Loading,
     BasePage,
@@ -271,243 +278,241 @@ export default Vue.extend({
     AddressCard,
     MerchantDetailCard,
     MerchantCategoriesTags
-  },
-  computed: {
-    isAdmin: function () {
-      return (
-        this.$auth.user[this.$auth.rolesKey] &&
-        this.$auth.user[this.$auth.rolesKey].includes("admin")
-      );
-    },
-    isAdminOrOwner: function () {
-      return this.$auth.isAuthenticated && (this.isAdmin || this.isOwner);
-    },
-  },
-  data: function () {
-    return {
-      merchant: null,
-      isOwner: false,
-      loading: false,
-      hours: [],
-      logo: [],
-      error: null,
-      deleteMerchantLoading: false,
-      saveMerchantLoading: false,
-      uploadLogoLoading: false,
-      uploadedLogo: null,
-      snackbar: {
-        color: "primary",
-        show: false,
-        text: "",
-        timeout: 2000,
-      },
-      dialog: {
-        show: false,
-        title: "",
-        text: "",
-        notext: "",
-        yestext: "",
-        action: null,
-      },
-      selectedAddress: [0],
-      deleteAddressDialog: false,
-      deleteAddressLoading: false,
-      pageViewers: 1
-    };
-  },
-  methods: {
-    goBack: function() {
-      this.$router.go(-1);
-    },
-    getIsOwner: function () {
-      this.$auth.getTokenSilently().then((authToken) => {
-        UserService.isMerchantOwner(this.merchant.id, authToken).then(
-          () => {
-            this.isOwner = true;
-          },
-          () => {
-            this.isOwner = false;
-          }
-        );
-      }).catch(() => {});
-    },
-    showUploadDialog: function () {
-      this.uploadedLogo = null;
-      this.uploadedLogoMerchantId = "";
-      this.dialog.title = "Upload Logo";
-      this.dialog.text = `Upload a png file to set as ${this.merchant.title}'s logo.`;
-      this.dialog.yestext = "Upload";
-      this.dialog.notext = "Cancel";
-      this.dialog.action = this.uploadLogo;
-      this.dialog.show = true;
-    },
-    uploadLogo: function () {
-      this.uploadLogoLoading = true;
-      this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.uploadLogo(this.id, authToken, this.uploadedLogo)
-          .then(
-            (result) => {
-              this.makeToast(result, "success");
-            },
-            (err) => {
-              this.makeToast(err, "danger", 5000);
-            }
-          )
-          .then(() => {
-            this.uploadLogoLoading = false;
-          });
-      });
-    },
-    getBusinessHours: function () {
-      MerchantService.getBusinessHours(this.id).then(
-        (result) => {
-          if (result) {
-            for (const address of this.merchant.Addresses) {
-              const hours = result.filter((e) => e.address_id == address.id);
-              if (hours.length > 0) {
-                let business_status = "";
-                switch (hours[0].status) {
-                  case "OPERATIONAL":
-                    business_status = "";
-                    break;
-                  case "CLOSED_TEMPORARILY":
-                    business_status = "Closed Temporarily";
-                    break;
-                  case "CLOSED_PERMANENTLY":
-                    business_status = "Closed Permanently";
-                    break;
-                  case "NO_INFO":
-                    business_status = "Not Available";
-                    break;
-                }
-                this.hours.push({
-                  status: business_status,
-                  hours: hours[0].hours,
-                });
-              }
-            }
-          }
-        },
-        (err) => {
-          console.log(err);
-        }
-      );
-    },
-    getLogo: function () {
-      MerchantService.getLogo(this.id).then(
-        (result) => {
-          this.logo = result;
+  };
+
+  get isAdmin() {
+    return (
+      this.$auth.user[this.$auth.rolesKey] &&
+      this.$auth.user[this.$auth.rolesKey].includes("admin")
+    );
+  };
+
+  get isAdminOrOwner() {
+    return this.$auth.isAuthenticated && (this.isAdmin || this.isOwner);
+  }
+
+
+  merchant = null;
+  isOwner = false;
+  loading = false;
+  hours = [];
+  logo = [];
+  error = null;
+  deleteMerchantLoading = false;
+  saveMerchantLoading = false;
+  uploadLogoLoading = false;
+  uploadedLogo = null;
+  snackbar = {
+    color: "primary",
+    show: false,
+    text: "",
+    timeout: 2000,
+  };
+  dialog = {
+    show: false,
+    title: "",
+    text: "",
+    notext: "",
+    yestext: "",
+    action: null,
+  };
+  selectedAddress = [0];
+  deleteAddressDialog = false;
+  deleteAddressLoading = false;
+  pageViewers = 1;
+
+  goBack() {
+    this.$router.go(-1);
+  };
+  getIsOwner() {
+    this.$auth.getTokenSilently().then((authToken) => {
+      UserService.isMerchantOwner(this.merchant.id, authToken).then(
+        () => {
+          this.isOwner = true;
         },
         () => {
-          console.log("Error retrieving logo");
+          this.isOwner = false;
         }
       );
-    },
-    merchantSaved: function(success,result) {
-      if (success) {
-        this.makeToast(result, 'success', 5000);
-      }else{
-        this.makeToast(result, "danger", 7000);
-      }
-      this.getMerchant();
-    },
-    saveMerchant: function () {
-      this.saveMerchantLoading = true;
-      this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.saveMerchant(this.id, authToken, this.merchant)
-          .then(
-            (result) => {
-              this.makeToast(result, "success", 5000);
-            },
-            (err) => {
-              this.makeToast(err, "danger", 5000);
-            }
-          )
-          .then(() => {
-            this.saveMerchantLoading = false;
-            this.getMerchant();
-          });
-      });
-    },
-    deleteMerchant: function () {
-      this.deleteMerchantLoading = true;
-      this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.deleteMerchant(this.id, authToken)
-          .then(
-            (result) => {
-              this.makeToast(result, "success");
-              this.getMerchant();
-            },
-            (err) => {
-              this.makeToast(err, "danger");
-            }
-          )
-          .then(() => {
-            this.deleteMerchantLoading = false;
-          });
-      });
-    },
-    deleteAddress: function (id) {
-      this.deleteAddressLoading = true;
-      this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.deleteAddress(this.id, id, authToken)
-          .then(
-            (result) => {
-              this.makeToast(result, "success");
-              this.getMerchant();
-            },
-            (err) => {
-              this.makeToast(err, "danger");
-            }
-          )
-          .then(() => {
-            this.deleteAddressLoading = false;
-          });
-      });
-    },
-    makeToast: function (text, color, timeout = 2000) {
-      let txt = '';
-      if (Array.isArray(text)) {
-        txt = text.join(" ");
-      }else{
-        txt = text;
-      }
-      this.snackbar.timeout = timeout;
-      this.snackbar.color = color;
-      this.snackbar.text = txt;
-      this.snackbar.show = true;
-    },
-    getMerchant: function () {
-      this.loading = true;
-      this.merchant = null;
-      MerchantService.getMerchant(this.id)
+    }).catch(() => {});
+  };
+  showUploadDialog() {
+    this.uploadedLogo = null;
+    this.dialog.title = "Upload Logo";
+    this.dialog.text = `Upload a png file to set as ${this.merchant.title}'s logo.`;
+    this.dialog.yestext = "Upload";
+    this.dialog.notext = "Cancel";
+    this.dialog.action = this.uploadLogo;
+    this.dialog.show = true;
+  };
+  uploadLogo() {
+    this.uploadLogoLoading = true;
+    this.$auth.getTokenSilently().then((authToken) => {
+      MerchantService.uploadLogo(this.id, authToken, this.uploadedLogo)
         .then(
           (result) => {
-            this.merchant = result;
-            this.getBusinessHours();
-            this.getLogo();
+            this.makeToast(result, "success");
           },
           (err) => {
-            this.error = err;
-            if (err.json) {
-              return err.json.then((json) => {
-                this.error.message = json.message;
-              });
-            }
+            this.makeToast(err, "danger", 5000);
           }
         )
         .then(() => {
-          this.loading = false;
+          this.uploadLogoLoading = false;
         });
+    });
+  };
+  getBusinessHours() {
+    MerchantService.getBusinessHours(this.id).then(
+      (result) => {
+        if (result) {
+          for (const address of this.merchant.Addresses) {
+            const hours = result.filter((e) => e.address_id == address.id);
+            if (hours.length > 0) {
+              let business_status = "";
+              switch (hours[0].status) {
+                case "OPERATIONAL":
+                  business_status = "";
+                  break;
+                case "CLOSED_TEMPORARILY":
+                  business_status = "Closed Temporarily";
+                  break;
+                case "CLOSED_PERMANENTLY":
+                  business_status = "Closed Permanently";
+                  break;
+                case "NO_INFO":
+                  business_status = "Not Available";
+                  break;
+              }
+              this.hours.push({
+                status: business_status,
+                hours: hours[0].hours,
+              });
+            }
+          }
+        }
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
+  };
+  getLogo() {
+    MerchantService.getLogo(this.id).then(
+      (result) => {
+        this.logo = result;
+      },
+      () => {
+        console.log("Error retrieving logo");
+      }
+    );
+  };
+  merchantSaved(success,result) {
+    if (success) {
+      this.makeToast(result, 'success', 5000);
+    }else{
+      this.makeToast(result, "danger", 7000);
     }
-  },
-  updated: function () {
+    this.getMerchant();
+  };
+  saveMerchant() {
+    this.saveMerchantLoading = true;
+    this.$auth.getTokenSilently().then((authToken) => {
+      MerchantService.saveMerchant(this.id, authToken, this.merchant)
+        .then(
+          (result) => {
+            this.makeToast(result, "success", 5000);
+          },
+          (err) => {
+            this.makeToast(err, "danger", 5000);
+          }
+        )
+        .then(() => {
+          this.saveMerchantLoading = false;
+          this.getMerchant();
+        });
+    });
+  };
+  deleteMerchant() {
+    this.deleteMerchantLoading = true;
+    this.$auth.getTokenSilently().then((authToken) => {
+      MerchantService.deleteMerchant(this.id, authToken)
+        .then(
+          (result) => {
+            this.makeToast(result, "success");
+            this.getMerchant();
+          },
+          (err) => {
+            this.makeToast(err, "danger");
+          }
+        )
+        .then(() => {
+          this.deleteMerchantLoading = false;
+        });
+    });
+  };
+  deleteAddress(id) {
+    this.deleteAddressLoading = true;
+    this.$auth.getTokenSilently().then((authToken) => {
+      MerchantService.deleteAddress(this.id, id, authToken)
+        .then(
+          (result) => {
+            this.makeToast(result, "success");
+            this.getMerchant();
+          },
+          (err) => {
+            this.makeToast(err, "danger");
+          }
+        )
+        .then(() => {
+          this.deleteAddressLoading = false;
+        });
+    });
+  };
+  makeToast(text, color, timeout = 2000) {
+    let txt = '';
+    if (Array.isArray(text)) {
+      txt = text.join(" ");
+    }else{
+      txt = text;
+    }
+    this.snackbar.timeout = timeout;
+    this.snackbar.color = color;
+    this.snackbar.text = txt;
+    this.snackbar.show = true;
+  };
+  getMerchant() {
+    this.loading = true;
+    this.merchant = null;
+    MerchantService.getMerchant(this.id)
+      .then(
+        (result) => {
+          this.merchant = result;
+          this.getBusinessHours();
+          this.getLogo();
+        },
+        (err) => {
+          this.error = err;
+          if (err.json) {
+            return err.json.then((json) => {
+              this.error.message = json.message;
+            });
+          }
+        }
+      )
+      .then(() => {
+        this.loading = false;
+      });
+  };
+
+  updated() {
     document.title =
       this.merchant && this.merchant.title
         ? this.merchant.title + " - The Localog"
         : "Local Shop - The Localog";
-  },
-  mounted: function () {
+  };
+
+  mounted() {
     this.getMerchant();
     const self = this;
     let auth = this.$auth;
@@ -518,15 +523,15 @@ export default Vue.extend({
       }
     }, 1000);
     this.$socket.client.emit('view-merchant', { merchantId: this.id });
-  },
-  sockets: {
-      currentViewers: function(data) {
-        if ('viewers' in data) {
-          this.pageViewers = data.viewers;
-        }
-      }
+  };
+
+  @Socket()
+  currentViewers(data) {
+    if ('viewers' in data) {
+      this.pageViewers = data.viewers;
+    }
   }
-});
+};
 </script>
 
 <style scoped>
