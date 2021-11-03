@@ -46,6 +46,7 @@
             }}</v-list-item-subtitle
           >
         </v-list-item>
+        <v-spacer></v-spacer>
       </div>
       <v-card-actions> </v-card-actions>
     </v-card>

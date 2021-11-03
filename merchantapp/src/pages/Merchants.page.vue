@@ -69,7 +69,9 @@
                                 <create-merchant-modal fab text="" button-class="ml-3 my-auto" small v-if="isAdmin"></create-merchant-modal>
                             </v-row>
                         </v-col>
-                        <v-col class="d-none d-sm-block">
+                    </v-row>
+                    <v-row no-gutters class="mb-3 mt-n8">
+                        <v-col class="d-none d-sm-flex align-end">
                             <v-row no-gutters>
                                 <v-spacer></v-spacer>
                                 <h3 class="mr-2 my-auto">Results Display Mode:</h3>
@@ -115,7 +117,7 @@
                                 </v-col>
                             </v-row>
                         </div>
-                        <div v-else key="merchants">
+                        <div v-else-if="merchants && merchants.length" key="merchants">
                             <v-row>
                                 <v-col v-for="merchant in merchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
                                     <advertisement-card v-if="merchant.advertisement"></advertisement-card>
@@ -135,7 +137,7 @@
                                 shaped
                             ></v-skeleton-loader>
                         </div>
-                        <div v-else key="list-merchants">
+                        <div v-else-if="merchants && merchants.length" key="list-merchants">
                             <v-list three-line>
                                 <template v-for="(merchant, index) in merchants">
                                     <advertisement-list-item v-if="merchant.advertisement" :key="index"></advertisement-list-item>
