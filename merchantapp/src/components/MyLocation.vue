@@ -87,7 +87,7 @@ export default {
           this.$emit('update:radius', this.radius);
           if (store)
             this.save();
-      }, 500),
+      }, 500, { leading: true }),
       save: function() {
           sessionStorage.useGeoLocation = this.value ? 'true' : 'false';
           sessionStorage.geoLocation = this.location;

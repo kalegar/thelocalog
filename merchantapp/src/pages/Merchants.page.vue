@@ -102,13 +102,13 @@
                             </v-row>
                         </v-col>
                     </v-row>
-                    <v-row v-if="!hasSearchResults">
+                    <v-row v-if="!hasSearchResults && !loading">
                         <v-col>
                         <p class="text-h5">No Results.</p>
                         </v-col>
                     </v-row>
                     <div v-if="merchantLayout == 1">
-                        <v-fade-transition name="fade" mode="out-in">
+                        <v-fade-transition name="fade" mode="out-in" duration=20>
                         <div v-if="loading" key="skeleton">
                             <v-row>
                                 <v-col v-for="n in parseInt(perpage)" v-bind:key="n" :cols="merchantCardCols">
@@ -132,7 +132,7 @@
                         </v-fade-transition>
                     </div>
                     <div v-if="merchantLayout == 0">
-                        <v-fade-transition name="fade" mode="out-in">
+                        <v-fade-transition name="fade" mode="out-in" duration=20>
                         <div v-if="loading" key="list-skeleton">
                             <v-skeleton-loader
                                 v-for="n in parseInt(perpage)" v-bind:key="n"
@@ -169,6 +169,9 @@
                         </div>
                     </div>
                 </v-fade-transition>
+                <v-row v-if="isAdmin">
+                    <results-map :coords="coordinates" :center="geo.location"></results-map>
+                </v-row>
                 <v-row v-if="!loading">
                     <v-col>
                         <p class="text-subtitle">Didn't find what you were looking for?</p>
@@ -218,6 +221,7 @@ import { MerchantService } from '../service/Merchant.service';
 import AdvertisementListItem from '../components/AdvertisementListItem.vue';
 import CreateMerchantModal from '../components/CreateMerchantModal.vue';
 import SuggestMerchant from '../components/SuggestMerchant.vue';
+import ResultsMap from '../components/ResultsMap.vue';
 
 export default {
     name: 'Merchants',
@@ -286,7 +290,8 @@ export default {
         AdvertisementCard,
         AdvertisementListItem,
         CreateMerchantModal,
-        SuggestMerchant
+        SuggestMerchant,
+        ResultsMap
     },
     data: function() {
         return {
@@ -331,7 +336,9 @@ export default {
                 { text: 'Relevance', value: '+RANK' },
                 { text: 'Distance', value: '+DIST' } 
             ],
-            filtersPanelOpen: false
+            filtersPanelOpen: false,
+
+            coordinates: []
         }
     },
     computed: {
@@ -445,9 +452,32 @@ export default {
 
             MerchantService.getMerchants(options).then(result => {
                 this.shouldGetMerchants = false;
-                this.merchants = result.merchants;
+                let temp = [];
+                result.merchants.forEach(val => {
+                    if (!temp.length || !(temp.map(v => v.id).includes(val.id))) {
+                        temp.push(val);
+                    }
+                });
+                this.merchants = temp;
                 this.pages = result.pages;
                 this.page = Utils.clamp(result.page,1,Math.max(this.pages,1));
+
+                if (this.merchants.length && 'location' in this.merchants[0]) {
+                    this.coordinates = result.merchants.map(merch => {
+                        if (merch.location == null) return null;
+                        return {
+                            location: {
+                                lat: merch.location.coordinates[1],
+                                lng: merch.location.coordinates[0]
+                            },
+                            label: merch.title,
+                            id: merch.id
+                        }
+                    });
+                }else{
+                    this.coordinates = [];
+                }
+
                 this.loading = false;
             }, err => {
                 this.shouldGetMerchants = false;

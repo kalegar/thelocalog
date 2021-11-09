@@ -17,6 +17,7 @@ import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
 import { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
+import crypto from 'crypto';
 
 const handleValidationErrors = function(error,res) {
     if (error.name.includes('Validation')) {
@@ -91,6 +92,18 @@ router.get("/", async (req, res) => {
             query.offset = Math.max(0,query.limit * (page-1));
         }
 
+        let selectClause = "m.id,m.title,m.description,m.website, a.geom as location";
+        let orderByClause = "m.title ASC";
+        let limitClause = " LIMIT :perpage OFFSET :page;";
+        let mainQuery = "\"Merchants\" m left outer join \"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" left outer join \"Addresses\" a on ma.\"AddressId\" = a.id";
+
+        let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6 AND 7=7 AND 8=8 AND 9=9";
+        let replacements = {perpage: query.limit, page: query.offset};
+
+        let allowedOrderBy = {
+            'TITLE': 'm.title'
+        };
+
         const sortByDistance = (lat && lon);
 
         if (search || tags || categories || neighbourhood || sortByDistance || onlineShopping || franchise || independent || canadian) {
@@ -133,18 +146,6 @@ router.get("/", async (req, res) => {
                 "(m.\"independent\" = :independent)";
             const canadianOwnedFilter = 
                 "(m.\"canadianOwned\" = :canadianOwned)";
-            
-            let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6 AND 7=7 AND 8=8 AND 9=9";
-            let replacements = {};
-
-            let selectClause = "m.id,m.title,m.description,m.website";
-            let orderByClause = "m.title ASC";
-            let limitClause = " LIMIT "+query.limit+" OFFSET "+query.offset+";";
-            let mainQuery = "\"Merchants\" m";
-
-            let allowedOrderBy = {
-                'TITLE': 'm.title'
-            };
 
             if (sortByDistance) {
                 replacements.lat = lat;
@@ -169,8 +170,6 @@ router.get("/", async (req, res) => {
                 replacements.neighbourhoodlike = '%' + neighbourhood + '%';
             }
 
-            if (deleted !== 'true')  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
-
             if (typeof onlineShopping !== 'undefined') {
                 q = q.replace("6=6",filterOnlineShopping);
                 replacements.onlineShopping = (onlineShopping == 1) || (onlineShopping === 'true');
@@ -191,44 +190,42 @@ router.get("/", async (req, res) => {
                 replacements.canadianOwned = (canadian == 1) || (canadian === 'true');
             }
 
-            /////////////////////
-            //START BUILD QUERY//
-            /////////////////////
+            
             if (search && sortByDistance) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank, d.distance";
+                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank, d.distance, d.location";
 
                 mainQuery =
                 "("+
-                " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
+                " SELECT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance, geom as location  "+
                 " FROM \"MerchantAddresses\" ma JOIN "+
                 " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
                 " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
                 " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
-                " GROUP BY ma.\"MerchantId\"" + 
+                " ORDER BY distance ASC " + 
                 ") as d "+
                 "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery(:search) as query";
 
                 orderByClause = "rank DESC, d.distance";
             } else if (search) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank";
+                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank, a.geom as location";
                 mainQuery = 
-                "\"Merchants\" m, websearch_to_tsquery(:search) as query ";
+                "\"Merchants\" m join \"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" join \"Addresses\" a on ma.\"AddressId\" = a.id, websearch_to_tsquery(:search) as query ";
 
                 orderByClause = "rank DESC";
 
             } else if (sortByDistance) {
                 selectClause =
-                "m.id,m.title,m.description,m.website,distance";
+                "m.id,m.title,m.description,m.website,distance,location";
                 mainQuery =
                 "("+
-                " SELECT ma.\"MerchantId\" as id, MIN(ST_Distance(geom, ref_geom)) AS distance "+
+                " SELECT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance, geom as location  "+
                 " FROM \"MerchantAddresses\" ma JOIN "+
                 " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
                 " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
                 " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
-                " GROUP BY ma.\"MerchantId\"" + 
+                " ORDER BY distance ASC " + 
                 ") as d "+
                 "JOIN \"Merchants\" m on d.id = m.id ";
 
@@ -238,67 +235,67 @@ router.get("/", async (req, res) => {
             if (sort) {
                 orderByClause = parseSort(sort,allowedOrderBy);
             }
-
-            const countQuery = 
-            "SELECT COUNT(m.id) " +
-            "FROM " + mainQuery + " " +
-            "WHERE " + q + ";"
-
-            const selectQuery = 
-            "SELECT " + selectClause + " " +
-            "FROM " + mainQuery + " " +
-            "WHERE " + q + " " +
-            (orderByClause ? "ORDER BY " + orderByClause + " " : "") +
-            (limitClause ? limitClause : "") +
-            ";";
-            ///////////////////
-            //END BUILD QUERY//
-            ///////////////////
-            
-            const countResult = await Merchant.sequelize.query(
-                countQuery,
-                { type: QueryTypes.SELECT, raw: true, replacements }
-            );
-            let count = 0;
-            if (countResult && Array.isArray(countResult) && countResult.length > 0) {
-                count = Number(countResult[0].count);
-            }
-            if (count > 0) {
-                if (query.offset > count) {
-                    query.offset = 0;
-                }
-                const merchants = await Merchant.sequelize.query(
-                    selectQuery,
-                    {
-                        model: Merchant,
-                        mapToModel: true,
-                        replacements
-                    }
-                );
-                return res.status(200).json({ merchants: { count, rows: merchants }});
-            } else {
-                return res.status(200).json({ merchants: { count, rows: [] }});
-            }
         }
 
-        query.order = [ ['title','ASC'] ];
+        if (deleted !== 'true')  q = q.replace("5=5","(m.\"deletedAt\" is NULL)");
 
-        if (deleted === 'true') {
-            query.paranoid = false;
-        }
+        /////////////////////
+        //START BUILD QUERY//
+        /////////////////////
 
-        const queryStr = JSON.stringify(query);
-        redisClient.get(`${redisPrefixRequest}${queryStr}`, async function(err, reply) {
+        const countQuery = 
+        "SELECT COUNT(m.id) " +
+        "FROM " + mainQuery + " " +
+        "WHERE " + q + ";"
+
+        const selectQuery = 
+        "SELECT " + selectClause + " " +
+        "FROM " + mainQuery + " " +
+        "WHERE " + q + " " +
+        (orderByClause ? "ORDER BY " + orderByClause + " " : "") +
+        (limitClause ? limitClause : "") +
+        ";";
+        ///////////////////
+        //END BUILD QUERY//
+        ///////////////////
+
+        const hash = crypto.createHash('md5').update(selectQuery).digest('hex');
+
+        redisClient.get(`${redisPrefixRequest}${hash}`, async function(err, reply) {
             if (err || !reply) {
-                const merchants = await Merchant.findAndCountAll(query);
-                redisClient.setex(`${redisPrefixRequest}${queryStr}`,redisExpiryTimeShort,JSON.stringify(merchants));
+
+                const countResult = await Merchant.sequelize.query(
+                    countQuery,
+                    { type: QueryTypes.SELECT, raw: true, replacements }
+                );
+                let count = 0;
+                if (countResult && Array.isArray(countResult) && countResult.length > 0) {
+                    count = Number(countResult[0].count);
+                }
+                let merchants = [];
+                if (count > 0) {
+                    if (query.offset > count) {
+                        query.offset = 0;
+                    }
+                    merchants = await Merchant.sequelize.query(
+                        selectQuery,
+                        {
+                            model: Merchant,
+                            mapToModel: true,
+                            replacements
+                        }
+                    );
+                    
+                }
+                redisClient.setex(`${redisPrefixRequest}${hash}`,redisExpiryTimeShort,JSON.stringify(merchants));
                 res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
-                return res.status(200).json({ merchants });
+                return res.status(200).json({ merchants: { count, rows: merchants }, cached: false});
             }
             res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
             const data = JSON.parse(reply);
-            return res.status(200).json({ merchants: data });
+            return res.status(200).json({ merchants: data, cached: true });
         });
+        
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -37,7 +37,7 @@
       <div class="d-flex" style="height: 24px">
         <v-spacer></v-spacer>
         <v-list-item class="my-n1" style="width: 50%; max-width: 50%">
-          <v-list-item-subtitle v-if="merchant.distance"
+          <v-list-item-subtitle v-if="merchant.distance" style="overflow: visible;"
             ><v-icon>mdi-map-marker-outline</v-icon> Distance:
             {{
               merchant.distance >= 1000
