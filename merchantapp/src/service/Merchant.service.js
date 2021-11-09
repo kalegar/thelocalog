@@ -679,6 +679,27 @@ export const MerchantService = {
                 reject(err);
             });
         });
+    },
+
+    suggestMerchant: function(body) {
+        return new Promise((resolve, reject) => {
+            if (body == null) {
+                reject('Null body');
+                return;
+            }
+            const url = `/api/merchantsuggestions/`;
+            axios.put(url, body)
+            .then((res) => {
+                if (res.status != 201) {
+                    reject('Error creating suggestion.');
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        })
     }
 
 }

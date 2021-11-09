@@ -102,7 +102,11 @@
                             </v-row>
                         </v-col>
                     </v-row>
-                    <h3 v-if="!loading && merchants && !merchants.length">No Merchants Found!</h3>
+                    <v-row v-if="!hasSearchResults">
+                        <v-col>
+                        <p class="text-h5">No Results.</p>
+                        </v-col>
+                    </v-row>
                     <div v-if="merchantLayout == 1">
                         <v-fade-transition name="fade" mode="out-in">
                         <div v-if="loading" key="skeleton">
@@ -117,7 +121,7 @@
                                 </v-col>
                             </v-row>
                         </div>
-                        <div v-else-if="merchants && merchants.length" key="merchants">
+                        <div v-else-if="hasSearchResults" key="merchants">
                             <v-row>
                                 <v-col v-for="merchant in merchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
                                     <advertisement-card v-if="merchant.advertisement"></advertisement-card>
@@ -137,7 +141,7 @@
                                 shaped
                             ></v-skeleton-loader>
                         </div>
-                        <div v-else-if="merchants && merchants.length" key="list-merchants">
+                        <div v-else-if="hasSearchResults" key="list-merchants">
                             <v-list three-line>
                                 <template v-for="(merchant, index) in merchants">
                                     <advertisement-list-item v-if="merchant.advertisement" :key="index"></advertisement-list-item>
@@ -154,7 +158,7 @@
                 </v-col>
                 </v-row>
                 <v-fade-transition name="fade" mode="out-in">
-                    <div class="row" v-if="!loading" key="footer">
+                    <div class="row" v-if="hasSearchResults" key="footer">
                         <div class="col align-self-center" align="center">
                             <v-pagination
                                 v-model="page"
@@ -165,6 +169,12 @@
                         </div>
                     </div>
                 </v-fade-transition>
+                <v-row v-if="!loading">
+                    <v-col>
+                        <p class="text-subtitle">Didn't find what you were looking for?</p>
+                        <suggest-merchant v-on:submit="suggestMerchant($event)"></suggest-merchant>
+                    </v-col>
+                </v-row>
                 <p v-if="error">
                     An error occurred. {{error}}
                 </p>
@@ -207,6 +217,7 @@ import AdvertisementCard from '../components/AdvertisementCard.vue';
 import { MerchantService } from '../service/Merchant.service';
 import AdvertisementListItem from '../components/AdvertisementListItem.vue';
 import CreateMerchantModal from '../components/CreateMerchantModal.vue';
+import SuggestMerchant from '../components/SuggestMerchant.vue';
 
 export default {
     name: 'Merchants',
@@ -274,7 +285,8 @@ export default {
         MerchantListItem,
         AdvertisementCard,
         AdvertisementListItem,
-        CreateMerchantModal
+        CreateMerchantModal,
+        SuggestMerchant
     },
     data: function() {
         return {
@@ -350,9 +362,34 @@ export default {
             }else {
                 return 3;
             }
+        },
+        hasSearchResults: function() {
+            return !this.loading && this.merchants && this.merchants.length;
         }
     },
     methods: {
+        suggestMerchant: function(data) {
+            console.log(data);
+            const body = {
+                title: data.name,
+                category: data.category,
+                address: data.address,
+                email: data.email,
+                extra: JSON.stringify({
+                    searchquery: this.searchquery,
+                    categories: this.categories,
+                    tags: this.tags,
+                    neighbourhood: this.neighbourhood,
+                    franchise: this.franchise,
+                    canadianOwned: this.canadianOwned,
+                    independent: this.independent,
+                })
+            };
+            MerchantService.suggestMerchant(body).then(res => {
+                console.log('success');
+                console.log(res);
+            }, err => console.log(err));
+        },
         merchantClick: function(id) {
             this.$router.push({ path: `/merchants/${id}`});
         },

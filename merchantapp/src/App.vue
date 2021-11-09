@@ -7,7 +7,7 @@
       :height="headerHeight"
     >
       <div class="d-flex align-center mr-sm-2 my-1">
-        <router-link :to="{ name: 'Merchants' }">
+        <router-link :to="{ name: 'Merchants' }" v-on:click.native="searchQuery = '';">
             <v-img
               alt="Localog Logo"
               :src="require('./assets/logo.svg')"
@@ -29,6 +29,7 @@
           clearable
           v-bind:append-icon="(searchQuery && searchQuery.length > 0) ? '' : 'mdi-magnify'"
           v-model="searchQuery"
+          @input="search"
           @click:append="search()"
         >
         </v-text-field>
@@ -114,8 +115,10 @@ export default {
   }},
 
   watch: {
-    "searchQuery": function() {
-      this.search();
+    $route: function(to) {
+      if ('q' in to.query) {
+        this.searchQuery = to.query.q;
+      }
     }
   },
 
@@ -173,8 +176,12 @@ export default {
           // Do Nothing
         });
         }
-      })  
-        
+      });
+      this.$nextTick(function() {
+        if ('q' in this.$route.query) {
+          this.searchQuery = this.$route.query.q;
+        }
+      });
   }
 };
 </script>

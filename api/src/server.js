@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import path from 'path';
 import cors from 'cors';
 import merchantRoutes from './routes/merchants.routes.js';
+import merchantSuggestionRoutes from './routes/merchantsuggestions.routes.js';
 import categoryRoutes from './routes/categories.routes.js';
 import nearbyRoutes from './routes/nearby.routes.js';
 import addressRoutes from './routes/addresses.routes.js';
@@ -40,7 +41,8 @@ app.use(express.static(path.join(__dirname, `${baseURL}merchantapp/dist`)));
 app.use('/api/merchants',merchantRoutes);
 app.use('/api/categories',categoryRoutes);
 app.use('/api/nearby',nearbyRoutes);
-app.use('/api/addresses',addressRoutes)
+app.use('/api/addresses',addressRoutes);
+app.use('/api/merchantsuggestions',merchantSuggestionRoutes);
 
 app.use('/api/users', checkJwt, userRoutes);
 
