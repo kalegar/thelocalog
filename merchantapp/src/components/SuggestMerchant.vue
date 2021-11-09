@@ -40,12 +40,20 @@
                         </v-row>
                         <v-row>
                             <v-col>
-                                <v-combobox
+                                <v-select
                                     v-model="category"
                                     :items="categories"
                                     color="secondary"
                                     label="Category"
-                                ></v-combobox>
+                                    :menu-props="menuProps"
+                                ></v-select>
+                                <v-text-field
+                                    v-model="otherCategory"
+                                    color="secondary"
+                                    label="Please Specify Other Category"
+                                    :rules="[rules.required]"
+                                    v-if="category == 'Other'"
+                                ></v-text-field>
                             </v-col>
                         </v-row>
                         <v-row>
@@ -102,13 +110,20 @@ export default {
         }
     },
 
+    computed: {
+      menuProps: function() {
+        return this.$vuetify.breakpoint.mobile ? { offsetY: true, offsetOverflow: true, maxHeight: '200px' } : { offsetY: true, offsetOverflow: true };
+      }
+    },
+
     data: function() {
         return {
             dialog: false,
 
             name: '',
             category: '',
-            categories: [],
+            otherCategory: '',
+            categories: ['Other'],
             address: '',
             email: '',
 
@@ -128,6 +143,8 @@ export default {
         submit: function() {
             this.$refs.form.validate();
             if (this.valid) {
+                if (this.category == 'Other' && this.otherCategory.length)
+                    this.category = this.otherCategory;
                 this.$emit('submit',{name: this.name, category: this.category, address: this.address, email: this.email});
                 this.clearForm();
                 this.dialog = false;
@@ -137,13 +154,14 @@ export default {
             this.$refs.form.resetValidation();
             this.name = '';
             this.category = '';
+            this.otherCategory = '';
             this.address = '';
             //Don't clear out the email address.
         },
         loadCategories: function() {
             MerchantService.getCategories(true)
             .then((res) => {
-                this.categories = [...res];
+                this.categories = [...res, 'Other'];
             },() => {});
         }
     },
