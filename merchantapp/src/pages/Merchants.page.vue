@@ -61,7 +61,7 @@
                 </template>
                 <v-row>
                 <v-col class="merchantlist col mx-0 mx-sm-4 mt-2">
-                    <v-row class="mb-1">
+                    <v-row class="mb-5 mb-sm-1">
                         <v-col>
                             <v-row no-gutters align-content="center">
                                 <h1 v-if="!searchquery" class="mb-n1">Local Shops</h1>
@@ -385,9 +385,8 @@ export default {
                     independent: this.independent,
                 })
             };
-            MerchantService.suggestMerchant(body).then(res => {
-                console.log('success');
-                console.log(res);
+            MerchantService.suggestMerchant(body).then(() => {
+                //success
             }, err => console.log(err));
         },
         merchantClick: function(id) {
