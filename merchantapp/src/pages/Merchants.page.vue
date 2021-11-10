@@ -430,6 +430,9 @@ export default {
                     this[key] = filters[key];
                 }
             }
+            if (Number.isNaN(this.page)) {
+                this.page = 1;
+            }
             let options = {
                 searchquery: this.searchquery,
                 categories: this.categories,
@@ -453,11 +456,13 @@ export default {
             MerchantService.getMerchants(options).then(result => {
                 this.shouldGetMerchants = false;
                 let temp = [];
-                result.merchants.forEach(val => {
-                    if (!temp.length || !(temp.map(v => v.id).includes(val.id))) {
-                        temp.push(val);
-                    }
-                });
+                if (result.merchants && result.merchants.length) {
+                    result.merchants.forEach(val => {
+                        if (!temp.length || !(temp.map(v => v.id).includes(val.id))) {
+                            temp.push(val);
+                        }
+                    });
+                }
                 this.merchants = temp;
                 this.pages = result.pages;
                 this.page = Utils.clamp(result.page,1,Math.max(this.pages,1));

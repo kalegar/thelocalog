@@ -259,7 +259,7 @@ router.get("/", async (req, res) => {
         //END BUILD QUERY//
         ///////////////////
 
-        const hash = crypto.createHash('md5').update(selectQuery).digest('hex');
+        const hash = crypto.createHash('md5').update(`${selectQuery}_${JSON.stringify(replacements)}`).digest('hex');
 
         redisClient.get(`${redisPrefixRequest}${hash}`, async function(err, reply) {
             if (err || !reply) {
@@ -287,13 +287,15 @@ router.get("/", async (req, res) => {
                     );
                     
                 }
-                redisClient.setex(`${redisPrefixRequest}${hash}`,redisExpiryTimeShort,JSON.stringify(merchants));
+                const data = { merchants: { count, rows: merchants }, cached: false};
+                redisClient.setex(`${redisPrefixRequest}${hash}`,redisExpiryTimeShort,JSON.stringify(data));
                 res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
-                return res.status(200).json({ merchants: { count, rows: merchants }, cached: false});
+                return res.status(200).json(data);
             }
             res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
             const data = JSON.parse(reply);
-            return res.status(200).json({ merchants: data, cached: true });
+            data.cached = true;
+            return res.status(200).json(data);
         });
         
     } catch (error) {
