@@ -137,7 +137,8 @@ router.get("/", async (req, res) => {
                     "FROM \"MerchantAddresses\" ma join \"Addresses\" a on ma.\"AddressId\" = a.id " +
                     `WHERE a.neighbourhood iLike :searchlike OR UPPER(a.neighbourhood) in ${searchArray}) ` +
                 "OR m.title iLike :searchlike " +
-                "OR (query @@ m.textsearch))";
+                "OR (query @@ m.textsearch) " +
+                "OR (query2 @@ m.textsearch))";
             const filterOnlineShopping =
                 "(m.\"onlineShopping\" = :onlineShopping)";
             const filterFranchise =
@@ -157,6 +158,7 @@ router.get("/", async (req, res) => {
                 q = q.replace('1=1',filterSearch);
                 replacements.search = search;
                 replacements.searchlike = '%' + search + '%';
+                replacements.fallbacksearch = search.split(' ').join(' | ');
                 allowedOrderBy['RANK'] = 'rank';
             }
             if (tags) {
@@ -193,7 +195,7 @@ router.get("/", async (req, res) => {
             
             if (search && sortByDistance) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank, d.distance, d.location";
+                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query),ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, d.distance, d.location";
 
                 mainQuery =
                 "("+
@@ -204,14 +206,17 @@ router.get("/", async (req, res) => {
                 " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
                 " ORDER BY distance ASC " + 
                 ") as d "+
-                "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery(:search) as query";
+                "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery(:search) as query, to_tsquery(:fallbacksearch) as query2 ";
 
                 orderByClause = "rank DESC, d.distance";
             } else if (search) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) as rank, a.geom as location";
+                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query),ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, a.geom as location";
                 mainQuery = 
-                "\"Merchants\" m join \"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" join \"Addresses\" a on ma.\"AddressId\" = a.id, websearch_to_tsquery(:search) as query ";
+                "\"Merchants\" m join "+
+                "\"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" join "+
+                "\"Addresses\" a on ma.\"AddressId\" = a.id, "+
+                "websearch_to_tsquery(:search) as query, to_tsquery(:fallbacksearch) as query2 ";
 
                 orderByClause = "rank DESC";
 
