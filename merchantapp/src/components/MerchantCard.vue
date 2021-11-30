@@ -37,13 +37,23 @@
       <div class="d-flex" style="height: 24px">
         <v-spacer></v-spacer>
         <v-list-item class="my-n1" style="width: 50%; max-width: 50%">
-          <v-list-item-subtitle v-if="merchant.distance" style="overflow: visible;"
-            ><v-icon>mdi-map-marker-outline</v-icon> Distance:
+          <v-list-item-subtitle style="overflow: visible;"
+            ><v-fab-transition>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn v-if="merchant.location" text icon @click.prevent="locationClicked" v-bind="attrs" v-on="on">
+                      <v-icon>mdi-map-marker-outline</v-icon>{{locationButtonText}}
+                    </v-btn>
+                  </template>
+                  <span>View On Map</span>
+                </v-tooltip>
+              </v-fab-transition> 
+            <span v-if="merchant.distance">Distance:
             {{
               merchant.distance >= 1000
                 ? (merchant.distance / 1000).toFixed(1) + "km"
                 : merchant.distance.toFixed(0) + "m"
-            }}</v-list-item-subtitle
+            }}</span></v-list-item-subtitle
           >
         </v-list-item>
         <v-spacer></v-spacer>
@@ -59,6 +69,11 @@ export default {
   props: {
       merchant: Object,
       geo: Object
+  },
+  methods: {
+    locationClicked: function() {
+      this.$emit('location-clicked');
+    }
   }
 };
 </script>

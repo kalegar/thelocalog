@@ -125,7 +125,7 @@
                             <v-row>
                                 <v-col v-for="merchant in merchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
                                     <advertisement-card v-if="merchant.advertisement"></advertisement-card>
-                                    <merchant-card v-else :key="merchant.title" :merchant="merchant" :geo="geo"></merchant-card>
+                                    <merchant-card v-else :key="merchant.title" :merchant="merchant" :geo="geo" @location-clicked="merchantPanToLocation(merchant)"></merchant-card>
                                 </v-col>
                             </v-row>
                         </div>
@@ -145,7 +145,7 @@
                             <v-list three-line>
                                 <template v-for="(merchant, index) in merchants">
                                     <advertisement-list-item v-if="merchant.advertisement" :key="index"></advertisement-list-item>
-                                    <merchant-list-item v-else :key="merchant.title" :merchant="merchant" :geo="geo"></merchant-list-item>
+                                    <merchant-list-item v-else :key="merchant.title" :merchant="merchant" :geo="geo" @location-clicked="merchantPanToLocation(merchant)"></merchant-list-item>
                                     <v-divider
                                       :key="merchant.id"
                                       class="mx-4"
@@ -169,8 +169,8 @@
                         </div>
                     </div>
                 </v-fade-transition>
-                <v-row v-if="isAdmin">
-                    <results-map :coords="coordinates" :center="geo.location"></results-map>
+                <v-row>
+                    <results-map :coords="coordinates" :center="geo.location" :panTo="mapPanTo" ref="resultsMap"></results-map>
                 </v-row>
                 <v-row v-if="!loading">
                     <v-col>
@@ -338,6 +338,8 @@ export default {
             ],
             filtersPanelOpen: false,
 
+            mapPanTo: null,
+
             coordinates: []
         }
     },
@@ -375,6 +377,18 @@ export default {
         }
     },
     methods: {
+        merchantPanToLocation: function(merchant) {
+            if (merchant !== null && 'location' in merchant && merchant.location !== null) {
+                this.mapPanTo = {
+                    id: merchant.id,
+                    zoom: 15
+                }
+                const el = this.$refs.resultsMap;
+                if (el) {
+                    el.$el.scrollIntoView({behavior: 'smooth'});
+                }
+            }
+        },
         suggestMerchant: function(data) {
             console.log(data);
             const body = {

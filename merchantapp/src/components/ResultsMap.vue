@@ -15,6 +15,10 @@ export default {
             type: Array,
             default: () => []
         },
+        panTo: {
+            type: Object,
+            default: null
+        },
         center: null
     },
 
@@ -24,6 +28,7 @@ export default {
             google: null,
             infoWindow: null,
             markerClusterer: null,
+            mapMarkers: [],
 
             darkModeMapStyles: [
                     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -111,7 +116,10 @@ export default {
     watch: {
         coords: {
             handler: function() {
-                this.updateMarkers()
+                this.updateMarkers();
+                if (this.map !== null && this.center == null || (this.center !== null && !('latitude' in this.center))) {
+                    this.resetMapZoomAndPosition();
+                }
             },
             immediate: true
         },
@@ -139,33 +147,68 @@ export default {
             }else{
                 this.map.setOptions({styles: []});
             }
+        },
+        panTo: {
+            handler: function() {
+                if (this.panTo !== null && this.map !== null) {
+                    if ('zoom' in this.panTo && this.panTo.zoom !== null) {
+                        this.map.setZoom(this.panTo.zoom);
+                    }
+                    if ('id' in this.panTo && this.panTo.id !== null) {
+                        for (const marker of this.mapMarkers) {
+                            if (marker.id == this.panTo.id) {
+                                this.map.panTo(marker.googleMarker.getPosition());
+                                this.updateInfoWindow(marker);
+                                this.infoWindow.open(this.map, marker.googleMarker);
+                                break;
+                            }
+                        }
+                    }else if ('coords' in this.panTo && this.panTo.coords !== null) {
+                        this.map.panTo(this.panTo.coords);
+                    }
+                }
+            }
         }
     },
 
     methods: {
+        resetMapZoomAndPosition: function() {
+            if (this.map == null) return;
+            this.map.panTo({
+                        lat: 53.538833, lng: -113.497467
+            });
+            this.map.setZoom(11);
+        },
+        updateInfoWindow: function(marker) {
+            const url = `#/merchants/${marker.id}`;
+            const logoUrl = `/api/merchants/${marker.id}/images/logo`
+            this.infoWindow.setContent(`<a href=${url} class="mapshopinfo"><p class="mapshoplabel">${marker.label}</p> <img src=${logoUrl} class="mapshoplogo"/></dav>`);
+        },
         updateMarkers: function() {
             const google = this.google;
             if (this.google == null) return;
 
-            const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            this.mapMarkers = [];
 
-            const markers = this.coords.filter(val => val !== null).map((coord, i) => {
+            const markers = this.coords.filter(val => val !== null).map((coord) => {
 
-                //const label = coord.label;
-                const label = labels[i % labels.length];
-
-                const marker = new google.maps.Marker({
+                const googleMarker = new google.maps.Marker({
                     position: coord.location,
-                    label
+                    icon: { url: require('../assets/localog_icon.png'), anchor: new google.maps.Point(32, 0) },
+                    label: { text: 'Shop', color: 'white' },
+                    title: coord.label
                 });
 
-                marker.addListener("click", () => {
-                    const url = `#/merchants/${coord.id}`
-                    this.infoWindow.setContent(`<a href=${url}>${coord.label}</a>`);
-                    this.infoWindow.open(this.map, marker);
+                const marker = {googleMarker: googleMarker, id: coord.id, label: coord.label};
+
+                googleMarker.addListener("click", () => {
+                    this.updateInfoWindow(marker);
+                    this.infoWindow.open(this.map, googleMarker);
                 });
 
-                return marker;
+                this.mapMarkers.push(marker);
+
+                return googleMarker;
             });
 
             if (this.markerClusterer == null) {
@@ -204,7 +247,6 @@ export default {
             this.map = map;
             this.infoWindow = new google.maps.InfoWindow({
                 content: "",
-                disableAutoPan: true,
             });
 
             this.updateMarkers();
@@ -227,6 +269,26 @@ export default {
 
 .maptext {
     color: black;
+}
+</style>
+
+<style>
+
+.mapshoplogo {
+    max-width: 128px !important;
+    max-height: 80px !important;
+    /* margin-top: 0.5rem; */
+}
+
+.mapshoplabel {
+    margin-bottom: 0.5rem !important;
+}
+
+.mapshopinfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 </style>

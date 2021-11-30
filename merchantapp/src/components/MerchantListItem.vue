@@ -20,11 +20,20 @@
         >
       </v-list-item-content>
 
-      <v-divider vertical class="my-4 ml-2" v-if="merchant.distance"></v-divider>
+      <v-divider vertical class="my-4 ml-2" v-if="merchant.distance || merchant.location"></v-divider>
 
-      <v-list-item-action v-if="merchant.distance" class="location">
-        <v-icon :size="locationIconSize" v-text="'mdi-map-marker-outline'"></v-icon>
-        <v-list-item-action-text class="text-subtitle-2 text-md-subtitle-1">
+      <v-list-item-action class="location" v-if="merchant.distance || merchant.location">
+        <v-fab-transition>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn text icon @click.prevent="locationClicked" v-bind="attrs" v-on="on">
+                <v-icon :size="locationIconSize" v-text="'mdi-map-marker-outline'"></v-icon>
+              </v-btn>
+            </template>
+           <span>View On Map</span>
+          </v-tooltip>
+        </v-fab-transition>
+        <v-list-item-action-text v-if="merchant.distance" class="text-subtitle-2 text-md-subtitle-1">
         {{
           merchant.distance >= 1000
             ? (merchant.distance / 1000).toFixed(1) + "km"
@@ -60,6 +69,11 @@ export default {
                 case 'sm': return 24;
                 default: return 32;
         }
+      }
+    },
+    methods: {
+      locationClicked: function() {
+        this.$emit('location-clicked');
       }
     }
 };
