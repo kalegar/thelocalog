@@ -136,7 +136,6 @@ export default {
                     postalcode: this.postalcode,
                     neighbourhood: this.neighbourhood
                 },authToken).then(result => {
-                    console.log(result);
                     if (result.merchant && result.merchant.id) {
                         this.$emit('created');
                     }

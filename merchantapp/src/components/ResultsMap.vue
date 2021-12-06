@@ -142,7 +142,8 @@ export default {
             immediate: true
         },
         '$vuetify.theme.dark': function() {
-            if (this.$vuetify.theme.dark && this.map !== null) {
+            if (this.map == null) return;
+            if (this.$vuetify.theme.dark) {
                 this.map.setOptions({styles: this.darkModeMapStyles});
             }else{
                 this.map.setOptions({styles: []});

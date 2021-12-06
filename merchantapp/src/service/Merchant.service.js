@@ -700,6 +700,27 @@ export const MerchantService = {
                 reject(err);
             });
         })
+    },
+
+    getMerchantSuggestions: function(authToken) {
+        return new Promise((resolve, reject) => {
+            const url = `/api/merchantsuggestions/`;
+            axios.get(url, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then((res) => {
+                if (res.status !== 200) {
+                    reject('Error getting suggestions.');
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            })
+        });
     }
 
 }

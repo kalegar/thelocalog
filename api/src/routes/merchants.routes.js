@@ -158,7 +158,7 @@ router.get("/", async (req, res) => {
                 q = q.replace('1=1',filterSearch);
                 replacements.search = search;
                 replacements.searchlike = '%' + search + '%';
-                replacements.fallbacksearch = search.split(' ').join(' | ');
+                replacements.fallbacksearch = search.split(' ').filter(s => s.length).join(' | ');
                 allowedOrderBy['RANK'] = 'rank';
             }
             if (tags) {
@@ -195,7 +195,7 @@ router.get("/", async (req, res) => {
             
             if (search && sortByDistance) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query),ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, d.distance, d.location";
+                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, d.distance, d.location";
 
                 mainQuery =
                 "("+
@@ -211,7 +211,7 @@ router.get("/", async (req, res) => {
                 orderByClause = "rank DESC, d.distance";
             } else if (search) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query),ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, a.geom as location";
+                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, a.geom as location";
                 mainQuery = 
                 "\"Merchants\" m join "+
                 "\"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" join "+

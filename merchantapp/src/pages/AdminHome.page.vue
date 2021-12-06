@@ -19,6 +19,7 @@
                                 <v-tab>Claims</v-tab>
                                 <v-tab>Tools</v-tab>
                                 <v-tab>Categories</v-tab>
+                                <v-tab>Suggestions</v-tab>
                             </v-tabs>
                             <v-tabs-items v-model="tab" style="width: 100%; min-height: 300px;">
                                 <v-tab-item class="claims">
@@ -198,6 +199,9 @@
                                         </v-row>
                                     </v-container>
                                 </v-tab-item>
+                                <v-tab-item>
+                                    <merchant-suggestions></merchant-suggestions>
+                                </v-tab-item>
                             </v-tabs-items>
                         </v-row>
                     </v-col>
@@ -214,12 +218,14 @@ import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
 import { AdminService } from '../service/Admin.service';
 import { MerchantService } from '../service/Merchant.service';
+import MerchantSuggestions from '../components/MerchantSuggestions.vue';
 
 export default {
     name: 'AdminHome',
     components: {
         BasePage,
-        BaseContent
+        BaseContent,
+        MerchantSuggestions
     },
     data: function() {
         return {
