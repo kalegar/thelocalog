@@ -3,6 +3,7 @@ import "regenerator-runtime/runtime";
 
 import axios from 'axios';
 import { response } from "express";
+import logger from "./logger.service";
 
 
 ////////////////////////////////////////////////
@@ -37,7 +38,6 @@ export const getAccessToken = async function() {
             }
         });
 
-        // console.log(response);
         accessToken = response.data;
 
         setTimeout(expireAccessToken, 82800000);
@@ -59,18 +59,18 @@ export const getUserMetadata = async function(id) {
 
     axios.get(auth0Url + `/api/v2/users/${id}?fields=app_metadata&include_fields=true`,options).then(function (response) {
 
-        console.log(response.data);
+        logger.debug(response.data);
 
         return response.data;
     }).catch(function (error) {
         if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
+            logger.error(error.response.data);
+            logger.error(error.response.status);
+            logger.error(error.response.headers);
         } else if (error.request) {
-            console.log(error.request);
+            logger.error(error.request);
         } else {
-            console.log('Error', error.message);
+            logger.error(error.message);
         }
     });
 };
@@ -90,7 +90,7 @@ export const updateUserProfile = async function(id,profile) {
         if (error.response) {
             response = error.response;
         }else{
-            console.log('Error', error.message);
+            logger.error(error.message);
         }
     });
     return response;

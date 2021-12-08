@@ -6,8 +6,7 @@ import { MerchantSuggestion } from '../database/models';
 
 import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
-
-import { LoggingService } from "../service/logging.service";
+import logger from '../service/logger.service'
 
 const router = Router({mergeParams: true});
 
@@ -20,7 +19,7 @@ router.get("/", checkJwt, adminRole, async (req, res) => {
         res.status(200).json({ suggestions });
         
     } catch (error) {
-        LoggingService.log(err,false);
+        logger.error(err);
         res.status(500).json({ message: error.message });
     }
 });
@@ -33,7 +32,7 @@ router.put("/", async (req, res) => {
 
         res.status(201).json({ suggestion });
     } catch (err) {
-        LoggingService.log(err,false);
+        logger.error(err);
         res.status(500).json({ message: err.message });
     }
 });
@@ -50,7 +49,7 @@ router.delete("/:id", checkJwt, adminRole, async (req, res) => {
         }});
         res.status(200).send();
     } catch (error) {
-        LoggingService.log(err,false);
+        logger.error(error)
         res.status(500).json({ message: error.message });
     }
 });

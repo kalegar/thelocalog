@@ -13,8 +13,19 @@ import adminRoutes from './routes/admin.routes.js';
 import checkJwt from './middleware/authentication.js';
 import jwtAuthz from 'express-jwt-authz';
 import adminRole from './middleware/admin.auth.js';
-import { LoggingService } from './service/logging.service.js';
 import { traceDeprecation } from 'process';
+import logger from "./service/logger.service";
+
+import morgan from "morgan";
+
+const morganMiddleware = morgan("combined", {
+   skip: (req, res) => res.statusCode < 400,
+   stream: {
+      write: msg => logger.http(msg)
+   }
+});
+
+logger.info('Localog API Starting.');
 
 const env = process.env.NODE_ENV || 'development';
 console.log('environment: ' + env);
@@ -37,6 +48,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, `${baseURL}merchantapp/dist`)));
+
+app.use(morganMiddleware);
 
 app.use('/api/merchants',merchantRoutes);
 app.use('/api/categories',categoryRoutes);
@@ -72,11 +85,11 @@ app.get('/', (req, res) => res.status(200).send({
 }));
 
 io.on('connection', function(socket) {
-   LoggingService.log('<><><><>Connected successfully to socket ...<><><><>');
+   logger.debug('<><><><>Connected successfully to socket ...<><><><>');
    socket.on('view-merchant', (data) => {
-      LoggingService.log('<<< view-merchant event >>>');
-      LoggingService.log('Data: ');
-      LoggingService.log(data);
+      logger.debug('<<< view-merchant event >>>');
+      logger.debug('Data: ');
+      logger.debug(data);
       if ('merchantId' in data && data.merchantId !== null && typeof data.merchantId === 'string') {
          const roomId = 'MERCHANT_'+data.merchantId;
          if (socket.rooms.size > 1) {
@@ -89,13 +102,13 @@ io.on('connection', function(socket) {
          socket.join(roomId);
          const viewers = io.sockets.adapter.rooms.get(roomId).size;
          io.to(roomId).emit('currentViewers',{ viewers });
-         LoggingService.log('Viewers: ' + viewers);
+         logger.debug('Viewers: ' + viewers);
       }
    });
 });
 
 io.of("/").adapter.on("leave-room", (room, id) => {
-   LoggingService.log(`socket ${id} has left room ${room}`);
+   logger.debug(`socket ${id} has left room ${room}`);
    if (id !== room) {
       const viewers = io.sockets.adapter.rooms.get(room).size;
       io.to(room).emit('currentViewers',{ viewers });
@@ -104,4 +117,4 @@ io.of("/").adapter.on("leave-room", (room, id) => {
 
 app.set('io',io);
 
-server.listen(port, () => console.log(`Server is running on PORT ${port}`));
+server.listen(port, () => logger.info(`Server is running on PORT ${port}`));

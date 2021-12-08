@@ -6,6 +6,7 @@ import { Merchant, Category } from '../database/models';
 import { Op, QueryTypes } from 'sequelize';
 import checkJwt from '../middleware/authentication.js';
 import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
+import logger from "../service/logger.service";
 
 const router = Router({mergeParams: true});
 
@@ -29,7 +30,7 @@ router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
             newCategory.addMerchant(merchant).then(() => {
                 return res.status(200).json({ newCategory });
             }).catch((error) => {
-                console.log(error);
+                logger.error(error);
                 return res.status(500).json({ message: 'Internal Server Error' });
             });
         }
@@ -41,7 +42,7 @@ router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
             }).then((categories) => {
                 applyCategory(categories[0]);
             }).catch((error) => {
-                console.log(error);
+                logger.error(error);
                 return res.status(500).json({ message: 'Internal Server Error' });
             });
         }else{
@@ -53,12 +54,12 @@ router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
                 }
                 applyCategory(cat);
             }).catch((error) => {
-                console.log(error);
+                logger.error(error);
                 return res.status(500).json({ message: 'Internal Server Error' });
             });
         }
     } catch (error) {
-        console.log(error);
+        logger.error(error);
     }
 });
 

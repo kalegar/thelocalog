@@ -18,6 +18,7 @@ import { Utils } from '../util.js';
 import { Op, QueryTypes } from 'sequelize';
 import { redisClient, redisPrefixRequest, redisExpiryTimeShort } from '../service/redis.service.js';
 import crypto from 'crypto';
+import logger from "../service/logger.service";
 
 const handleValidationErrors = function(error,res) {
     if (error.name.includes('Validation')) {
@@ -304,7 +305,7 @@ router.get("/", async (req, res) => {
         });
         
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
@@ -358,7 +359,7 @@ router.get("/:id", async (req, res) => {
 
         return res.status(200).json({ merchant });
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
@@ -388,7 +389,7 @@ router.put("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
 
         return res.status(200).json({ merchant });
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
@@ -402,7 +403,7 @@ router.delete("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     
         return res.status(200).json({ message: 'The merchant was deleted successfully' });
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });

@@ -5,9 +5,9 @@ import { Router } from 'express';
 import { Op } from 'sequelize';
 import { Merchant, MerchantClaim, User, Address } from '../database/models';
 import { GoogleAPIService } from '../service/google-api.service.js';
-import { LoggingService } from '../service/logging.service.js';
 import { Utils } from '../util.js';
 import { redisClient, redisPrefixHours, redisPrefixRequest, redisPrefixCategory, redisPrefixNeighbourhood } from '../service/redis.service.js';
+import logger from "../service/logger.service";
 
 const router = Router();
 
@@ -182,14 +182,14 @@ router.get("/populategeo", async (req, res) => {
             if (address.placeid) {
                 const placeDetails = await GoogleAPIService.getPlaceDetails(address.placeid, 'geometry');
                 if (!placeDetails) {
-                    LoggingService.log("Address placeid not found. Clearing.");
+                    logger.info("Address placeid not found. Clearing.");
                     address.placeid = null;
                 } else {
                     if (placeDetails.geometry && placeDetails.geometry.location) {
                         address.geom = Utils.createGeom(placeDetails.geometry.location.lng, placeDetails.geometry.location.lat);
-                        LoggingService.log('Address geom was updated. Saving...');
+                        logger.info('Address geom was updated. Saving...');
                         await address.save({ fields: ['geom'] });
-                        LoggingService.log('Saved!');
+                        logger.info('Saved!');
                         count++;
                     }
                 }

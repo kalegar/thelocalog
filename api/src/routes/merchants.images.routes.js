@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
 import multer from 'multer';
+import logger from '../service/logger.service';
 const upload = multer({ storage: multer.memoryStorage(), limits: {fileSize: 5000000, files: 1, fields: 10} });
 
 const router = Router({mergeParams: true});
@@ -20,7 +21,7 @@ fs.readFile(process.cwd() + assetsDir + '/placeholder.png', function(err, data) 
         throw err;
     }
     placeholderImg = data;
-    console.log('Loaded placeholder logo successfully.')
+    logger.info('Loaded placeholder logo successfully.')
 });
 
 // Retrieve all images for this merchant

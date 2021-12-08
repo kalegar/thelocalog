@@ -1,7 +1,6 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-
-import { LoggingService } from '../service/logging.service.js';
+import logger from "../service/logger.service"
 
 module.exports = function(req, res, next) {
 
@@ -25,7 +24,7 @@ module.exports = function(req, res, next) {
         if (req.headers['x-forwarded-for']) {
           sniff_data.ip_address.ip = sniff_data.ip_address['x-forwarded-for'] = req.headers['x-forwarded-for']
         }
-        LoggingService.log(JSON.stringify(sniff_data),false);
+        logger.debug(JSON.stringify(sniff_data));
 
         next();
 

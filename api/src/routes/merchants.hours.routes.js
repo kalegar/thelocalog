@@ -5,8 +5,8 @@ import { Router } from 'express';
 import { Merchant } from '../database/models';
 import { GoogleAPIService } from '../service/google-api.service.js';
 import { redisClient, redisPrefixHours, redisExpiryTime, redisExpiryTimeShort, redisExpiryTimeDay } from '../service/redis.service.js';
-import { LoggingService } from '../service/logging.service.js';
 import { Utils } from '../util.js';
+import logger from "../service/logger.service";
 
 const router = Router({mergeParams: true});
 
@@ -86,9 +86,9 @@ const getMerchantHours = async function(merchantId) {
             }
         }
         if (updateFields.length) {
-            LoggingService.log(`Updating Address fields: ${updateFields.join(', ')}`);
+            logger.info(`Updating Address fields: ${updateFields.join(', ')}`);
             await address.save({fields: updateFields});
-            LoggingService.log('Updated!');
+            logger.info('Updated!');
         }
         dataArray.push(data);  
 

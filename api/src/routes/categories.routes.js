@@ -8,8 +8,7 @@ import { redisClient, redisPrefixCategory, redisExpiryTimeDay } from '../service
 import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
 import { UniqueConstraintError } from "sequelize";
-
-import { LoggingService } from "../service/logging.service";
+import logger from "../service/logger.service";
 
 const router = Router({mergeParams: true});
 
@@ -43,7 +42,7 @@ router.get("/", async (req, res) => {
         });
         
     } catch (error) {
-        LoggingService.log(err,false);
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -53,7 +52,7 @@ router.get("/all", checkJwt, async (req, res) => {
         const categories = await Category.findAll();
         return res.status(200).json({ categories });
     } catch (error) {
-        LoggingService.log(err,false);
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -76,7 +75,7 @@ router.get("/merchants/:category", checkJwt, adminRole, async (req, res) => {
         });
         return res.status(200).json({ merchants });
     } catch (error) {
-        LoggingService.log(err,false);
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -92,7 +91,7 @@ router.post("/:category", checkJwt, adminRole, async (req, res) => {
         if (err instanceof UniqueConstraintError) {
             res.status(400).json({ message: 'Category already exists.'});
         } else {
-            LoggingService.log(err,false);
+            logger.error(err);
             res.status(500).json({ message: err.message });
         }
     }
@@ -110,7 +109,7 @@ router.delete("/:category", checkJwt, adminRole, async (req, res) => {
         }});
         res.status(200).send();
     } catch (error) {
-        LoggingService.log(err,false);
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 })

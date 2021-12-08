@@ -3,22 +3,22 @@ import "regenerator-runtime/runtime";
 
 import axios from 'axios';
 import { Utils } from '../util.js';
-import { LoggingService } from './logging.service.js';
+import logger from "./logger.service";
 
 export const GoogleAPIService = {
 
     getPlaceDetails: async function(place_id,fields) {
-        LoggingService.log(`Getting Place Details for ${place_id}, fields=${fields}`);
+        logger.info(`Getting Place Details for ${place_id}, fields=${fields}`);
         const details = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${place_id}&fields=${fields}`);
 
         if (details.data.status == "NOT_FOUND") {
-            LoggingService.log('place_id expired. Making refresh call.');
+            logger.info('place_id expired. Making refresh call.');
             const result = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?key=${process.env.GOOGLE_PLACES_API_KEY}&place_id=${place_id}&fields=place_id`);
             if (result.data.status == "NOT_FOUND") {
-                LoggingService.log('Failed to refresh place_id.');
+                logger.info('Failed to refresh place_id.');
                 return null;
             }
-            LoggingService.log('Refreshed place id. Calling getPlaceDetails again.');
+            logger.info('Refreshed place id. Calling getPlaceDetails again.');
             return await this.getPlaceDetails(result.data.result.place_id,fields);
         } else if (details.data.status == "OK") {
             let res = details.data.result;
@@ -27,20 +27,20 @@ export const GoogleAPIService = {
             }
             return res;
         } else {
-            LoggingService.log(`Error on place details request: ${details.data.status}`,false);
+            logger.info(`Error on place details request: ${details.data.status}`);
             return null;
         }
     },
 
     getPlace: async function(merchantTitle, address) {
-        LoggingService.log(`Searching for Place`);
+        logger.info(`Searching for Place`);
 
         let query = `${merchantTitle} ${address.address1} ${address.city}`;
         let place = await this.getPlaceHelper(query);
         if (place) {
             if (place.formatted_address.toUpperCase().includes(address.city.toUpperCase()) || place.name.toUpperCase().includes(merchantTitle.toUpperCase())) {
-                LoggingService.log('Found place matching on Title, Address line 1, and City');
-                LoggingService.log(place);
+                logger.info('Found place matching on Title, Address line 1, and City');
+                logger.info(place);
                 return place;
             }
         }
@@ -49,8 +49,8 @@ export const GoogleAPIService = {
         place = await this.getPlaceHelper(query);
         if (place) {
             if (place.formatted_address.toUpperCase().includes(address.city.toUpperCase()) || place.name.toUpperCase().includes(merchantTitle.toUpperCase())) {
-                LoggingService.log('Found place matching on Title and City');
-                LoggingService.log(place);
+                logger.info('Found place matching on Title and City');
+                logger.info(place);
                 return place;
             }
         }
@@ -59,8 +59,8 @@ export const GoogleAPIService = {
         place = await this.getPlaceHelper(query);
         if (place) {
             if (place.formatted_address.toUpperCase().includes(address.city.toUpperCase()) || place.name.toUpperCase().includes(merchantTitle.toUpperCase())){
-                LoggingService.log('Found place matching on Address Line 1 and City');
-                LoggingService.log(place);
+                logger.info('Found place matching on Address Line 1 and City');
+                logger.info(place);
                 return place;
             }
         }
@@ -69,8 +69,8 @@ export const GoogleAPIService = {
         place = await this.getPlaceHelper(query);
         if (place) {
             if (place.formatted_address.toUpperCase().includes(address.city.toUpperCase()) || place.name.toUpperCase().includes(merchantTitle.toUpperCase())){
-                LoggingService.log('Found place matching on full query');
-                LoggingService.log(place);
+                logger.info('Found place matching on full query');
+                logger.info(place);
                 return place;
             }
         }
@@ -79,19 +79,19 @@ export const GoogleAPIService = {
         place = await this.getPlaceHelper(query);
         if (place) {
             if (place.formatted_address.toUpperCase().includes(address.city.toUpperCase()) || place.name.toUpperCase().includes(merchantTitle.toUpperCase())){
-                LoggingService.log('Found place matching on address only query');
-                LoggingService.log(place);
+                logger.info('Found place matching on address only query');
+                logger.info(place);
                 return place;
             }
         }
 
         let geocode = await this.getGeocodeHelper(`${address.address1}, ${address.city}, ${address.province}`);
         if (geocode) {
-            LoggingService.log('Found place matching on geocode.');
-            LoggingService.log(place);
+            logger.info('Found place matching on geocode.');
+            logger.info(place);
             return geocode;
         }
-        LoggingService.log('Failed to find match.');
+        logger.info('Failed to find match.');
         return null;
     },
 

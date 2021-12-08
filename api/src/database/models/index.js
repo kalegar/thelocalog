@@ -1,24 +1,26 @@
 'use strict';
 require('dotenv').config();
 
+import logger from "../../service/logger.service";
+
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 if (env === 'development') {
-   console.log('<><><><><><><><><><><><><><><>')
-   console.log('<>WARNING: DEVELOPMENT BUILD<>');
-   console.log('<><><><><><><><><><><><><><><>');
+   logger.warn('<><><><><><><><><><><><><><><>')
+   logger.warn('<>WARNING: DEVELOPMENT BUILD<>');
+   logger.warn('<><><><><><><><><><><><><><><>');
 }
 const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
 
-const logging = env === 'production' ? false : console.log;
+const logging = env === 'production' ? false : msg => logger.debug(msg);
 config.logging = logging;
 
 if (!logging) {
-  console.log('Sequelize logging disabled.');
+  logger.info('Sequelize logging disabled.');
 }
 
 let sequelize;
@@ -48,7 +50,7 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 if ((process.env.SYNC_DB || 'no') === 'yes' && env === 'development') {
-  console.log('Syncing DB');
+  logger.warn('Syncing DB');
   sequelize.sync( {force: true });
 }
 

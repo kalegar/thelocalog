@@ -1,5 +1,6 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import logger from "./logger.service";
 
 import redis from 'redis';
 
@@ -35,12 +36,12 @@ export const redisExpiryTimeShort = 3600;
 
 const suppressErrors = process.env.SUPPRESS_REDIS_ERRORS === 'yes';
 if (suppressErrors) {
-    console.log('WARNING: Suppressing Redis Errors.');
+    logger.warn('WARNING: Suppressing Redis Errors.');
 }
 
 redisClient.on("error", function(error) {
     if (!suppressErrors)
-        console.error(error);
+        logger.error(error);
 });
 
 export default {

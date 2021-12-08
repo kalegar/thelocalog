@@ -1,7 +1,7 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import { MerchantOwnerService } from '../service/merchantowner.service.js';
-import { LoggingService } from '../service/logging.service.js';
+import logger from "../service/logger.service";
 
 module.exports = function(req, res, next) {
 
@@ -19,7 +19,7 @@ module.exports = function(req, res, next) {
             res.status(403).json({message: 'Not Authorized.'});
         }
     }, (err) => {
-        LoggingService.log(err,false);
+        logger.error(err);
         res.status(403).json({message: 'Not Authorized.'});
     })
 

@@ -4,6 +4,7 @@ import "regenerator-runtime/runtime";
 import { redisClient, redisExpiryTime, redisPrefixMerchantOwner } from '../service/redis.service.js';
 import { sequelize } from '../database/models';
 import { QueryTypes } from 'sequelize';
+import logger from "./logger.service";
 
 export const MerchantOwnerService = {
 
@@ -56,8 +57,8 @@ export const MerchantOwnerService = {
                                 redisClient.setex(`${redisPrefixMerchantOwner}${userId}`,redisExpiryTime,JSON.stringify(newArray));
                                 resolve(found);
                             }).catch(err => {
-                                console.log('ERROR OCCURRED');
-                                console.log(err);
+                                logger.error('merchantowner.service.js isUserMerchantOwner().redisClient.get()');
+                                logger.error(err);
                                 resolve(false);
                             });
                             return;
@@ -74,7 +75,7 @@ export const MerchantOwnerService = {
             
                 resolve(false);
             } catch (err) {
-                console.log(err);
+                logger.error(err);
                 reject(err);
             }
         });

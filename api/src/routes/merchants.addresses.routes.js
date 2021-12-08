@@ -7,7 +7,7 @@ import checkJwt from '../middleware/authentication.js';
 import ownsMerchant from '../middleware/merchantOwner.middleware.js';
 import { Utils } from '../util.js';
 import { GoogleAPIService } from "../service/google-api.service";
-import { LoggingService } from "../service/logging.service";
+import logger from "../service/logger.service";
 
 const router = Router({mergeParams: true});
 
@@ -137,7 +137,7 @@ router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
                 newAddress.placeid = null;
                 newAddress.geom = null;
             }
-        }).catch((err) => console.log(err)).then(() => {
+        }).catch((err) => logger.error(err)).then(() => {
             Address.update(
                 newAddress,
                 {
@@ -160,17 +160,17 @@ router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
                     }
                 }).then(existing => {
                     if (existing == null) {
-                        LoggingService.log('Inserting new contact.');
-                        Contact.create(contact).catch((err) => console.log(err));
+                        logger.info('Inserting new contact.');
+                        Contact.create(contact).catch((err) => logger.error(err));
                     }else{
-                        LoggingService.log('Updating existing contact.');
+                        logger.info('Updating existing contact.');
                         Contact.update(contact, {
                             where: {
                                 id: existing.id
                             }
-                        }).catch((err) => console.log(err));
+                        }).catch((err) => logger.error(err));
                     }
-                }).catch((err) => console.log(err));
+                }).catch((err) => logger.error(err));
             }
 
             return res.status(200).json({ newAddress });
