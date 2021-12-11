@@ -291,6 +291,26 @@ router.get("/", async (req, res) => {
                             replacements
                         }
                     );
+
+                    // Merge duplicate merchants with different locations.
+                    // just return one of each merchant, with an array of locations for each.
+                    const hashMap = merchants.reduce((obj, item) => {
+                        if (item.id in obj) {
+                            if (item.dataValues.location !== null) {
+                                obj[item.id].location.push(item.dataValues.location);
+                            }
+                        }else{
+                            let locations = [];
+                            if (item.dataValues.location !== null) {
+                                locations.push(item.dataValues.location);
+                            }
+                            obj[item.id] = { ...item.dataValues };
+                            obj[item.id].location = locations;
+                        }
+                        return obj;
+                    }, {});
+
+                    merchants = Object.values(hashMap);
                     
                 }
                 const data = { merchants: { count, rows: merchants }, cached: false};

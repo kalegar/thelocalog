@@ -20,9 +20,9 @@
         >
       </v-list-item-content>
 
-      <v-divider vertical class="my-4 ml-2" v-if="merchant.distance || merchant.location"></v-divider>
+      <v-divider vertical class="my-4 ml-2" v-if="merchant.distance || (merchant.location && merchant.location.length)"></v-divider>
 
-      <v-list-item-action class="location" v-if="merchant.distance || merchant.location">
+      <v-list-item-action class="location" v-if="merchant.distance || (merchant.location && merchant.location.length)">
         <v-fab-transition>
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">

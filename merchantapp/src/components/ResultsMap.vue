@@ -215,6 +215,7 @@ export default {
             if (this.markerClusterer == null) {
                 this.markerClusterer = new MarkerClusterer( this.map, markers, {
                     imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+                    maxZoom: 15
                 });
             }else{
                 this.markerClusterer.clearMarkers();

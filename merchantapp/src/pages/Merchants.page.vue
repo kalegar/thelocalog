@@ -199,6 +199,18 @@
                         <v-checkbox large v-model="includeDeleted" v-on:change="getMerchants()" label="Include Deleted Merchants"></v-checkbox>
                     </div>
                 </template>
+                <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
+                    {{ snackbar.text }}
+                    <template v-slot:action="{ attrs }">
+                        <v-btn
+                        text
+                        v-bind="attrs"
+                        @click="snackbar.show = false"
+                        >
+                        Close
+                        </v-btn>
+                    </template>
+                </v-snackbar>
             </BaseContent>
         </BasePage>
   </div>
@@ -340,7 +352,14 @@ export default {
 
             mapPanTo: null,
 
-            coordinates: []
+            coordinates: [],
+
+            snackbar: {
+                color: 'primary',
+                show: false,
+                text: '',
+                timeout: 2000
+            }
         }
     },
     computed: {
@@ -377,11 +396,17 @@ export default {
         }
     },
     methods: {
+        makeToast: function(text, color, timeout=2000) {
+            this.snackbar.timeout = timeout;
+            this.snackbar.color = color;
+            this.snackbar.text = text;
+            this.snackbar.show = true;
+        },
         merchantPanToLocation: function(merchant) {
             if (merchant !== null && 'location' in merchant && merchant.location !== null) {
                 this.mapPanTo = {
                     id: merchant.id,
-                    zoom: 15
+                    zoom: 16
                 }
                 const el = this.$refs.resultsMap;
                 if (el) {
@@ -407,8 +432,11 @@ export default {
                 })
             };
             MerchantService.suggestMerchant(body).then(() => {
-                //success
-            }, err => console.log(err));
+                this.makeToast('Thank you for your suggestion!','success');
+            }, err => {
+                console.log(err);
+                this.makeToast('An error occurred while submitting your suggestion. Please try again later.','danger');
+            });
         },
         merchantClick: function(id) {
             this.$router.push({ path: `/merchants/${id}`});
@@ -469,32 +497,35 @@ export default {
 
             MerchantService.getMerchants(options).then(result => {
                 this.shouldGetMerchants = false;
-                let temp = [];
-                if (result.merchants && result.merchants.length) {
-                    result.merchants.forEach(val => {
-                        if (!temp.length || !(temp.map(v => v.id).includes(val.id))) {
-                            temp.push(val);
-                        }
-                    });
-                }
-                this.merchants = temp;
+                // let temp = [];
+                // if (result.merchants && result.merchants.length) {
+                //     result.merchants.forEach(val => {
+                //         if (!temp.length || !(temp.map(v => v.id).includes(val.id))) {
+                //             temp.push(val);
+                //         }
+                //     });
+                // }
+                this.merchants = result.merchants;
                 this.pages = result.pages;
                 this.page = Utils.clamp(result.page,1,Math.max(this.pages,1));
 
+                this.coordinates = [];
                 if (this.merchants.length && 'location' in this.merchants[0]) {
-                    this.coordinates = result.merchants.map(merch => {
-                        if (merch.location == null) return null;
-                        return {
-                            location: {
-                                lat: merch.location.coordinates[1],
-                                lng: merch.location.coordinates[0]
-                            },
-                            label: merch.title,
-                            id: merch.id
+                    result.merchants.forEach(merch => {
+                        if (merch.location !== null  && merch.location.length) {
+                            this.coordinates.push(merch.location.map(loc => {
+                                return {
+                                    location: {
+                                        lat: loc.coordinates[1],
+                                        lng: loc.coordinates[0]
+                                    },
+                                    label: merch.title,
+                                    id: merch.id
+                                }
+                            }));
                         }
                     });
-                }else{
-                    this.coordinates = [];
+                    this.coordinates = this.coordinates.flat();
                 }
 
                 this.loading = false;
