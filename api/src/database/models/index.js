@@ -12,6 +12,8 @@ if (env === 'development') {
    logger.warn('<><><><><><><><><><><><><><><>')
    logger.warn('<>WARNING: DEVELOPMENT BUILD<>');
    logger.warn('<><><><><><><><><><><><><><><>');
+}else{
+   logger.debug('Starting Sequelize');
 }
 const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
@@ -24,9 +26,23 @@ if (!logging) {
 }
 
 let sequelize;
+let databaseURL = '';
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+  if (process.env.DATABASE_URL === undefined) {
+    logger.error("Undefined database env variable.");
+  }else{
+    databaseURL = process.env.DATABASE_URL;
+    console.log("Database URL: ");
+    console.log(databaseURL);
+  }
+}else{
+  logger.warn("Not using env database variable.");
+}
+
+if (databaseURL !== '') {
+  sequelize = new Sequelize(databaseURL, config);
 } else {
+  logger.warn("Empty database URL.");
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
