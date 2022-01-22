@@ -342,7 +342,7 @@ export default {
                 { text: '25 Per Page', value: '25' },
                 { text: '50 Per Page', value: '50' }
             ],
-            merchantOrder: '+TITLE',
+            merchantOrder: '+DIST',
             merchantOrderOptions: [
                 { text: 'Title', value: '+TITLE' },
                 { text: 'Relevance', value: '+RANK' },

@@ -12,9 +12,15 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Image.belongsToMany(models.Merchant, { through: 'MerchantImages' });
+      Image.hasMany(models.Product, {
+        foreignKey: {
+          name: 'imageListing'
+        }
+      })
     }
   };
   Image.init({
+    id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false, autoIncrement: true},
     title: {type: DataTypes.STRING, allowNull: false },
     type: {type: DataTypes.STRING, allowNull: false },
     image: {

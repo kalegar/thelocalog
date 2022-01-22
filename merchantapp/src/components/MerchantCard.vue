@@ -8,7 +8,7 @@
       :elevation="hover ? 12 : 4"
       :to="{
         name: 'MerchantDetail',
-        params: { id: merchant.id, geoLocation: geo.location },
+        params: { merchantId: merchant.id, geoLocation: geo.location },
       }"
     >
       <v-list-item three-line class="mb-n2">

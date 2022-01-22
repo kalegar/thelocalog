@@ -375,6 +375,35 @@ export const MerchantService = {
         });
     },
 
+    createProduct: function(authToken, merchantId, title, price, description, url, image = null) {
+        const _url = `/api/merchants/${merchantId}/products`;
+        return new Promise((resolve, reject) => {
+            let formData = new FormData();
+            formData.append('title',title);
+            formData.append('price',price);
+            formData.append('description',description);
+            formData.append('url',url);
+            formData.append('image',image);
+            axios.post(_url, formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then(res => {
+                if (res.status != 201) {
+                    reject(`Error creating product: ${res.statusText} ${res.data.message}`);
+                }
+                resolve('Created Product Successfully!');
+            })
+            .catch(err => {
+                const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error creating product: ${err}${msg}`);
+            })
+        });
+    },
+
     uploadLogo: function(id,authToken,logo) {
         const url = `/api/merchants/${id}/images/logo`;
         return new Promise((resolve,reject) => {

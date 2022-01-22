@@ -3,7 +3,7 @@
     <v-list-item
       :to="{
         name: 'MerchantDetail',
-        params: { id: merchant.id, geoLocation: geo.location },
+        params: { merchantId: merchant.id, geoLocation: geo.location },
       }"
     >
       <v-list-item-avatar tile :size="logoSize">

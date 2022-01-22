@@ -23,27 +23,28 @@ export default {
   model: {
       prop: 'modelValue',
       event: 'change'
-    },
-    props: {
-      modelValue: {
-        type: Boolean,
-        default: false
-      }
-    },
+  },
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: true
+    }
+  },
   data: function() {
       return {
-          value: false,
+          value: true,
           location: {
               latitude: 0,
               longitude: 0
           },
-          radius: 10,
+          radius: 50,
           loading: false,
       }
   },
   watch: {
       modelValue: function() {
         this.value = this.modelValue;
+        console.log('MyLocation');
         this.save();
       }
   },
@@ -53,6 +54,7 @@ export default {
   },
   methods: {
       getGeoLocation : function() {
+        console.log("GetGeo() " + this.value);
           if (this.value && navigator.geolocation) {  
               this.loading = true;
               navigator.geolocation.getCurrentPosition(this.setGeoLocation,this.errorGettingPosition);  

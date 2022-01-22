@@ -1,7 +1,6 @@
 <template>
   <div class="MerchantDetail">
     <BasePage>
-      <template v-slot:header> </template>
       <BaseContent>
         <template v-slot:left v-if="!loading && merchant">
           <div class="mt-6 sidebar">
@@ -117,7 +116,7 @@
             </v-row>
             <v-row v-if="isAdminOrOwner">
               <v-col>
-                <merchant-categories-tags :merchantId="id" :canEdit="isAdminOrOwner"></merchant-categories-tags>
+                <merchant-categories-tags :merchantId="merchantId" :canEdit="isAdminOrOwner"></merchant-categories-tags>
               </v-col>
             </v-row>
             <div class="addresses row" v-if="merchant && merchant.Addresses">
@@ -221,6 +220,20 @@
                 </v-expansion-panels>
               </div>
             </div>
+            <v-row v-if="merchant && isAdmin">
+              <v-col>
+                <v-row no-gutters>
+                  <h2>Products</h2>
+                  <v-btn
+                    fab
+                    small
+                    class = "ml-3"
+                    v-if="isAdmin"
+                    :to="{ name: 'ProductNew', params: { merchantId: merchant.id, merchantWebsite: merchant.website } }"
+                  ><v-icon>mdi-plus</v-icon></v-btn>
+                </v-row>
+              </v-col>
+            </v-row>
             <v-row class="merchant-footer align-items-center">
               <v-col>
                 <p v-if="!isOwner && merchant">
@@ -259,7 +272,7 @@ import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
 export default {
   name: "MerchantDetail",
   props: {
-    id: String,
+    merchantId: String,
     geoLocation: Object,
   },
   components: {
@@ -343,7 +356,7 @@ export default {
     uploadLogo: function () {
       this.uploadLogoLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.uploadLogo(this.id, authToken, this.uploadedLogo)
+        MerchantService.uploadLogo(this.merchantId, authToken, this.uploadedLogo)
           .then(
             (result) => {
               this.makeToast(result, "success");
@@ -358,7 +371,7 @@ export default {
       });
     },
     getBusinessHours: function () {
-      MerchantService.getBusinessHours(this.id).then(
+      MerchantService.getBusinessHours(this.merchantId).then(
         (result) => {
           if (result) {
             for (const address of this.merchant.Addresses) {
@@ -393,7 +406,7 @@ export default {
       );
     },
     getLogo: function () {
-      MerchantService.getLogo(this.id).then(
+      MerchantService.getLogo(this.merchantId).then(
         (result) => {
           this.logo = result;
         },
@@ -413,7 +426,7 @@ export default {
     saveMerchant: function () {
       this.saveMerchantLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.saveMerchant(this.id, authToken, this.merchant)
+        MerchantService.saveMerchant(this.merchantId, authToken, this.merchant)
           .then(
             (result) => {
               this.makeToast(result, "success", 5000);
@@ -431,7 +444,7 @@ export default {
     deleteMerchant: function () {
       this.deleteMerchantLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.deleteMerchant(this.id, authToken)
+        MerchantService.deleteMerchant(this.merchantId, authToken)
           .then(
             (result) => {
               this.makeToast(result, "success");
@@ -449,7 +462,7 @@ export default {
     deleteAddress: function (id) {
       this.deleteAddressLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.deleteAddress(this.id, id, authToken)
+        MerchantService.deleteAddress(this.merchantId, id, authToken)
           .then(
             (result) => {
               this.makeToast(result, "success");
@@ -479,7 +492,7 @@ export default {
     getMerchant: function () {
       this.loading = true;
       this.merchant = null;
-      MerchantService.getMerchant(this.id)
+      MerchantService.getMerchant(this.merchantId)
         .then(
           (result) => {
             this.merchant = result;
@@ -516,7 +529,7 @@ export default {
         clearInterval(interv);
       }
     }, 1000);
-    this.$socket.client.emit('view-merchant', { merchantId: this.id });
+    this.$socket.client.emit('view-merchant', { merchantId: this.merchantId });
   },
   sockets: {
       currentViewers: function(data) {

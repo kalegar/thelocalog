@@ -3,7 +3,6 @@ import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
 import { Tag, Category, Merchant, Address, Contact, SocialMediaLink, sequelize } from '../database/models';
-import productRouter from './products.routes.js';
 import merchantTagRouter from './merchants.tags.routes.js';
 import merchantAddressRouter from './merchants.addresses.routes.js';
 import merchantCategoryRouter from './merchants.categories.routes.js';
@@ -11,6 +10,7 @@ import merchantHoursRouter from './merchants.hours.routes.js';
 import merchantSocialMediaRouter from './merchants.socialmedia.routes.js';
 import merchantImagesRouter from './merchants.images.routes.js';
 import merchantClaimsRouter from './merchants.claims.routes.js';
+import merchantProductsRouter from './merchants.products.routes.js';
 import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
 import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
@@ -428,8 +428,6 @@ router.delete("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     }
 });
 
-router.use('/:merchantId/products',productRouter);
-
 router.use('/:merchantId/tags',merchantTagRouter);
 
 router.use('/:merchantId/addresses',merchantAddressRouter);
@@ -444,5 +442,7 @@ router.use('/:merchantId/images',merchantImagesRouter);
 
 //Merchant claims. Must be logged in.
 router.use('/:merchantId/claims', checkJwt, merchantClaimsRouter);
+
+router.use('/:merchantId/products', merchantProductsRouter);
 
 export default router;

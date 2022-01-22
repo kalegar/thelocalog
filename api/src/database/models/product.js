@@ -17,15 +17,23 @@ module.exports = (sequelize, DataTypes) => {
         }
       });
       Product.Tags = Product.belongsToMany(models.Tag, { through: 'ProductTags' });
+      Product.belongsTo(models.Image, {
+        foreignKey: {
+          name: 'imageListing'
+        }
+      })
     }
   };
   Product.init({
-    id: {type: DataTypes.UUID, allowNull: false, primaryKey: true, validate: { notNull: true }, defaultValue: Sequelize.UUID4 },
+    id: {type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true},
     MerchantId: {type: DataTypes.UUID, allowNull: false },
     title: {type: DataTypes.STRING, allowNull: false},
-    price: DataTypes.INTEGER,
+    price: DataTypes.DECIMAL,
     stock: DataTypes.INTEGER,
-    description: DataTypes.TEXT
+    description: DataTypes.TEXT,
+    inStock: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    imageListing: DataTypes.INTEGER,
+    url: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Product',

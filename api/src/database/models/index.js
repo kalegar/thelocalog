@@ -32,8 +32,6 @@ if (config.use_env_variable) {
     logger.error("Undefined database env variable.");
   }else{
     databaseURL = process.env.DATABASE_URL;
-    console.log("Database URL: ");
-    console.log(databaseURL);
   }
 }else{
   logger.warn("Not using env database variable.");

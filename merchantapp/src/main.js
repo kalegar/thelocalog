@@ -17,12 +17,15 @@ import Profile from './pages/Profile.page.vue';
 import MerchantClaim from './pages/MerchantClaim.page.vue';
 import MerchantClaimDetail from './pages/MerchantClaimDetail.page.vue';
 import AdminHome from './pages/AdminHome.page.vue';
+import ProductEdit from './pages/ProductEdit.page.vue';
 import vuetify from './plugins/vuetify';
 
 const routes = [
   { path: '/', redirect: '/merchants' },
   { path: '/merchants', component: Merchants, name: 'Merchants', props: route => ({ query: route.query.q }) },
-  { path: '/merchants/:id', component: MerchantDetail, name: 'MerchantDetail', props: true },
+  { path: '/merchants/:merchantId/product/', component: ProductEdit, name: 'ProductNew', beforeEnter: authGuard, props: true },
+  { path: '/merchants/:merchantId/product/:productId', component: ProductEdit, name: 'ProductEdit', props: true },
+  { path: '/merchants/:merchantId', component: MerchantDetail, name: 'MerchantDetail', props: true },
   { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard},
   { path: '/claim/:id', component: MerchantClaim, name: 'MerchantClaim', beforeEnter: authGuard, props: true},
   { path: '/admin', component: AdminHome, name: 'AdminHome', beforeEnter: authGuard},

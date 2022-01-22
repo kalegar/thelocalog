@@ -4,13 +4,12 @@ import "regenerator-runtime/runtime";
 import { Router } from 'express';
 import { Product } from '../database/models';
 
-const router = Router({mergeParams: true});
+const router = Router();
 
 // Create a new Product
 router.post("/", async (req, res) => {
     try {
-        const { title, description, price, stock } = req.body;
-        const merchantId = req.params.merchantId;
+        const { title, description, price, stock, merchantId } = req.body;
 
         if (!title) {
             return res.status(400).send({
@@ -50,10 +49,25 @@ router.post("/", async (req, res) => {
 // Retrieve all Products
 router.get("/", async (req, res) => {
     try {
-        const products = await Product.findAll({
-            where: { MerchantId: req.params.merchantId }
-        });
-        return res.status(200).json({ products });
+        const {perpage,page} = req.query;
+
+        let query = {attributes: ['id','title','description','url','inStock','price','imageListing']};
+
+        query.offset = 0;
+        query.limit = 2;
+
+        if (perpage) {
+            query.limit = Utils.clamp(perpage,0,50);
+        }
+        if (page) {
+            query.offset = Math.max(0,query.limit * (page-1));
+        }
+
+        const { count, products } = await Product.findAndCountAll(query);
+
+        const data = { products: { count, rows: products }, cached: false};
+
+        res.status(200).json(data);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
