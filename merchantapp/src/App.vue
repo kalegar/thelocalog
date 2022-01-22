@@ -124,7 +124,7 @@ export default {
 
   computed: {
       isAdmin: function() {
-        return this.$auth.user[this.$auth.rolesKey] && this.$auth.user[this.$auth.rolesKey].includes('admin');
+        return this.$auth.isAuthenticated && this.$auth.user[this.$auth.rolesKey] && this.$auth.user[this.$auth.rolesKey].includes('admin');
       },
       theme(){
         return (this.$vuetify.theme.dark) ? 'dark' : 'light'

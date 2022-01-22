@@ -287,6 +287,7 @@ export default {
   computed: {
     isAdmin: function () {
       return (
+        this.$auth.isAuthenticated &&
         this.$auth.user[this.$auth.rolesKey] &&
         this.$auth.user[this.$auth.rolesKey].includes("admin")
       );
