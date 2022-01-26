@@ -232,6 +232,11 @@
                     :to="{ name: 'ProductNew', params: { merchantId: merchant.id, merchantWebsite: merchant.website } }"
                   ><v-icon>mdi-plus</v-icon></v-btn>
                 </v-row>
+                <v-row>
+                  <v-col v-for="product in products" :key="product.id">
+                    <product-card :product="product"></product-card>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
             <v-row class="merchant-footer align-items-center">
@@ -268,6 +273,7 @@ import { UserService } from "../service/User.service";
 import AddressCard from '../components/AddressCard.vue';
 import MerchantDetailCard from '../components/MerchantDetailCard.vue';
 import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
+import ProductCard from '../components/ProductCard.vue';
 
 export default {
   name: "MerchantDetail",
@@ -282,7 +288,8 @@ export default {
     CreateAddressModal,
     AddressCard,
     MerchantDetailCard,
-    MerchantCategoriesTags
+    MerchantCategoriesTags,
+    ProductCard
   },
   computed: {
     isAdmin: function () {
@@ -325,7 +332,8 @@ export default {
       selectedAddress: [0],
       deleteAddressDialog: false,
       deleteAddressLoading: false,
-      pageViewers: 1
+      pageViewers: 1,
+      products: []
     };
   },
   methods: {
@@ -499,6 +507,7 @@ export default {
             this.merchant = result;
             this.getBusinessHours();
             this.getLogo();
+            this.getProducts(this.merchantId);
           },
           (err) => {
             this.error = err;
@@ -512,6 +521,14 @@ export default {
         .then(() => {
           this.loading = false;
         });
+    },
+    getProducts: function() {
+      MerchantService.getProducts(this.merchantId)
+      .then(res => {
+        this.products = res;
+      }, () => {
+        this.products = [];
+      })
     }
   },
   updated: function () {

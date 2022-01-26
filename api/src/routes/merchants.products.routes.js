@@ -8,6 +8,7 @@ import checkJwt from '../middleware/authentication.js';
 import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 import multer from 'multer';
 import logger from '../service/logger.service';
+import { Utils } from '../util.js';
 const upload = multer({ storage: multer.memoryStorage(), limits: {fileSize: 5000000, files: 1, fields: 10} });
 
 const router = Router({mergeParams: true});
@@ -67,7 +68,7 @@ router.get("/", async (req, res) => {
         const merchantId = req.params.merchantId;
         const {perpage,page} = req.query;
 
-        let query = {attributes: ['id','title','description','url','inStock','price','imageListing']};
+        let query = {attributes: ['id','title','description','url','inStock','price','imageListing','imageUrl']};
 
         query.offset = 0;
         query.limit = 2;
@@ -83,9 +84,9 @@ router.get("/", async (req, res) => {
             MerchantId: merchantId
         }
 
-        const { count, products } = await Product.findAndCountAll(query);
+        const { count, rows } = await Product.findAndCountAll(query);
 
-        const data = { products: { count, rows: products }, cached: false};
+        const data = { products: { count, rows }, cached: false};
 
         res.status(200).json(data);
 

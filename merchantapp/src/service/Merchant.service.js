@@ -341,8 +341,25 @@ export const MerchantService = {
         })
     },
 
-    getLogo: function(id) {
-        const url = `/api/merchants/${id}/images`;
+    getLogo: function(merchantId) {
+        const url = `/api/merchants/${merchantId}/images`;
+        return new Promise((resolve,reject) => {
+            axios.get(url,{ params: { type: 'LOGO' }})
+            .then(res => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
+    getImage: function(imageId) {
+        const url = `/api/images/${imageId}`;
         return new Promise((resolve,reject) => {
             axios.get(url,{ params: { type: 'LOGO' }})
             .then(res => {
@@ -401,6 +418,35 @@ export const MerchantService = {
                 const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
                 reject(`Error creating product: ${err}${msg}`);
             })
+        });
+    },
+
+    getProducts: function(merchantId, perpage = 10, page = 1) {
+        const url = `/api/merchants/${merchantId}/products`;
+        return new Promise((resolve, reject) => {
+            axios.get(url, {
+                params: {
+                    perpage,
+                    page: page-1
+                }
+            })
+            .then(res => {
+                console.log(res.data);
+                if (res.status != 200) {
+                    reject('Status != 200');
+                }
+                if ('products' in res.data) {
+                    if (res.data.products.count && 'rows' in res.data.products) {
+                        resolve(res.data.products.rows);
+                        return;
+                    }
+                }
+                resolve([]);
+            })
+            .catch(err => {
+                const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error creating product: ${err}${msg}`);
+            });
         });
     },
 

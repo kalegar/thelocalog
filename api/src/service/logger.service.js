@@ -44,7 +44,7 @@ const transports = [
         // specify format for the target
         format: winston.format.combine(
         // process only debug logs
-       // filter("debug"),
+        filter("debug"),
         // colorize the output
         winston.format.colorize(),
         // add a timestamp

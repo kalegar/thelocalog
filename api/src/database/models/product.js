@@ -33,7 +33,8 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.TEXT,
     inStock: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     imageListing: DataTypes.INTEGER,
-    url: DataTypes.STRING
+    url: DataTypes.STRING,
+    imageUrl: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Product',
