@@ -622,10 +622,11 @@ export const MerchantService = {
         })
     },
 
-    getCategories: function(pretty = true, all = false, authToken = '') {
+    //Get categories based on type. Empty string will retrieve all categories.
+    getCategories: function(pretty = true, type = '', authToken = '') {
         return new Promise((resolve, reject) => {
-            const url = all ? `/api/categories/all` : `/api/categories`;
-            const headers = all ? {
+            const url = `/api/categories/${type}`;
+            const headers = (type.length) ? {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 },

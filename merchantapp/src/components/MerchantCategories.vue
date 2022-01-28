@@ -58,7 +58,7 @@ export default {
   },
   methods: {
     getCategories: function () {
-      MerchantService.getCategories().then(res => this.categories = res, err => {
+      MerchantService.getCategories(true,'merchants').then(res => this.categories = res, err => {
         console.log(err);
           this.error = err;
           if (err.json) {

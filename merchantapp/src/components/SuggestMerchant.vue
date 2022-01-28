@@ -159,7 +159,7 @@ export default {
             //Don't clear out the email address.
         },
         loadCategories: function() {
-            MerchantService.getCategories(true)
+            MerchantService.getCategories(true,'merchants')
             .then((res) => {
                 this.categories = [...res, 'Other'];
             },() => {});

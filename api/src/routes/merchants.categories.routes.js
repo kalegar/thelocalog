@@ -11,6 +11,8 @@ import logger from "../service/logger.service";
 const router = Router({mergeParams: true});
 
 // Add a category to this merchant
+// The category must exist, or the 'force' parameter can be passed, 
+// and the category will be created and added to the merchant.
 router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
         const { category, force } = req.body;
@@ -64,6 +66,7 @@ router.post("/", checkJwt, userOwnsMerchant, async (req, res) => {
 });
 
 //Set the categories for this merchant. Will delete all existing categories on the merchant first, then attach the supplied categories.
+//The supplied categories must already exist.
 router.put("/bulk", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
 

@@ -16,12 +16,14 @@ module.exports = (sequelize, DataTypes) => {
           allowNull: false
         }
       });
-      Product.Tags = Product.belongsToMany(models.Tag, { through: 'ProductTags' });
+      Product.belongsToMany(models.Tag, { through: 'ProductTags' });
+      Product.belongsToMany(models.Category, { through: 'ProductCategories' });
+
       Product.belongsTo(models.Image, {
         foreignKey: {
           name: 'imageListing'
         }
-      })
+      });
     }
   };
   Product.init({

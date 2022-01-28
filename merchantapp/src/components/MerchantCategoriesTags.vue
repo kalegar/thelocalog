@@ -113,7 +113,7 @@ export default {
         },
         getCategories: function() {
             this.$auth.getTokenSilently().then((authToken) => {
-            MerchantService.getCategories(true,true,authToken).then(
+            MerchantService.getCategories(true,'',authToken).then(
                 (res) => {
                 this.categories = res.sort();
                 this.getMerchantCategories(true);

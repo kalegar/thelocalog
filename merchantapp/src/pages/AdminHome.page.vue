@@ -490,6 +490,7 @@ export default {
         },
         confirmDeleteCategory: function(category) {
             this.$auth.getTokenSilently().then((authToken) => {
+                // TODO: Also heck if category has any products attached.
                 MerchantService.getMerchantsForCategory(category, authToken).then((res) => {
                     this.categoryDialogText = '';
                     if (res.merchants) {
@@ -515,7 +516,7 @@ export default {
         getCategories: function() {
             this.categoryLoading = true;
             this.$auth.getTokenSilently().then((authToken) => {
-            MerchantService.getCategories(true,true,authToken).then(res => this.categories = res, err => console.log(err)).then(() => this.categoryLoading = false);
+            MerchantService.getCategories(true,'',authToken).then(res => this.categories = res, err => console.log(err)).then(() => this.categoryLoading = false);
             });
         }
     },
