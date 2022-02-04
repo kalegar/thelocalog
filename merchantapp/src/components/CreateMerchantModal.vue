@@ -122,10 +122,11 @@ export default {
                     description: this.description,
                     website: this.website
                 },authToken).then(result => {
+                    console.log(result);
                     if (result.merchant && result.merchant.id) {
                         this.$router.push({
                             name: 'MerchantDetail',
-                            params: { id: result.merchant.id },
+                            params: { merchantId: result.merchant.id },
                         });
                     }
                 }, err => {

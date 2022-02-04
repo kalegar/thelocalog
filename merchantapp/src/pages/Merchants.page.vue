@@ -415,7 +415,6 @@ export default {
             }
         },
         suggestMerchant: function(data) {
-            console.log(data);
             const body = {
                 title: data.name,
                 category: data.category,

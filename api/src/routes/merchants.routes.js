@@ -98,7 +98,7 @@ router.get("/", async (req, res) => {
         let limitClause = " LIMIT :perpage OFFSET :page;";
         let mainQuery = "\"Merchants\" m left outer join \"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" left outer join \"Addresses\" a on ma.\"AddressId\" = a.id";
 
-        let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6 AND 7=7 AND 8=8 AND 9=9";
+        let q = "1=1 AND 2=2 AND 3=3 AND 4=4 AND 5=5 AND 6=6 AND 7=7 AND 8=8 AND 9=9 AND -1=-1";
         let replacements = {perpage: query.limit, page: query.offset};
 
         let allowedOrderBy = {
@@ -153,6 +153,7 @@ router.get("/", async (req, res) => {
                 replacements.lat = lat;
                 replacements.lon = lon;
                 replacements.radius = radius ? Utils.clamp(radius,1,100000) : 10000;
+                q = q.replace('-1=-1','d.distance IS NOT NULL');
                 allowedOrderBy['DIST'] = 'd.distance';
             }
             if (search) {
@@ -199,23 +200,23 @@ router.get("/", async (req, res) => {
                 "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, d.distance, d.location";
 
                 mainQuery =
-                "("+
+                "\"Merchants\" m \n"+
+                "LEFT OUTER JOIN ("+
                 " SELECT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance, geom as location  "+
-                " FROM \"MerchantAddresses\" ma JOIN "+
+                " FROM \"MerchantAddresses\" ma LEFT OUTER JOIN "+
                 " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
                 " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
-                " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
+                " WHERE ST_DWithin(a.geom, ref_geom, :radius) OR a.geom IS NULL "+
                 " ORDER BY distance ASC " + 
-                ") as d "+
-                "JOIN \"Merchants\" m on d.id = m.id, websearch_to_tsquery(:search) as query, to_tsquery(:fallbacksearch) as query2 ";
+                ") as d on d.id = m.id, websearch_to_tsquery(:search) as query, to_tsquery(:fallbacksearch) as query2 ";
 
                 orderByClause = "rank DESC, d.distance";
             } else if (search) {
                 selectClause = 
                 "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, a.geom as location";
                 mainQuery = 
-                "\"Merchants\" m join "+
-                "\"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" join "+
+                "\"Merchants\" m LEFT OUTER join "+
+                "\"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" LEFT OUTER join "+
                 "\"Addresses\" a on ma.\"AddressId\" = a.id, "+
                 "websearch_to_tsquery(:search) as query, to_tsquery(:fallbacksearch) as query2 ";
 
@@ -223,17 +224,17 @@ router.get("/", async (req, res) => {
 
             } else if (sortByDistance) {
                 selectClause =
-                "m.id,m.title,m.description,m.website,distance,location";
+                "m.id,m.title,m.description,m.website,d.distance,d.location";
                 mainQuery =
-                "("+
+                "\"Merchants\" m \n"+
+                "LEFT OUTER JOIN ("+
                 " SELECT ma.\"MerchantId\" as id, ST_Distance(geom, ref_geom) AS distance, geom as location  "+
-                " FROM \"MerchantAddresses\" ma JOIN "+
+                " FROM \"MerchantAddresses\" ma LEFT OUTER JOIN "+
                 " \"Addresses\" a on ma.\"AddressId\" = a.id CROSS JOIN "+
                 " (SELECT ST_MakePoint(:lon,:lat)::geography as ref_geom) AS r "+
-                " WHERE ST_DWithin(a.geom, ref_geom, :radius) "+
+                " WHERE ST_DWithin(a.geom, ref_geom, :radius) OR a.geom IS NULL "+
                 " ORDER BY distance ASC " + 
-                ") as d "+
-                "JOIN \"Merchants\" m on d.id = m.id ";
+                ") as d on d.id = m.id ";
 
                 orderByClause = "d.distance";
             }
