@@ -96,6 +96,38 @@
         <router-view></router-view>
       </v-container>
     </v-main>
+
+    <v-footer
+      color="primary"
+    >
+      <v-card
+        flat
+        tile
+        width="100%"
+        color="primary"
+        class="white--text text-center"
+      >
+        <v-card-text class="white--text">
+          Visit us on Instagram!
+          <v-btn
+            class="mx-4 mb-1 white--text"
+            icon
+            href="https://www.instagram.com/the_localog/"
+            target="_blank"
+          >
+            <v-icon size="24px">
+              mdi-instagram
+            </v-icon>
+          </v-btn>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-text class="white--text">
+          © {{ new Date().getFullYear() }} — <strong>The Localog</strong>
+        </v-card-text>
+      </v-card>
+    </v-footer>
   </v-app>
 </template>
 
