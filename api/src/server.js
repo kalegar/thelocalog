@@ -12,6 +12,7 @@ import addressRoutes from './routes/addresses.routes.js';
 import userRoutes from './routes/user.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import imageRoutes from './routes/images.routes.js';
+import staticRoutes from './routes/static.routes.js';
 import checkJwt from './middleware/authentication.js';
 import jwtAuthz from 'express-jwt-authz';
 import adminRole from './middleware/admin.auth.js';
@@ -60,6 +61,7 @@ app.use('/api/addresses',addressRoutes);
 app.use('/api/merchantsuggestions',merchantSuggestionRoutes);
 app.use('/api/products',productRoutes);
 app.use('/api/images',imageRoutes);
+app.use('/api/static',staticRoutes);
 
 app.use('/api/users', checkJwt, userRoutes);
 
