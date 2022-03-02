@@ -53,6 +53,7 @@ router.get("/", async (req, res) => {
     }
 });
 
+const cacheTime = 60 * 60; // 1 Hour
 //Retrieve a logo image
 router.get("/logo", async (req, res) => {
     try {
@@ -82,7 +83,8 @@ router.get("/logo", async (req, res) => {
 
             res.writeHead(200, {
                 'Content-Type': 'image/png',
-                'Content-Length': img.length
+                'Content-Length': img.length,
+                'Cache-Control': `public, max-age=${cacheTime}`
             });
             return res.end(img);
             //return res.status(200).send('data:image/png;base64,'+merchant.Images[0].image);

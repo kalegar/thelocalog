@@ -52,10 +52,12 @@ router.get("/localoglogo", async (req, res) => {
         const image = await assetLoader.getImage('localog_logo_circle_150','png');
         if (image) {
             let data = image;
+            const cacheTime = 60 * 60 * 24; // 24 Hours
             const img = Buffer.from(data, 'base64');
             res.writeHead(200, {
                 'Content-Type': 'image/png',
-                'Content-Length': img.length
+                'Content-Length': img.length,
+                'Cache-Control': `public, max-age=${cacheTime}`
             });
             return res.end(img);
         }else{

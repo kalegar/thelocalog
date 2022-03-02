@@ -6,6 +6,8 @@ import { Image } from '../database/models';
 
 const router = Router();
 
+const cacheTime = 60 * 60; // 1 Hour
+
 // Retrieve an image
 router.get("/:imageId", async (req, res) => {
     try {
@@ -18,7 +20,8 @@ router.get("/:imageId", async (req, res) => {
             img = Buffer.from(data, 'base64');
             res.writeHead(200, {
                 'Content-Type': 'image/png',
-                'Content-Length': img.length
+                'Content-Length': img.length,
+                'Cache-Control': `public, max-age=${cacheTime}`
             });
             return res.end(img);
         }else{
