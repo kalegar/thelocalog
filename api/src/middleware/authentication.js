@@ -13,6 +13,6 @@ module.exports = jwt({
     }),
 
     audience: 'https://thelocalog.com/api',
-    issuer: [`https://dev-5ofusaot.us.auth0.com/`],
+    issuer: [`https://login.localog.ca/`],
     algorithms: ['RS256']
 });

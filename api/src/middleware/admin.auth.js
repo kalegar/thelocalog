@@ -1,10 +1,12 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
+import logger from '../service/logger.service';
+
 module.exports = function(req, res, next) {
 
     const namespace = 'https://thelocalog.com/api/roles';
-
+    
     if (req.user && req.user[namespace]) {
         if (req.user[namespace].includes('admin')) {
             next();
