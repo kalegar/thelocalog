@@ -107,24 +107,25 @@
         color="primary"
         class="white--text text-center"
       >
-        <v-card-text class="white--text">
-          Visit us on Instagram!
+        <v-card-text>
           <v-btn
-            class="mx-4 mb-1 white--text"
-            icon
-            href="https://www.instagram.com/the_localog/"
-            target="_blank"
-          >
-            <v-icon size="24px">
+            v-for="link in footerLinks"
+            :key="link.label"
+            :text="link.label.length > 0"
+            :icon="link.icon.length > 0"
+            :to="link.to"
+            :href="link.href"
+            :target="link.target"
+            color="white"
+            rounded
+            class="m-2"
+          ><v-icon v-if="link.icon.length > 9" size="24px">
               mdi-instagram
-            </v-icon>
-          </v-btn>
+            </v-icon>{{link.label}}</v-btn>
         </v-card-text>
 
-        <v-divider></v-divider>
-
-        <v-card-text class="white--text">
-          © {{ new Date().getFullYear() }} — <strong>The Localog</strong>
+        <v-card-text class="white--text pt-0">
+            The Localog. Find Local, Shop Local. Search local shops and products near you! Currently servicing Edmonton, Alberta. © {{ new Date().getFullYear() }} — <strong>The Localog</strong>
         </v-card-text>
       </v-card>
     </v-footer>
@@ -143,7 +144,12 @@ export default {
 
   data: function() {
     return {
-    searchQuery: ''
+      searchQuery: '',
+      footerLinks: [
+        { label: 'About Us', icon: '', to: undefined, href: undefined },
+        { label: 'Contact Us', icon: '', to: undefined, href: undefined },
+        { label: '', icon: 'mdi-instagram', to: undefined, href: "https://www.instagram.com/the_localog/", target: "_blank" }
+      ]
   }},
 
   watch: {
