@@ -116,6 +116,7 @@
             :to="link.to"
             :href="link.href"
             :target="link.target"
+            v-on="link.onClick !== null ? { click: link.onClick } : {}"
             color="white"
             rounded
             class="m-2"
@@ -128,6 +129,74 @@
             The Localog. Find Local, Shop Local. Search local shops and products near you! Currently servicing Edmonton, Alberta. © {{ new Date().getFullYear() }} — <strong>The Localog</strong>
         </v-card-text>
       </v-card>
+      <v-dialog
+        v-model="contactUsDialog"
+        max-width="600px"
+        persistent
+      >
+        <v-card>
+          <v-form
+              ref="contactUsForm"
+              v-model="contactUsValid"
+              v-on:submit.prevent="sendContactUsEmail"
+            >
+          <v-card-title>
+            <span class="text-h5">Contact Us</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    label="Name"
+                    :rules="nameRules"
+                    name="name"
+                    required
+                    solo
+                    v-model="contactUsForm.name"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    label="E-Mail Address"
+                    :rules="emailRules"
+                    name="email"
+                    required
+                    solo
+                    v-model="contactUsForm.email"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-textarea
+                    label="Message"
+                    name="message"
+                    required
+                    solo
+                    v-model="contactUsForm.message"
+                  ></v-textarea>
+                </v-col>
+              </v-row>
+            </v-container>
+            
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="danger"
+              text
+              :loading="sendingEmail"
+              @click="toggleContactUsDialog"
+            >Cancel</v-btn>
+            <v-btn
+              color="primary"
+              text
+              type="submit"
+              :loading="sendingEmail"
+            >Send</v-btn>
+          </v-card-actions>
+          </v-form>
+        </v-card>
+      </v-dialog>
     </v-footer>
   </v-app>
 </template>
@@ -135,6 +204,7 @@
 <script>
 import _debounce from 'lodash/debounce';
 import { UserService } from './service/User.service.js';
+import emailjs from 'emailjs-com';
 
 export default {
   name: 'App',
@@ -145,10 +215,25 @@ export default {
   data: function() {
     return {
       searchQuery: '',
+      contactUsDialog: false,
+      contactUsValid: true,
+      contactUsForm: {
+        name: '',
+        email: '',
+        message: ''
+      },
+      sendingEmail: false,
+      nameRules: [
+                v => !!v || 'Name is required'
+            ],
+      emailRules: [
+                v => !!v || 'E-mail is required',
+                v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+            ],
       footerLinks: [
-        { label: 'About Us', icon: '', to: undefined, href: undefined },
-        { label: 'Contact Us', icon: '', to: undefined, href: undefined },
-        { label: '', icon: 'mdi-instagram', to: undefined, href: "https://www.instagram.com/the_localog/", target: "_blank" }
+        { label: 'About Us', icon: '', to: undefined, href: undefined, onClick: null },
+        { label: 'Contact Us', icon: '', to: undefined, href: undefined, onClick: this.toggleContactUsDialog },
+        { label: '', icon: 'mdi-instagram', to: undefined, href: "https://www.instagram.com/the_localog/", target: "_blank", onClick: null }
       ]
   }},
 
@@ -187,6 +272,35 @@ export default {
   },
 
   methods: {
+    clearContactUs: function() {
+      this.contactUsForm.name = '';
+      this.contactUsForm.email = '';
+      this.contactUsForm.message = '';
+    },
+    toggleContactUsDialog: function() {
+      this.contactUsDialog = !this.contactUsDialog;
+      if (!this.contactUsDialog) {
+        this.clearContactUs();
+      }
+    },
+    sendContactUsEmail: function(e) {
+      this.$refs.contactUsForm.validate();
+      if (this.contactUsValid) {
+        let v = this;
+        this.sendingEmail = true;
+        emailjs.sendForm('service_j7sziak','template_xscxjzs',e.target,"user_HxiP3Hs1N092Qcq4eKye7").then(function(response) {
+            console.log(response.status);
+            v.sendingEmail = false;
+            v.contactUsDialog = false;
+            this.clearContactUs();
+        }, function(error) {
+            console.log('FAILED...', error);
+            v.sendingEmail = false;
+            v.contactUsDialog = false;
+            this.clearContactUs();
+        });
+      }
+    },
     login: function() {
         this.$auth.loginWithRedirect();
     },
