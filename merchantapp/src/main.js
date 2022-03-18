@@ -18,6 +18,7 @@ import MerchantClaim from './pages/MerchantClaim.page.vue';
 import MerchantClaimDetail from './pages/MerchantClaimDetail.page.vue';
 import AdminHome from './pages/AdminHome.page.vue';
 import ProductEdit from './pages/ProductEdit.page.vue';
+import AboutUs from './pages/AboutUs.page.vue';
 import vuetify from './plugins/vuetify';
 
 const routes = [
@@ -29,7 +30,8 @@ const routes = [
   { path: '/profile', name: "profile", component: Profile, beforeEnter: authGuard},
   { path: '/claim/:id', component: MerchantClaim, name: 'MerchantClaim', beforeEnter: authGuard, props: true},
   { path: '/admin', component: AdminHome, name: 'AdminHome', beforeEnter: authGuard},
-  { path: '/admin/claim/:id', component: MerchantClaimDetail, name: 'ClaimDetail', beforeEnter: authGuard, props: true}
+  { path: '/admin/claim/:id', component: MerchantClaimDetail, name: 'ClaimDetail', beforeEnter: authGuard, props: true},
+  { path: '/about', component: AboutUs, name: 'AboutUs' }
 ]
 
 const router = new VueRouter({

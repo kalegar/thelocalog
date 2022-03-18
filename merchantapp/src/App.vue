@@ -231,7 +231,7 @@ export default {
                 v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
             ],
       footerLinks: [
-        { label: 'About Us', icon: '', to: undefined, href: undefined, onClick: null },
+        { label: 'About Us', icon: '', to: { name: 'AboutUs' }, href: undefined, onClick: null },
         { label: 'Contact Us', icon: '', to: undefined, href: undefined, onClick: this.toggleContactUsDialog },
         { label: '', icon: 'mdi-instagram', to: undefined, href: "https://www.instagram.com/the_localog/", target: "_blank", onClick: null }
       ]
