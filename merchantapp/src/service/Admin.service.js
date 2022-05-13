@@ -96,6 +96,27 @@ export const AdminService = {
                 reject(err);
             });
         });
+    },
+
+    deleteMerchantSuggestion: function(suggestionID, authToken) {
+        return new Promise((resolve, reject) => {
+            const url = `/api/merchantsuggestions/${suggestionID}`;
+            axios.delete(url, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
+            })
+            .then((res) => {
+                if (res.status !== 200) {
+                    reject('Error deleting suggestion.');
+                    return;
+                }
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            })
+        });
     }
 
 };

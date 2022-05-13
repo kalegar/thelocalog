@@ -4,6 +4,7 @@
             <template v-slot:header>
             </template>
             <BaseContent>
+            <v-progress-circular v-if="loading"></v-progress-circular>
             <v-container class="mt-3" v-if="isAdmin">
                 <v-row>
                     <v-col>
@@ -23,35 +24,7 @@
                             </v-tabs>
                             <v-tabs-items v-model="tab" style="width: 100%; min-height: 300px;">
                                 <v-tab-item class="claims">
-                                    <v-card v-if="claims && claims.length">
-                                        <v-card-text>
-                                        <v-list three-line>
-                                            <template v-for="(claim,index) in claims">
-                                                    <v-list-item :to="{ name: 'ClaimDetail', params: { id: claim.id.toString() }}" :key="'claim-'+claim.id">
-                                                        <v-list-item-avatar>
-                                                            <v-icon>mdi-storefront</v-icon>
-                                                        </v-list-item-avatar>
-
-                                                        <v-list-item-content class="merchant-list-item">
-                                                            <v-list-item-title class="h5">{{claim.Merchant.title}}</v-list-item-title>
-                                                            <v-list-item-subtitle v-if="claim.email">{{claim.email}}</v-list-item-subtitle>
-                                                            <v-list-item-subtitle>{{claim.text}}</v-list-item-subtitle>
-                                                            <v-list-item-subtitle>{{claim.createdAt}}</v-list-item-subtitle>
-                                                        </v-list-item-content>
-                                                    </v-list-item>
-                                                <v-divider
-                                                :key="index"
-                                                class="mx-4"
-                                                ></v-divider>
-                                            </template>
-                                        </v-list>
-                                        </v-card-text>
-                                    </v-card>
-                                    <v-card v-else>
-                                        <v-card-text>
-                                        There are no claims.
-                                        </v-card-text>
-                                    </v-card>
+                                    <merchant-claims></merchant-claims>
                                 </v-tab-item>
                                 <v-tab-item>
                                     <v-btn class="toolbutton" @click="populateGeometry()" :loading="populateGeoLoading">Populate Geometry</v-btn>
@@ -216,22 +189,23 @@
 import axios from 'axios';
 import BasePage from './base/BasePage.page.vue';
 import BaseContent from './base/BaseContent.page.vue';
-import { AdminService } from '../service/Admin.service';
 import { MerchantService } from '../service/Merchant.service';
 import MerchantSuggestions from '../components/MerchantSuggestions.vue';
+import MerchantClaims from '../components/MerchantClaims.vue';
 
 export default {
     name: 'AdminHome',
     components: {
         BasePage,
         BaseContent,
-        MerchantSuggestions
+        MerchantSuggestions,
+        MerchantClaims
     },
     data: function() {
         return {
+            adminLoading: true,
             tab: 0,
             connectedClients: 0,
-            claims: [],
             isAdmin: false,
             populateGeoResponse: '',
             populateGeoLoading: false,
@@ -281,15 +255,6 @@ export default {
                     this.connectedClients = res.data.clients;
                 })
                 .catch(() => {
-                });
-            });
-        },
-        getClaims: function() {
-            this.$auth.getTokenSilently().then((authToken) => {
-                AdminService.getMerchantClaims(authToken).then(res => {
-                    this.claims = res;
-                }, err => {
-                    console.log(err);
                 });
             });
         },
@@ -533,12 +498,12 @@ export default {
                 }
             })
             .then(res => {
+                this.loading=false;
                 if (res.status != 200) {
                     this.$router.push('Merchants');
                     return;
                 }else{
                     this.isAdmin = true;
-                    this.getClaims();
                     this.getConnectedClients();
                 }
             })
@@ -548,6 +513,9 @@ export default {
         });
         this.getPopulateGeometryCount();
         this.getCategories();
+    },
+    created: function() {
+        this.loading = true;
     }
 }
 </script>
