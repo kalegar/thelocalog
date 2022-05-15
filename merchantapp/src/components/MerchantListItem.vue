@@ -5,7 +5,6 @@
         name: 'MerchantDetail',
         params: { merchantId: merchant.id, geoLocation: geo.location },
       }"
-      :color="merchant.deletedAt == null ? 'light' : 'red lighten-2'"
     >
       <v-list-item-avatar tile :size="logoSize">
         <v-img contain :src="`/api/merchants/${merchant.id}/images/logo`"/>
