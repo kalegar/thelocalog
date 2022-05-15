@@ -23,11 +23,11 @@
             <v-card-text>
                 <v-container>
                     <v-row>
-                        <v-text-field color="secondary" outlined label="Title" :rules="[rules.required]" v-model="title"></v-text-field>
+                        <v-text-field color="secondary" outlined label="Title" :rules="[rules.required]" v-model="internalTitle"></v-text-field>
                     </v-row>
                     <v-row>
                         <v-textarea
-                            v-model="description"
+                            v-model="internalDescription"
                             outlined
                             label="Description"
                             color="secondary"
@@ -35,7 +35,7 @@
                     </v-row>
                     <v-row>
                         <v-text-field
-                            v-model="website"
+                            v-model="internalWebsite"
                             outlined
                             label="Website"
                             color="secondary"
@@ -83,9 +83,9 @@ export default {
             rules: {
                 required: value => !!value || 'Required.',
             },
-            title: '',
-            description: '',
-            website: ''
+            internalTitle: '',
+            internalDescription: '',
+            internalWebsite: ''
         }
     },
     props: {
@@ -104,25 +104,56 @@ export default {
         small: {
             type: Boolean,
             default: false
+        },
+        title: {
+            type: String,
+            default: ''
+        },
+        description: {
+            type: String,
+            default: ''
+        },
+        website: {
+            type: String,
+            default: ''
+        }
+    },
+    watch: {
+        title: {
+            immediate: true,
+            handler: function() {
+                this.internalTitle = this.title;
+            }
+        },
+        description: {
+            immediate: true,
+            handler: function() {
+                this.internalDescription = this.description;
+            }
+        },
+        website: {
+            immediate: true,
+            handler: function() {
+                this.internalWebsite = this.website;
+            }
         }
     },
     methods: {
         cancel: function() {
             this.dialog = false;
-            this.title = '';
-            this.description = '';
-            this.website = '';
+            this.internalTitle = this.title;
+            this.internalDescription = this.description;
+            this.internalWebsite = this.website;
             this.saving = false;
         },
         save: function() {
             this.saving = true;
             this.$auth.getTokenSilently().then((authToken) => {
                 MerchantService.createMerchant({
-                    title: this.title,
-                    description: this.description,
-                    website: this.website
+                    title: this.internalTitle,
+                    description: this.internalDescription,
+                    website: this.internalWebsite
                 },authToken).then(result => {
-                    console.log(result);
                     if (result.merchant && result.merchant.id) {
                         this.$router.push({
                             name: 'MerchantDetail',

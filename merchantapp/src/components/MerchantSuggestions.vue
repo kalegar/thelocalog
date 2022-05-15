@@ -26,6 +26,12 @@
                 ></v-list-item-title>
               </v-list-item-content>
               <v-list-item-action>
+                <create-merchant-modal
+                  text="Create Merchant"
+                  :title="suggestion.title"
+                ></create-merchant-modal>
+              </v-list-item-action>
+              <v-list-item-action>
                 <v-btn
                   color="primary"
                   text
@@ -96,8 +102,10 @@
 <script>
 import { AdminService } from "../service/Admin.service";
 import { MerchantService } from "../service/Merchant.service";
+import CreateMerchantModal from './CreateMerchantModal.vue';
 
 export default {
+  components: { CreateMerchantModal },
   name: "MerchantSuggestions",
   data: function () {
     return {
