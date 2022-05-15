@@ -10,6 +10,7 @@
         name: 'MerchantDetail',
         params: { merchantId: merchant.id, geoLocation: geo.location },
       }"
+      :color="merchant.deletedAt == null ? 'light' : 'red lighten-2'"
     >
       <v-list-item three-line class="mb-n2">
         <v-list-item-content>

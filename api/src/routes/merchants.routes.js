@@ -81,7 +81,7 @@ router.get("/", async (req, res) => {
     try {
         const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort,o: onlineShopping, franchise, independent, canadian} = req.query;
 
-        let query = {attributes: ['id','title','website','description']}
+        let query = {attributes: ['id','title','website','description','deletedAt']}
 
         query.offset = 0;
         query.limit = 2;
@@ -93,7 +93,7 @@ router.get("/", async (req, res) => {
             query.offset = Math.max(0,query.limit * (page-1));
         }
 
-        let selectClause = "m.id,m.title,m.description,m.website, a.geom as location";
+        let selectClause = "m.id,m.title,m.description,m.website,m.\"deletedAt\", a.geom as location";
         let orderByClause = "m.title ASC";
         let limitClause = " LIMIT :perpage OFFSET :page;";
         let mainQuery = "\"Merchants\" m left outer join \"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" left outer join \"Addresses\" a on ma.\"AddressId\" = a.id";
@@ -197,7 +197,7 @@ router.get("/", async (req, res) => {
             
             if (search && sortByDistance) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, d.distance, d.location";
+                "m.id,m.title,m.description,m.website,m.\"deletedAt\",greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, d.distance, d.location";
 
                 mainQuery =
                 "\"Merchants\" m \n"+
@@ -213,7 +213,7 @@ router.get("/", async (req, res) => {
                 orderByClause = "rank DESC, d.distance";
             } else if (search) {
                 selectClause = 
-                "m.id,m.title,m.description,m.website,greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, a.geom as location";
+                "m.id,m.title,m.description,m.website,m.\"deletedAt\",greatest(ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query) + 0.5,ts_rank_cd('{0.1, 0.3, 0.6, 1.0}', m.textsearch, query2)) as rank, a.geom as location";
                 mainQuery = 
                 "\"Merchants\" m LEFT OUTER join "+
                 "\"MerchantAddresses\" ma on m.id = ma.\"MerchantId\" LEFT OUTER join "+
@@ -224,7 +224,7 @@ router.get("/", async (req, res) => {
 
             } else if (sortByDistance) {
                 selectClause =
-                "m.id,m.title,m.description,m.website,d.distance,d.location";
+                "m.id,m.title,m.description,m.website,m.\"deletedAt\",d.distance,d.location";
                 mainQuery =
                 "\"Merchants\" m \n"+
                 "LEFT OUTER JOIN ("+

@@ -5,13 +5,14 @@
         name: 'MerchantDetail',
         params: { merchantId: merchant.id, geoLocation: geo.location },
       }"
+      :color="merchant.deletedAt == null ? 'light' : 'red lighten-2'"
     >
       <v-list-item-avatar tile :size="logoSize">
         <v-img contain :src="`/api/merchants/${merchant.id}/images/logo`"/>
       </v-list-item-avatar>
 
       <v-list-item-content class="merchant-list-item">
-        <v-list-item-title class="text-sm-h6 text-lg-h5">{{ merchant.title }}</v-list-item-title>
+        <v-list-item-title class="text-sm-h6 text-lg-h5">{{merchant.deletedAt == null ? merchant.title : merchant.title + ' - DELETED' }}</v-list-item-title>
         <v-list-item-subtitle v-if="merchant.description" class="subtitle text-sm-subtitle-2 text-md-subtitle-1">{{
           merchant.description
         }}</v-list-item-subtitle>
