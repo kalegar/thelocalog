@@ -13,7 +13,7 @@
                 dark
                 block
                 v-on:click="goBack"
-              >Back To Results</v-btn>
+              >Go Back</v-btn>
               </v-col>
             </v-row>
             <v-row v-if="isAdminOrOwner">
@@ -302,6 +302,9 @@ export default {
     isAdminOrOwner: function () {
       return this.$auth.isAuthenticated && (this.isAdmin || this.isOwner);
     },
+    hasHistory: function() {
+      return window.history.length > 2;
+    }
   },
   data: function () {
     return {
@@ -338,7 +341,11 @@ export default {
   },
   methods: {
     goBack: function() {
-      this.$router.go(-1);
+      if (this.hasHistory) {
+        this.$router.go(-1);
+      }else{
+        this.$router.push('/');
+      }
     },
     getIsOwner: function () {
       this.$auth.getTokenSilently().then((authToken) => {
