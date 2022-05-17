@@ -2,14 +2,20 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
-import { Product } from '../database/models';
+import { Product, Merchant, Image } from '../database/models';
+
+import adminRole from '../middleware/admin.auth.js';
+import checkJwt from '../middleware/authentication.js';
+import multer from 'multer';
+import logger from '../service/logger.service';
+const upload = multer({ storage: multer.memoryStorage(), limits: {fileSize: 5000000, files: 1, fields: 10} });
 
 const router = Router();
 
 // Create a new Product
-router.post("/", async (req, res) => {
+router.post("/", checkJwt, adminRole, upload.single('image'), async (req, res) => {
     try {
-        const { title, description, price, stock, merchantId } = req.body;
+        const { merchantId, title, price, description, url } = req.body;
 
         if (!title) {
             return res.status(400).send({
@@ -26,23 +32,46 @@ router.post("/", async (req, res) => {
                 message: "price is required!"
             })
         }
-        if (!stock) {
-            return res.status(400).send({
-                message: "stock is required!"
-            })
-        }
   
+        const merchant = await Merchant.findOne({
+            where: {id : merchantId },
+            paranoid: false
+        });
+
+        if (!merchant) {
+            return res.status(404).json({message: `Merchant with id ${merchantId} not found.`});
+        }
+
+        const img = req.file;
+        let image = null;
+        if (img) {
+            if (img.mimetype !== 'image/png') {
+                return res.status(400).json({ message: 'Must be image/png.'});
+            }
+            image = await Image.create({
+                title: 'ProductImage',
+                type: 'PRODUCTIMAGE',
+                image: img.buffer
+            });
+        }
+
         const product = await Product.create({
             title,
-            description,
-            MerchantId: merchantId,
+            MerchantId : merchant.id,
             price,
-            stock
+            description,
+            url
         });
+        if (image)
+            await image.addProduct(product);
 
         return res.status(201).json({ product });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
     }
 });
 
@@ -69,15 +98,19 @@ router.get("/", async (req, res) => {
 
         res.status(200).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
     }
 });
 
 // Retrieve a single product by id
-router.get("/:id", async (req, res) => {
+router.get("/:productId", async (req, res) => {
     try {
         const product = await Product.findOne({
-            where: { id: req.params.id }
+            where: { id: req.params.productId }
         });
 
         if(!product) {
@@ -86,19 +119,23 @@ router.get("/:id", async (req, res) => {
 
         return res.status(200).json({ product });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
     }
 });
 
 // Update a product by id
-router.put("/:id", async (req, res) => {
+router.put("/:productId", checkJwt, adminRole, async (req, res) => {
     try {
-        const { title, description, price, stock } = req.body;
+        const { merchantId, title, description, price, stock } = req.body;
         const products = await Product.update(
-        { title, description, MerchantId: req.params.merchantId, price, stock },
+        { title, description, MerchantId: merchantId, price, stock },
         {
             returning: true,
-            where: { id: req.params.id }
+            where: { id: req.params.productId }
         }
         );
     
@@ -109,20 +146,28 @@ router.put("/:id", async (req, res) => {
 
         return res.status(200).json({ product });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
     }
 });
 
 // Delete a product by id
-router.delete("/:id", async (req, res) => {
+router.delete("/:productId", checkJwt, adminRole, async (req, res) => {
     try {
-        const product = await Product.destroy({ where: { id: req.params.id } });
+        const product = await Product.destroy({ where: { id: req.params.productId } });
         if (!product)
             return res.status(404).json({ message: 'The product with the given id was not found' });
     
         return res.status(200).json({ message: 'The product was deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
     }
 });
 

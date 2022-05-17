@@ -20,6 +20,21 @@ router.post("/", checkJwt, userOwnsMerchant, upload.single('image'), async (req,
         const { title, price, description, url } = req.body;
         const userId = req.user.sub;
 
+        const merchant = await Merchant.findOne({
+            where: {id : merchantId },
+            paranoid: false
+        });
+        const user = await User.findOne({
+            where: {id : userId}
+        });
+
+        if (!merchant) {
+            return res.status(404).json({message: `Merchant with id ${merchantId} not found.`});
+        }
+        if (!user) {
+            return res.status(404).json({message: `User with id ${userId} not found.`});
+        }
+
         const img = req.file;
         let image = null;
         if (img) {
@@ -33,18 +48,6 @@ router.post("/", checkJwt, userOwnsMerchant, upload.single('image'), async (req,
             });
         }
 
-        const merchant = await Merchant.findOne({
-            where: {id : merchantId }
-        });
-        const user = await User.findOne({
-            where: {id : userId}
-        });
-        if (!merchant) {
-            return res.status(404).json({message: `Merchant with id ${merchantId} not found.`});
-        }
-        if (!user) {
-            return res.status(404).json({message: `User with id ${userId} not found.`});
-        }
         const product = await Product.create({
             title,
             MerchantId : merchant.id,
@@ -92,7 +95,56 @@ router.get("/", async (req, res) => {
 
     } catch (error) {
         logger.error(error);
-        res.status(500).json({ message: error.message });
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
+    }
+});
+
+router.get("/:productId", async (req, res) => {
+    try {
+        const productId = req.params.productId;
+
+        const product = await Product.findOne({
+            where: {id : productId},
+            attributes: ['id','title','description','url','inStock','price','imageListing','imageUrl']
+        });
+
+        if (!product) {
+            return res.status(404).json({message: `Product with id ${productId} not found.`});
+        }
+
+        return res.status(200).json({ product });
+    } catch (error) {
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
+    }
+});
+
+router.delete("/:productId", checkJwt, userOwnsMerchant, async (req, res) => {
+    try {
+        const merchantId = req.params.merchantId;
+        const productId = req.params.productId;
+
+        const product = await Product.findOne({
+            where: {id : productId, MerchantId: merchantId}
+        });
+
+        if (!product) {
+            return res.status(404).json({message: `Product with id ${productId} on merchant ${merchantId} not found.`});
+        }
+        await product.destroy();
+        return res.status(200).json({ message: 'Success.' });
+    } catch (error) {
+        logger.error(error);
+        let msg = error.message;
+        if (process.env.NODE_ENV !== 'development')
+            msg = 'An error ocurred.';
+        res.status(500).json({ message: msg });
     }
 });
 

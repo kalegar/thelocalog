@@ -8,6 +8,16 @@
 
             <v-card-title>{{product.title}}</v-card-title>
             <v-card-subtitle class="product-price">${{formattedPrice}}</v-card-subtitle>
+            <v-card-actions v-if="canDelete">
+                <v-spacer></v-spacer>
+                <v-btn
+                    fab
+                    icon
+                    color="danger"
+                    small
+                    @click="onDeletePressed"
+                ><v-icon>mdi-delete</v-icon></v-btn>
+            </v-card-actions>
         </v-card>
         <v-skeleton-loader v-else type="card-avatar, actions">
         </v-skeleton-loader>
@@ -21,6 +31,10 @@ export default {
         product: {
             type: Object,
             default: null
+        },
+        canDelete: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {
@@ -35,6 +49,11 @@ export default {
                 return `/api/images/${this.product.imageListing}`;
             }
             return '';
+        }
+    },
+    methods: {
+        onDeletePressed: function() {
+            this.$emit('delete',this.product);
         }
     },
     data: function() {

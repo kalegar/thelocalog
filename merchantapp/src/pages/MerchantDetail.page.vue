@@ -234,7 +234,10 @@
                 </v-row>
                 <v-row>
                   <v-col v-for="product in products" :key="product.id">
-                    <product-card :product="product"></product-card>
+                    <product-card 
+                      :product="product" 
+                      :canDelete="isAdminOrOwner"
+                      @delete="(event) => deleteProduct(event)"></product-card>
                   </v-col>
                 </v-row>
               </v-col>
@@ -268,6 +271,7 @@ import Loading from "../components/Loading.vue";
 import BasePage from "./base/BasePage.page.vue";
 import BaseContent from "./base/BaseContent.page.vue";
 import { MerchantService } from "../service/Merchant.service";
+import { ProductService } from "../service/Product.service";
 import CreateAddressModal from "../components/CreateAddressModal.vue";
 import { UserService } from "../service/User.service";
 import AddressCard from '../components/AddressCard.vue';
@@ -536,6 +540,17 @@ export default {
       }, () => {
         this.products = [];
       })
+    },
+    deleteProduct: function(product) {
+      this.$auth.getTokenSilently().then((authToken) => {
+        ProductService.deleteProduct(authToken,product.id)
+        .then((res) => {
+          this.makeToast(res,"success");
+          this.getProducts();
+        }, (rej) => {
+          this.makeToast(rej,"danger",5000);
+        });
+      });
     }
   },
   updated: function () {

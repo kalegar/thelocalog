@@ -444,7 +444,7 @@ export const MerchantService = {
             })
             .catch(err => {
                 const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
-                reject(`Error creating product: ${err}${msg}`);
+                reject(`Error getting products: ${err}${msg}`);
             });
         });
     },
