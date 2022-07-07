@@ -220,6 +220,16 @@
                 </v-expansion-panels>
               </div>
             </div>
+            <v-row v-if="relatedMerchants.length">
+              <v-col>
+                <h2>Similar Shops</h2>
+                <v-row>
+                  <v-col v-for="merchant in relatedMerchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
+                    <merchant-card :merchant="merchant" @click="similarMerchantClicked(merchant)"></merchant-card>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
             <v-row v-if="merchant && isAdmin">
               <v-col>
                 <v-row no-gutters>
@@ -278,6 +288,7 @@ import AddressCard from '../components/AddressCard.vue';
 import MerchantDetailCard from '../components/MerchantDetailCard.vue';
 import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
 import ProductCard from '../components/ProductCard.vue';
+import MerchantCard from '../components/MerchantCard.vue';
 
 export default {
   name: "MerchantDetail",
@@ -293,7 +304,8 @@ export default {
     AddressCard,
     MerchantDetailCard,
     MerchantCategoriesTags,
-    ProductCard
+    ProductCard,
+    MerchantCard
   },
   computed: {
     isAdmin: function () {
@@ -308,7 +320,18 @@ export default {
     },
     hasHistory: function() {
       return window.history.length > 2;
-    }
+    },
+    merchantCardCols: function() {
+        if (this.$vuetify.breakpoint.width < 700) {
+            return 12;
+        }else if (this.$vuetify.breakpoint.width < 1264) {
+            return 6;
+        }else if (this.$vuetify.breakpoint.width < 2300) {
+            return 4;
+        }else {
+            return 3;
+        }
+    },
   },
   data: function () {
     return {
@@ -340,7 +363,8 @@ export default {
       deleteAddressDialog: false,
       deleteAddressLoading: false,
       pageViewers: 1,
-      products: []
+      products: [],
+      relatedMerchants: []
     };
   },
   methods: {
@@ -350,6 +374,14 @@ export default {
       }else{
         this.$router.push('/');
       }
+      this.refreshPage();
+    },
+    refreshPage: function() {
+      let self = this;
+      setTimeout(() => {
+        self.relatedMerchants = [];
+        self.getMerchant(true);
+      },100);
     },
     getIsOwner: function () {
       this.$auth.getTokenSilently().then((authToken) => {
@@ -509,7 +541,7 @@ export default {
       this.snackbar.text = txt;
       this.snackbar.show = true;
     },
-    getMerchant: function () {
+    getMerchant: function (scrollToTop = false) {
       this.loading = true;
       this.merchant = null;
       MerchantService.getMerchant(this.merchantId)
@@ -519,6 +551,7 @@ export default {
             this.getBusinessHours();
             this.getLogo();
             this.getProducts(this.merchantId);
+            this.getRelatedMerchants();
           },
           (err) => {
             this.error = err;
@@ -529,9 +562,23 @@ export default {
             }
           }
         )
-        .then(() => {
+        .finally(() => {
           this.loading = false;
+          if (scrollToTop) {
+            window.scrollTo(0,0);
+          }
         });
+    },
+    getRelatedMerchants: function() {
+      MerchantService.getRelatedMerchants(this.merchantId)
+        .then(
+          (result) => {
+            this.relatedMerchants = result.merchants.rows;
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
     },
     getProducts: function() {
       MerchantService.getProducts(this.merchantId)
@@ -551,6 +598,13 @@ export default {
           this.makeToast(rej,"danger",5000);
         });
       });
+    },
+    similarMerchantClicked: function(merchant) {
+      this.$router.push({
+        name: 'MerchantDetail',
+        params: { merchantId: merchant.id, geoLocation: this.geoLocation },
+      });
+      this.refreshPage();
     }
   },
   updated: function () {

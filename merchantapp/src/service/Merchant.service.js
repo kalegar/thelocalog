@@ -297,6 +297,23 @@ export const MerchantService = {
         })
     },
 
+    getRelatedMerchants: function(merchantId) {
+        const url = `/api/merchants/${merchantId}/similar`;
+        return new Promise((resolve, reject) => {
+            axios.get(url)
+            .then(res => {
+                if (res.status !== 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                resolve(res.data);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        })
+    },
+
     createAddress: function(merchantId, address, authToken) {
         const url = `/api/merchants/${merchantId}/addresses`;
         return new Promise((resolve, reject) => {

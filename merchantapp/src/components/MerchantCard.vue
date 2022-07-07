@@ -6,10 +6,7 @@
       dense
       shaped
       :elevation="hover ? 12 : 4"
-      :to="{
-        name: 'MerchantDetail',
-        params: { merchantId: merchant.id, geoLocation: geo.location },
-      }"
+      @click="$emit('click')"
       :color="merchant.deletedAt == null ? 'light' : 'red lighten-2'"
     >
       <v-list-item three-line class="mb-n2">
@@ -69,7 +66,12 @@ export default {
   name: "MerchantCard",
   props: {
       merchant: Object,
-      geo: Object
+      geo: {
+        type: Object,
+        default: function() {
+          return { location: {} };
+        }
+      }
   },
   methods: {
     locationClicked: function() {

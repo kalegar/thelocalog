@@ -385,6 +385,84 @@ router.get("/:id", async (req, res) => {
     }
 });
 
+// Get merchants related / similar to a merchant
+router.get('/:merchantID/similar', async(req, res) => {
+    try {
+        const merchantID = req.params.merchantID;
+
+        let query = {
+            where: { id: merchantID },
+            paranoid: false
+        }
+
+        const merchant = await Merchant.findOne(query);
+
+        if (!merchant) {
+            return res.status(404).json({ message: 'the merchant with the given id was not found'});
+        }
+
+        const relatedMerchantsQuery =  `select count(mt."TagId") as "TagsInCommon", m.id,m.title,m.description,m.website,m."deletedAt"
+                        from "MerchantTags" mt join "Merchants" m on m.id = mt."MerchantId" 
+                        where mt."MerchantId" <> :merchantID and mt."TagId" in (
+                            SELECT mt2."TagId" FROM "MerchantTags" mt2 WHERE mt2."MerchantId" = :merchantID
+                        ) and mt."MerchantId" in ( 
+                            SELECT mc."MerchantId" FROM "MerchantCategories" mc WHERE mc."CategoryId" in ( 
+                                SELECT mc2."CategoryId" FROM "MerchantCategories" mc2 WHERE mc2."MerchantId" = m.id
+                            )
+                        ) and m."deletedAt" is null
+                        group by m.id
+                        order by "TagsInCommon" desc
+                        limit 9`;
+
+        const countQuery = `SELECT Count(q.*) FROM (${relatedMerchantsQuery}) q`; 
+
+        const replacements = { merchantID: merchantID };
+
+        const hash = crypto.createHash('md5').update(`${merchantID}`).digest('hex');
+
+        const prefix = "SIMILARMERCHANTS/"
+        redisClient.get(`${prefix}${hash}`, async function(err, reply) {
+            if (err || !reply) {
+                const countResult = await Merchant.sequelize.query(
+                    countQuery,
+                    { type: QueryTypes.SELECT, raw: true, replacements }
+                );
+                let count = 0;
+                if (countResult && Array.isArray(countResult) && countResult.length > 0) {
+                    count = Number(countResult[0].count);
+                }
+                let merchants = [];
+                if (count > 0) {
+                    merchants = await Merchant.sequelize.query(
+                        relatedMerchantsQuery,
+                        {
+                            model: Merchant,
+                            mapToModel: true,
+                            replacements
+                        }
+                    );
+                } 
+        
+                const data = { merchants: { count, rows: merchants }, cached: false};
+                redisClient.setex(`${prefix}${hash}`,redisExpiryTimeShort,JSON.stringify(data));
+                res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
+                return res.status(200).json(data);
+            }
+            res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
+            const data = JSON.parse(reply);
+            data.cached = true;
+            return res.status(200).json(data);
+        });
+                                       
+        
+
+        
+    } catch (error) {
+        logger.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Update a merchant by id
 router.put("/:id", checkJwt, userOwnsMerchant, async (req, res) => {
     try {
