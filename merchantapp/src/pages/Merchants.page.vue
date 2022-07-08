@@ -125,7 +125,7 @@
                             <v-row>
                                 <v-col v-for="merchant in merchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
                                     <advertisement-card v-if="merchant.advertisement"></advertisement-card>
-                                    <merchant-card v-else :key="merchant.title" :merchant="merchant" :geo="geo" @location-clicked="merchantPanToLocation(merchant)"></merchant-card>
+                                    <merchant-card v-else :key="merchant.title" :merchant="merchant" :geo="geo" @click="onMerchantClicked(merchant)" @location-clicked="merchantPanToLocation(merchant)"></merchant-card>
                                 </v-col>
                             </v-row>
                         </div>
@@ -145,7 +145,7 @@
                             <v-list three-line>
                                 <template v-for="(merchant, index) in merchants">
                                     <advertisement-list-item v-if="merchant.advertisement" :key="index"></advertisement-list-item>
-                                    <merchant-list-item v-else :key="merchant.title" :merchant="merchant" :geo="geo" @location-clicked="merchantPanToLocation(merchant)"></merchant-list-item>
+                                    <merchant-list-item v-else :key="merchant.title" :merchant="merchant" :geo="geo" @click="onMerchantClicked(merchant)" @location-clicked="merchantPanToLocation(merchant)"></merchant-list-item>
                                     <v-divider
                                       :key="merchant.id"
                                       class="mx-4"
@@ -535,7 +535,14 @@ export default {
                     console.log(err);
                 }
             });
+        },
+        onMerchantClicked: function(merchant) {
+            this.$router.push({
+                name: 'MerchantDetail',
+                params: { merchantId: merchant.id, geoLocation: this.geo },
+            });
         }
+
     },
     updated: function() {
         document.title = 'Directory - The Localog';
