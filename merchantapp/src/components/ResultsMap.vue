@@ -7,6 +7,8 @@ import gmapsInit from '../utils/gmaps';
 
 import MarkerClusterer from '@google/markerclusterer'; 
 
+const defaultMapZoom = 12;
+
 export default {
     name: 'ResultsMap',
 
@@ -175,10 +177,19 @@ export default {
     methods: {
         resetMapZoomAndPosition: function() {
             if (this.map == null) return;
-            this.map.panTo({
-                        lat: 53.538833, lng: -113.497467
-            });
-            this.map.setZoom(11);
+            const google = this.google;
+            if (this.google == null) return;
+            // this.map.panTo({
+            //             lat: 53.538833, lng: -113.497467
+            // });
+            // this.map.setZoom(defaultMapZoom);
+
+            let latLngBounds = new google.maps.LatLngBounds();
+            this.mapMarkers.forEach((marker) => latLngBounds.extend(marker.googleMarker.getPosition()));
+
+            // Center map on markers. Currently kinda wierd because some shops have locations in Calgary... skews map...
+            this.map.setCenter(latLngBounds.getCenter());
+            this.map.fitBounds(latLngBounds);
         },
         updateInfoWindow: function(marker) {
             const url = `#/merchants/${marker.id}`;
@@ -215,14 +226,13 @@ export default {
             if (this.markerClusterer == null) {
                 this.markerClusterer = new MarkerClusterer( this.map, markers, {
                     imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
-                    maxZoom: 15
+                    maxZoom: 14
                 });
             }else{
                 this.markerClusterer.clearMarkers();
                 this.markerClusterer.addMarkers(markers);
             }
 
-            
         }
     },
 
@@ -239,7 +249,7 @@ export default {
                 center.lat = this.center.latitude;
             }
 
-            const mapOptions = { zoom: 11, center: center };
+            const mapOptions = { zoom: defaultMapZoom, center: center };
 
             if (this.$vuetify.theme.dark) {
                 mapOptions.styles = this.darkModeMapStyles;
