@@ -39,7 +39,7 @@
             ><v-fab-transition>
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn v-if="merchant.location && merchant.location.length" text icon @click.prevent="locationClicked" v-bind="attrs" v-on="on">
+                    <v-btn v-if="merchant.location && merchant.location.length" text icon @click.stop="locationClicked" v-bind="attrs" v-on="on">
                       <v-icon>mdi-map-marker-outline</v-icon>
                     </v-btn>
                   </template>
