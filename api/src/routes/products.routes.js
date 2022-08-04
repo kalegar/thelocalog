@@ -3,6 +3,7 @@ import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
 import { Product, Merchant, Image } from '../database/models';
+import { Utils } from '../util.js';
 
 import adminRole from '../middleware/admin.auth.js';
 import checkJwt from '../middleware/authentication.js';
@@ -92,9 +93,9 @@ router.get("/", async (req, res) => {
             query.offset = Math.max(0,query.limit * (page-1));
         }
 
-        const { count, products } = await Product.findAndCountAll(query);
+        const { count, rows } = await Product.findAndCountAll(query);
 
-        const data = { products: { count, rows: products }, cached: false};
+        const data = { products: { count, rows }, cached: false};
 
         res.status(200).json(data);
     } catch (error) {

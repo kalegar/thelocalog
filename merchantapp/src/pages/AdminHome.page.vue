@@ -116,6 +116,59 @@
                                         @click="clearNeighbourhoodsCache"
                                         :loading="clearNeighbourhoodsCacheLoading"
                                     >Clear Neighbourhoods Cache</v-btn>
+
+                                    <v-dialog
+                                    v-model="bulkProductsDialog"
+                                    persistent
+                                    max-width="290"
+                                    >
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn
+                                                class="toolbutton"
+                                                v-bind="attrs"
+                                                v-on="on"
+                                                @click="showBulkProductsDialog()"
+                                                :loading="bulkProductsLoading"
+                                            >Upload Bulk Products</v-btn>
+                                        </template>
+                                        <v-card>
+                                            <v-card-title class="text-h5">
+                                                Upload Bulk Products
+                                            </v-card-title>
+                                            <v-card-text>
+                                                Upload a JSON file containing product information for a selected merchant.
+                                            </v-card-text>
+                                            <v-divider class="mx-4"></v-divider>
+                                            <v-card-text>
+                                                <v-text-field
+                                                v-model="bulkProductsMerchantID" 
+                                                label="Merchant ID"
+                                                prepend-icon="mdi-storefront"
+                                                ></v-text-field>
+                                            </v-card-text>
+                                            <v-card-text>
+                                                <v-file-input
+                                                accept="application/json"
+                                                label="Upload Products JSON"
+                                                dense
+                                                v-model="bulkProductsJSON"
+                                                ></v-file-input>
+                                            </v-card-text>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn
+                                                    color="red darken-1"
+                                                    text
+                                                    @click="bulkProductsDialog = false"
+                                                >Cancel</v-btn>
+                                                <v-btn
+                                                    color="green darken-1"
+                                                    text
+                                                    @click="bulkProductsDialog = false; uploadBulkProducts();"
+                                                >Upload Products</v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
                                 </v-tab-item>
                                 <v-tab-item>
                                     <v-dialog v-model="categoryDialog" max-width="450"
@@ -236,7 +289,11 @@ export default {
             categoryLoading: false,
             categoryDialog: false,
             toDeleteCategory: '',
-            categoryDialogText: ''
+            categoryDialogText: '',
+            bulkProductsDialog: false,
+            bulkProductsLoading: false,
+            bulkProductsMerchantID: '',
+            bulkProductsJSON: null,
         }
     },
     methods: {
@@ -405,6 +462,11 @@ export default {
             this.dialog.action = this.uploadLogo;
             this.dialog.show = true;
         },
+        showBulkProductsDialog: function() {
+            this.bulkProductsJSON = null;
+            this.bulkProductsMerchantID = '';
+            this.bulkProductsDialog = true;
+        },
         uploadLogo: function() {
             this.uploadLogoLoading = true;
             const url = `/api/merchants/${this.uploadedLogoMerchantId}/images/logo`;
@@ -431,6 +493,33 @@ export default {
                     this.makeToast(`Error uploading logo: ${err}${msg}`,'danger',5000);
                 });
             });
+        },
+        uploadBulkProducts: function() {
+            this.bulkProductsLoading = true;
+            const url = `/api/merchants/${this.bulkProductsMerchantID}/products/bulk`;
+            this.$auth.getTokenSilently().then((authToken) => {
+                let formData = new FormData();
+                formData.append('data',this.bulkProductsJSON);
+                axios.post(url, formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${authToken}`
+                    },
+                })
+                .then(res => {
+                    if (res.status != 201) {
+                        this.makeToast(`Error uploading products: ${res.statusText} ${res.data.message}`,'danger',5000);
+                    }
+                    this.makeToast('Uploaded Products Successfully!','success');
+                })
+                .catch(err => {
+                    const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                    this.makeToast(`Error uploading logo: ${err}${msg}`,'danger',5000);
+                })
+                .finally(() => {this.bulkProductsLoading = false;})
+            })
+
         },
         makeToast: function(text, color, timeout=2000) {
             this.snackbar.timeout = timeout;

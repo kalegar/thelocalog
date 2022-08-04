@@ -230,7 +230,8 @@
                 </v-row>
               </v-col>
             </v-row>
-            <v-row v-if="merchant && isAdmin">
+            <v-container>
+            <v-row v-if="merchant && products && products.length">
               <v-col>
                 <v-row no-gutters>
                   <h2>Products</h2>
@@ -243,7 +244,7 @@
                   ><v-icon>mdi-plus</v-icon></v-btn>
                 </v-row>
                 <v-row>
-                  <v-col v-for="product in products" :key="product.id">
+                  <v-col v-for="product in products" :key="product.id" :cols="4">
                     <product-card 
                       :product="product" 
                       :canDelete="isAdminOrOwner"
@@ -252,6 +253,18 @@
                 </v-row>
               </v-col>
             </v-row>
+            <v-fade-transition name="fade" mode="out-in">
+                    <v-row v-if="products.length" key="footer">
+                        <v-col class="align-self-center" align="center">
+                            <v-pagination
+                                v-model="productPage"
+                                :length="productPages"
+                                circle
+                            ></v-pagination>
+                        </v-col>
+                    </v-row>
+                </v-fade-transition>
+            </v-container>
             <v-row class="merchant-footer align-items-center">
               <v-col>
                 <p v-if="!isOwner && merchant">
@@ -364,8 +377,16 @@ export default {
       deleteAddressLoading: false,
       pageViewers: 1,
       products: [],
-      relatedMerchants: []
+      relatedMerchants: [],
+      productPage: 1,
+      productPages: 1,
+      productsPerPage: 50,
     };
+  },
+  watch: {
+    productPage: function() {
+      this.getProducts();
+    }
   },
   methods: {
     goBack: function() {
@@ -581,9 +602,11 @@ export default {
         );
     },
     getProducts: function() {
-      MerchantService.getProducts(this.merchantId)
+      MerchantService.getProducts(this.merchantId,this.productsPerPage,this.productPage)
       .then(res => {
-        this.products = res;
+        this.products = res.products;
+        this.productPages = res.pages;
+        this.productPage = res.page;
       }, () => {
         this.products = [];
       })

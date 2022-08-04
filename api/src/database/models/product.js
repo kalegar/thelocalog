@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
   Product.init({
     id: {type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true},
     MerchantId: {type: DataTypes.UUID, allowNull: false },
+    externalId: DataTypes.STRING,
     title: {type: DataTypes.STRING, allowNull: false},
     price: DataTypes.DECIMAL,
     stock: DataTypes.INTEGER,

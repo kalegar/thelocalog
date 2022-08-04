@@ -438,26 +438,27 @@ export const MerchantService = {
         });
     },
 
-    getProducts: function(merchantId, perpage = 10, page = 1) {
+    getProducts: function(merchantId, perpage = 25, page = 1) {
         const url = `/api/merchants/${merchantId}/products`;
         return new Promise((resolve, reject) => {
             axios.get(url, {
                 params: {
                     perpage,
-                    page: page-1
+                    page
                 }
             })
             .then(res => {
                 if (res.status != 200) {
                     reject('Status != 200');
                 }
+                let result = {page, pages: 0, products: []};
                 if ('products' in res.data) {
                     if (res.data.products.count && 'rows' in res.data.products) {
-                        resolve(res.data.products.rows);
-                        return;
+                        result.products = res.data.products.rows;
+                        result.pages = res.data.products.pages;
                     }
                 }
-                resolve([]);
+                resolve(result);
             })
             .catch(err => {
                 const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
