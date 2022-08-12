@@ -224,14 +224,22 @@
               <v-col>
                 <h2>Similar Shops</h2>
                 <v-row>
-                  <v-col v-for="merchant in relatedMerchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
+                  <v-col v-for="merchant in someRelatedMerchants" :key="merchant.id" class="mcard-columns" :cols="merchantCardCols">
                     <merchant-card :merchant="merchant" @click="similarMerchantClicked(merchant)"></merchant-card>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters class="my-4">
+                  <v-col>
+                    <v-btn
+                      color="primary"
+                      @click="showAllRelatedMerchants = !showAllRelatedMerchants;"
+                    >See {{showAllRelatedMerchants ? "Less" : "More"}}</v-btn>
                   </v-col>
                 </v-row>
               </v-col>
             </v-row>
             <v-container>
-            <v-row v-if="merchant && products && products.length">
+            <v-row v-if="merchant && hasProducts">
               <v-col>
                 <v-row no-gutters>
                   <h2>Products</h2>
@@ -243,27 +251,9 @@
                     :to="{ name: 'ProductNew', params: { merchantId: merchant.id, merchantWebsite: merchant.website } }"
                   ><v-icon>mdi-plus</v-icon></v-btn>
                 </v-row>
-                <v-row>
-                  <v-col v-for="product in products" :key="product.id" :cols="4">
-                    <product-card 
-                      :product="product" 
-                      :canDelete="isAdminOrOwner"
-                      @delete="(event) => deleteProduct(event)"></product-card>
-                  </v-col>
-                </v-row>
+                <product-gallery :merchantId="merchant.id" :canDelete="isAdminOrOwner" :cols="merchantCardCols" :perpage="productsPerPage" v-on:get-products="onGetProducts($event)"></product-gallery>
               </v-col>
             </v-row>
-            <v-fade-transition name="fade" mode="out-in">
-                    <v-row v-if="products.length" key="footer">
-                        <v-col class="align-self-center" align="center">
-                            <v-pagination
-                                v-model="productPage"
-                                :length="productPages"
-                                circle
-                            ></v-pagination>
-                        </v-col>
-                    </v-row>
-                </v-fade-transition>
             </v-container>
             <v-row class="merchant-footer align-items-center">
               <v-col>
@@ -294,14 +284,13 @@ import Loading from "../components/Loading.vue";
 import BasePage from "./base/BasePage.page.vue";
 import BaseContent from "./base/BaseContent.page.vue";
 import { MerchantService } from "../service/Merchant.service";
-import { ProductService } from "../service/Product.service";
 import CreateAddressModal from "../components/CreateAddressModal.vue";
 import { UserService } from "../service/User.service";
 import AddressCard from '../components/AddressCard.vue';
 import MerchantDetailCard from '../components/MerchantDetailCard.vue';
 import MerchantCategoriesTags from '../components/MerchantCategoriesTags.vue';
-import ProductCard from '../components/ProductCard.vue';
 import MerchantCard from '../components/MerchantCard.vue';
+import ProductGallery from '../components/ProductGallery.vue';
 
 export default {
   name: "MerchantDetail",
@@ -317,8 +306,8 @@ export default {
     AddressCard,
     MerchantDetailCard,
     MerchantCategoriesTags,
-    ProductCard,
-    MerchantCard
+    MerchantCard,
+    ProductGallery
   },
   computed: {
     isAdmin: function () {
@@ -345,6 +334,16 @@ export default {
             return 3;
         }
     },
+    productsPerPage: function() {
+        if (this.$vuetify.breakpoint.width < 700) {
+          return 24;
+        } else {
+          return 50;
+        }
+    },
+    someRelatedMerchants: function() {
+      return this.showAllRelatedMerchants ? this.relatedMerchants : this.relatedMerchants.slice(0, 3);
+    }
   },
   data: function () {
     return {
@@ -376,19 +375,15 @@ export default {
       deleteAddressDialog: false,
       deleteAddressLoading: false,
       pageViewers: 1,
-      products: [],
       relatedMerchants: [],
-      productPage: 1,
-      productPages: 1,
-      productsPerPage: 50,
+      showAllRelatedMerchants: false,
+      hasProducts: true,
     };
   },
-  watch: {
-    productPage: function() {
-      this.getProducts();
-    }
-  },
   methods: {
+    onGetProducts: function(products) {
+      this.hasProducts = products.length > 0;
+    },
     goBack: function() {
       if (this.hasHistory) {
         this.$router.go(-1);
@@ -571,7 +566,6 @@ export default {
             this.merchant = result;
             this.getBusinessHours();
             this.getLogo();
-            this.getProducts(this.merchantId);
             this.getRelatedMerchants();
           },
           (err) => {
@@ -600,27 +594,6 @@ export default {
             console.log(err);
           }
         );
-    },
-    getProducts: function() {
-      MerchantService.getProducts(this.merchantId,this.productsPerPage,this.productPage)
-      .then(res => {
-        this.products = res.products;
-        this.productPages = res.pages;
-        this.productPage = res.page;
-      }, () => {
-        this.products = [];
-      })
-    },
-    deleteProduct: function(product) {
-      this.$auth.getTokenSilently().then((authToken) => {
-        ProductService.deleteProduct(authToken,product.id)
-        .then((res) => {
-          this.makeToast(res,"success");
-          this.getProducts();
-        }, (rej) => {
-          this.makeToast(rej,"danger",5000);
-        });
-      });
     },
     similarMerchantClicked: function(merchant) {
       this.$router.push({

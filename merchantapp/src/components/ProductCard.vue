@@ -28,7 +28,7 @@
                     icon
                     color="danger"
                     small
-                    @click="onDeletePressed"
+                    @click.prevent="onDeletePressed"
                 ><v-icon>mdi-delete</v-icon></v-btn>
             </v-card-actions>
         </v-card>
