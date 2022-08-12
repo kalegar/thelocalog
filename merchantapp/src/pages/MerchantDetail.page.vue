@@ -233,7 +233,7 @@
                     <v-btn
                       color="primary"
                       @click="showAllRelatedMerchants = !showAllRelatedMerchants;"
-                    >See {{showAllRelatedMerchants ? "Less" : "More"}}</v-btn>
+                    >Show {{showAllRelatedMerchants ? "Less" : "More"}}</v-btn>
                   </v-col>
                 </v-row>
               </v-col>

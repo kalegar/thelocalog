@@ -5,7 +5,7 @@
                 <product-card
                     :product="product"
                     :canDelete="canDelete"
-                    v-on-delete="deleteProduct(product)"
+                    v-on:delete="deleteProduct(product)"
                 ></product-card>
             </v-col>
         </v-row>
@@ -60,7 +60,7 @@ export default {
         },
         perpage: {
             type: Number,
-            default: 0
+            default: 50
         }
     },
     computed: {
