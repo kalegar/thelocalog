@@ -220,6 +220,23 @@
                 </v-expansion-panels>
               </div>
             </div>
+            <v-container>
+            <v-row v-if="merchant && hasProducts">
+              <v-col>
+                <v-row no-gutters>
+                  <h2>Products</h2>
+                  <v-btn
+                    fab
+                    small
+                    class = "ml-3"
+                    v-if="isAdmin"
+                    :to="{ name: 'ProductNew', params: { merchantId: merchant.id, merchantWebsite: merchant.website } }"
+                  ><v-icon>mdi-plus</v-icon></v-btn>
+                </v-row>
+                <product-gallery :merchantId="merchant.id" :canDelete="isAdminOrOwner" :cols="merchantCardCols" :perpage="productsPerPage" v-on:get-products="onGetProducts($event)"></product-gallery>
+              </v-col>
+            </v-row>
+            </v-container>
             <v-row v-if="relatedMerchants.length">
               <v-col>
                 <h2>Similar Shops</h2>
@@ -238,23 +255,6 @@
                 </v-row>
               </v-col>
             </v-row>
-            <v-container>
-            <v-row v-if="merchant && hasProducts">
-              <v-col>
-                <v-row no-gutters>
-                  <h2>Products</h2>
-                  <v-btn
-                    fab
-                    small
-                    class = "ml-3"
-                    v-if="isAdmin"
-                    :to="{ name: 'ProductNew', params: { merchantId: merchant.id, merchantWebsite: merchant.website } }"
-                  ><v-icon>mdi-plus</v-icon></v-btn>
-                </v-row>
-                <product-gallery :merchantId="merchant.id" :canDelete="isAdminOrOwner" :cols="merchantCardCols" :perpage="productsPerPage" v-on:get-products="onGetProducts($event)"></product-gallery>
-              </v-col>
-            </v-row>
-            </v-container>
             <v-row class="merchant-footer align-items-center">
               <v-col>
                 <p v-if="!isOwner && merchant">
