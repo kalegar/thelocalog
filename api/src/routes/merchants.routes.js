@@ -11,6 +11,7 @@ import merchantSocialMediaRouter from './merchants.socialmedia.routes.js';
 import merchantImagesRouter from './merchants.images.routes.js';
 import merchantClaimsRouter from './merchants.claims.routes.js';
 import merchantProductsRouter from './merchants.products.routes.js';
+import merchantProductCategoriesRouter from './merchants.productcategories.routes.js';
 import checkJwt from '../middleware/authentication.js';
 import adminRole from '../middleware/admin.auth.js';
 import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
@@ -523,5 +524,7 @@ router.use('/:merchantId/images',merchantImagesRouter);
 router.use('/:merchantId/claims', checkJwt, merchantClaimsRouter);
 
 router.use('/:merchantId/products', merchantProductsRouter);
+
+router.use('/:merchantId/productcategories', merchantProductCategoriesRouter);
 
 export default router;
