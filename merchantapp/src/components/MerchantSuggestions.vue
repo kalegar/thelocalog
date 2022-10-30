@@ -21,9 +21,8 @@
             <template v-slot:activator>
               <v-list-item-content>
                 <v-list-item-title
-                  v-text="suggestion.title"
                   class="suggestion-title"
-                ></v-list-item-title>
+                >{{suggestion.title}}</v-list-item-title>
               </v-list-item-content>
               <v-list-item-action>
                 <create-merchant-modal

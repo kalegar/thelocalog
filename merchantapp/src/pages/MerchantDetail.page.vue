@@ -223,7 +223,7 @@
             <v-container>
             <v-row v-if="merchant && hasProducts">
               <v-col>
-                <v-row no-gutters>
+                <!-- <v-row no-gutters>
                   <h2>Products</h2>
                   <v-btn
                     fab
@@ -232,8 +232,8 @@
                     v-if="isAdmin"
                     :to="{ name: 'ProductNew', params: { merchantId: merchant.id, merchantWebsite: merchant.website } }"
                   ><v-icon>mdi-plus</v-icon></v-btn>
-                </v-row>
-                <product-gallery :merchantId="merchant.id" :canDelete="isAdminOrOwner" :cols="merchantCardCols" :perpage="productsPerPage" v-on:get-products="onGetProducts($event)"></product-gallery>
+                </v-row> -->
+                <product-gallery :canAdd="isAdminOrOwner" :merchantId="merchant.id" :merchantWebsite="merchant.website" :canDelete="isAdminOrOwner" :cols="merchantCardCols" :perpage="productsPerPage" v-on:get-products="onGetProducts($event)"></product-gallery>
               </v-col>
             </v-row>
             </v-container>
@@ -273,14 +273,16 @@
             </v-row>
           </div>
         </transition>
-        <Loading :loading="loading" />
+        <div v-if="loading" class="w-100 d-flex justify-content-center align-items-center">
+            <div class="loading spinner-border text-primary">
+            </div>
+        </div>
       </BaseContent>
     </BasePage>
   </div>
 </template>
 
 <script>
-import Loading from "../components/Loading.vue";
 import BasePage from "./base/BasePage.page.vue";
 import BaseContent from "./base/BaseContent.page.vue";
 import { MerchantService } from "../service/Merchant.service";
@@ -299,7 +301,6 @@ export default {
     geoLocation: Object,
   },
   components: {
-    Loading,
     BasePage,
     BaseContent,
     CreateAddressModal,
@@ -381,8 +382,8 @@ export default {
     };
   },
   methods: {
-    onGetProducts: function(products) {
-      this.hasProducts = products.length > 0;
+    onGetProducts: function(event) {
+      this.hasProducts = event.products.length > 0 || (event.searchQuery != null);
     },
     goBack: function() {
       if (this.hasHistory) {
@@ -684,5 +685,10 @@ h2 {
 }
 .claim-link {
   font-weight: bold;
+}
+.loading {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
 }
 </style>

@@ -2,8 +2,9 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import { Router } from 'express';
-import { Merchant, Product, User, Image } from '../database/models';
+import { Merchant, Product, User, Image, Category } from '../database/models';
 import jwtAuthz from 'express-jwt-authz';
+import { Op } from 'sequelize';
 import checkJwt from '../middleware/authentication.js';
 import userOwnsMerchant from '../middleware/merchantOwner.middleware.js';
 import multer from 'multer';
@@ -47,23 +48,48 @@ router.post("/bulk", checkJwt, userOwnsMerchant, upload.single('data'), async (r
                 return res.status(400).json({ message: 'json is empty array.'});
             }
             try {
+
+                const addCategories = function(categories,productModel) {
+                    if (categories != null && Array.isArray(categories) && categories.length) {
+                        categories.forEach(category => {
+                            Category.findOrCreate({
+                                where: { category: category.toUpperCase() },
+                                defaults: { category: category }
+                            }).then((categories) => {
+                                categories[0].addProduct(productModel).catch((error) => {
+                                    logger.error(error);
+                                });
+                            }).catch((error) => {
+                                logger.error(error);
+                            });
+                        })
+                        
+                    }
+                }
+
                 await Promise.all(json.map(prod => {
                     let product = prod;
                     product.MerchantId = merchant.id;
+                    let promise;
                     if (product.externalId && product.externalId !== null && product.externalId.length) {
                         return Product.findOne({ where: {
                             externalId: product.externalId
                         }}).then(p => {
                             if (p === null) {
-                                Product.create(product);
+                                promise = Product.create(product);
                             }else{
-                                p.update(product);
+                                promise = p.update(product);
                             }
+                            promise.then((newproduct) => {
+                                addCategories(product.categories,newproduct);
+                            });
                         }).catch(e => {
                             logger.error(e);
                         });
                     }else{
-                        return Product.create(product);
+                        return Product.create(product).then(newproduct => {
+                            addCategories(product.categories,newproduct);
+                        });
                     }
                 }));
                 return res.status(201).json({ message:`Uploaded ${json.length} products.`});
@@ -134,7 +160,7 @@ router.post("/", checkJwt, userOwnsMerchant, upload.single('image'), async (req,
 router.get("/", async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
-        const {perpage,page} = req.query;
+        const {perpage,page,q} = req.query;
 
         let query = {attributes: ['id','title','description','url','inStock','price','imageListing','imageUrl']};
 
@@ -150,6 +176,20 @@ router.get("/", async (req, res) => {
 
         query.where = {
             MerchantId: merchantId
+        }
+
+        if (q && q.length) {
+            let words = q.split(" ").map(s => `%${s.trim()}%`);
+            if (words.length > 1) {
+                console.log(words);
+                query.where.title = {
+                    [Op.iLike]: { [Op.any]: words}
+                }
+            }else{
+                query.where.title = {
+                    [Op.iLike]: `%${q}%`
+                }
+            }
         }
 
         const { count, rows } = await Product.findAndCountAll(query);

@@ -27,7 +27,7 @@
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
               <v-btn text icon @click.prevent="locationClicked" v-bind="attrs" v-on="on">
-                <v-icon :size="locationIconSize" v-text="'mdi-map-marker-outline'"></v-icon>
+                <v-icon :size="locationIconSize">mdi-map-marker-outline</v-icon>
               </v-btn>
             </template>
            <span>View On Map</span>

@@ -279,25 +279,30 @@ export default {
         this.phone2 = null;
       }
     },
-    copyToExternalFields: function() {
+    getAddressObject: function() {
       //Address
-      this.address.address1      = this.address1;
-      this.address.address2      = this.address2;
-      this.address.address3      = this.address3;
-      this.address.city          = this.city;
-      this.address.province      = this.province;
-      this.address.postalcode    = this.postalcode;
-      this.address.neighbourhood = this.neighbourhood;
-      this.address.country       = this.country;
+      const updatedAddress = this.address;
+      Object.assign(updatedAddress,{
+        address1: this.address1,
+        address2: this.address2,
+        address3: this.address3,
+        city: this.city,
+        province: this.province,
+        postalcode: this.postalcode,
+        neighbourhood: this.neighbourhood,
+        country: this.country
+      });
       //Contact
       if (this.email || this.email2 || this.phone || this.phone2 || ('Contact' in this.address && this.address.Contact !== null)) {
         if ('Contact' in this.address && this.address.Contact !== null) {
-          Object.assign(this.address.Contact, { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2});
-          console.log(this.address.Contact);
+          updatedAddress.Contact = this.address.Contact;
+          Object.assign(updatedAddress.Contact, { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2});
+          console.log(updatedAddress.Contact);
         }else{
-          this.address.Contact = { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2};
+          updatedAddress.Contact = { email: this.email, email2: this.email2, phone: this.phone, phone2: this.phone2};
         }
       }
+      return updatedAddress;
     },
     startEditing: function() {
       if (this.canEdit) {
@@ -311,9 +316,9 @@ export default {
     },
     saveAddress: function() {
       this.saveAddressLoading = true;
-      this.copyToExternalFields();
+      const updatedAddress = this.getAddressObject();
       this.$auth.getTokenSilently().then((authToken) => {
-        MerchantService.saveAddress(this.merchant.id, authToken, this.address)
+        MerchantService.saveAddress(this.merchant.id, authToken, updatedAddress)
           .then(
             (result) => {
               this.$emit('save-success',result);

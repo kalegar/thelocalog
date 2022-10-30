@@ -134,7 +134,7 @@
         v-if="merchant.SocialMediaLinks && merchant.SocialMediaLinks.length"
         class="my-2"
       ></v-divider>
-      <social-media-links class="mb-1" :links="merchant.SocialMediaLinks" :canEdit="canEdit" :merchantId="merchant.id" v-on:save-success="$emit('save-success',$event);" v-on:save-error="$emit('save-error',$event);"/>
+      <social-media-links class="mb-1" :links="merchant.SocialMediaLinks" :canEdit="canEdit" :merchantId="merchant.id" v-on:save-success="$emit('save-success',$event);" v-on:save-error="$emit('save-error',$event);" v-on:delete="$emit('save-success',$event)"/>
     </v-card-text>
   </v-card>
 </template>
@@ -210,15 +210,17 @@ export default {
     saveMerchant: function() {
       this.saveMerchantLoading = true;
       this.$auth.getTokenSilently().then((authToken) => {
-        this.merchant.title = this.title;
-        this.merchant.description = this.description;
-        this.merchant.website = this.website;
-        this.merchant.inStoreShopping = this.inStoreShopping;
-        this.merchant.onlineShopping = this.onlineShopping;
-        this.merchant.franchise = this.franchise;
-        this.merchant.independent = this.independent;
-        this.merchant.canadianOwned = this.canadianOwned;
-        MerchantService.saveMerchant(this.merchant.id, authToken, this.merchant)
+        const updatedMerchant = {
+          title: this.title,
+          description: this.description,
+          website: this.website,
+          inStoreShopping: this.inStoreShopping,
+          onlineShopping: this.onlineShopping,
+          franchise: this.franchise,
+          independent: this.independent,
+          canadianOwned: this.canadianOwned
+        }
+        MerchantService.saveMerchant(this.merchant.id, authToken, updatedMerchant)
           .then(
             (result) => {
               this.$emit('save-success',[result]);

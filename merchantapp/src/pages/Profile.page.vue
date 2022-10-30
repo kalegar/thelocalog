@@ -60,7 +60,7 @@ import BaseContent from './base/BaseContent.page.vue';
 import axios from 'axios';
 
 export default {
-    name: 'Profile',
+    name: 'ProfilePage',
     components: {
         BasePage,
         BaseContent

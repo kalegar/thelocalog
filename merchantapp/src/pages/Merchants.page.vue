@@ -236,7 +236,7 @@ import SuggestMerchant from '../components/SuggestMerchant.vue';
 import ResultsMap from '../components/ResultsMap.vue';
 
 export default {
-    name: 'Merchants',
+    name: 'MerchantsPage',
     props: {
         query: String
     },

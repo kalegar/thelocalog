@@ -176,6 +176,7 @@ router.put("/:id", checkJwt, ownsMerchant, async (req, res) => {
             return res.status(200).json({ newAddress });
         });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });

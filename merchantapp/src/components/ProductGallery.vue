@@ -1,6 +1,40 @@
 <template>
     <v-container>
-        <v-row>
+        <v-row v-if="header" no-gutters>
+            <h2>{{title}}</h2>
+            <v-btn
+            fab
+            small
+            class = "ml-3"
+            v-if="canAdd"
+            :to="{ name: 'ProductNew', params: { merchantId, merchantWebsite } }"
+            ><v-icon>mdi-plus</v-icon></v-btn>
+            <v-spacer></v-spacer>
+            <v-responsive min-width="40" :max-width="500" class="mx-n2 pa-1">
+                <v-text-field
+                dense
+                hide-details
+                rounded
+                solo
+                clearable
+                label="Search Products"
+                v-bind:append-icon="(searchQuery && searchQuery.length > 0) ? '' : 'mdi-magnify'"
+                v-model="searchQuery"
+                @input="search"
+                @click:append="search()"
+                >
+                </v-text-field>
+            </v-responsive>
+            <v-spacer></v-spacer>
+            <v-btn
+            fab
+            small
+            ><v-icon>mdi-filter</v-icon></v-btn>
+        </v-row>
+        <v-row v-if="loading" class="ma-4">
+            <v-progress-linear indeterminate></v-progress-linear>
+        </v-row>
+        <v-row v-if="loading==false">
             <v-col v-for="product in productsToDisplay" :key="product.id" :cols="cols">
                 <product-card
                     :product="product"
@@ -9,7 +43,7 @@
                 ></product-card>
             </v-col>
         </v-row>
-        <v-row v-if="merchantId.length && internal_showAll" >
+        <v-row v-if="merchantId.length && internal_showAll && !loading" >
             <v-fade-transition name="fade" mode="out-in">
                 <v-row v-if="internal_products.length" key="footer" no-gutters>
                     <v-col class="align-self-center mx-n4" align="center">
@@ -23,7 +57,7 @@
                 </v-row>
             </v-fade-transition>
         </v-row>
-        <v-row v-if="productsToDisplay.length && !internal_showAll">
+        <v-row v-if="productsToDisplay.length && !internal_showAll && !loading">
             <v-col>
                 <v-btn
                     color="primary"
@@ -37,12 +71,17 @@
 <script>
 import { MerchantService } from '../service/Merchant.service';
 import { ProductService } from '../service/Product.service';
-import ProductCard from './ProductCard.vue'
+import ProductCard from './ProductCard.vue';
+import _debounce from 'lodash/debounce';
 export default {
   components: { ProductCard },
     name: 'ProductGallery',
     props: {
         merchantId: {
+            type: String,
+            default: ''
+        },
+        merchantWebsite: {
             type: String,
             default: ''
         },
@@ -61,6 +100,18 @@ export default {
         perpage: {
             type: Number,
             default: 50
+        },
+        title: {
+            type: String,
+            default: 'Products'
+        },
+        header: {
+            type: Boolean,
+            default: true
+        },
+        canAdd: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {
@@ -106,23 +157,35 @@ export default {
             page: 1,
             pages: 1,
             internal_perpage: 50,
-            internal_showAll: false
+            internal_showAll: false,
+            searchQuery: '',
+            loading: false,
         };
     },
     methods: {
+        search: function() {
+            this.loading = true;
+            this.internal_search();
+        },
+        internal_search: _debounce(function() {
+            this.internal_showAll = true;
+            this.getProductsForMerchant(this.merchantId);
+        }, 500),
         getProductsForMerchant: function(id) {
             if (!id.length) {
+                this.loading = false;
                 return;
             }
-            MerchantService.getProducts(id,this.internal_perpage,this.page)
+            this.loading = true;
+            MerchantService.getProducts(id,this.internal_perpage,this.page,this.searchQuery)
             .then(res => {
                 this.internal_products = res.products;
                 this.pages = res.pages;
                 this.page = res.page;
-                this.$emit('get-products',this.internal_products);
+                this.$emit('get-products',{products: this.internal_products, searchQuery: this.searchQuery});
             }, () => {
                 this.internal_products = [];
-            })
+            }).finally(() => {this.loading = false;})
         },
         deleteProduct: function(product) {
             this.$auth.getTokenSilently().then((authToken) => {

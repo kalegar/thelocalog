@@ -117,7 +117,7 @@ export default {
                     this.$auth.getTokenSilently().then((authToken) => {
                         MerchantService.deleteSocialMediaLink(this.merchantId, authToken, link.id).then(
                             () => {
-                                this.links.splice(i,1);
+                                this.$emit('delete','Deleted Social Media Link.');
                             },
                             (err) => {
                                 console.log(err);

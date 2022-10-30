@@ -438,14 +438,18 @@ export const MerchantService = {
         });
     },
 
-    getProducts: function(merchantId, perpage = 25, page = 1) {
+    getProducts: function(merchantId, perpage = 25, page = 1, searchQuery = '') {
         const url = `/api/merchants/${merchantId}/products`;
+        let params = {
+            perpage,
+            page
+        }
+        if (searchQuery && searchQuery.length) {
+            params.q = searchQuery;
+        }
         return new Promise((resolve, reject) => {
             axios.get(url, {
-                params: {
-                    perpage,
-                    page
-                }
+                params
             })
             .then(res => {
                 if (res.status != 200) {
