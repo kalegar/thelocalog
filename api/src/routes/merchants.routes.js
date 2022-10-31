@@ -82,7 +82,30 @@ router.get("/", async (req, res) => {
     try {
         const {perpage,page,s: search,t: tags,c: categories,n: neighbourhood,lat,lon,radius,deleted,sort,o: onlineShopping, franchise, independent, canadian} = req.query;
 
-        let query = {attributes: ['id','title','website','description','deletedAt']}
+        const list = ('list' in req.query);
+
+        if (list) {
+            let hash = crypto.createHash('md5').update(`MERCHANT_LIST`).digest('hex');
+            redisClient.get(`${redisPrefixRequest}${hash}`, async function(err, reply) {
+                // Not in cache, load from DB
+                if (err || !reply) {
+                    const merchants = await Merchant.findAndCountAll({
+                        attributes: ['id','title']
+                    });
+                    const data = { merchants, cached: false};
+                    redisClient.setex(`${redisPrefixRequest}${hash}`,redisExpiryTimeShort,JSON.stringify(data));
+                    res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
+                    return res.status(200).json(data);
+                }
+                res.set('Cache-Control', `public, max-age=${redisExpiryTimeShort}`);
+                const data = JSON.parse(reply);
+                data.cached = true;
+                return res.status(200).json(data);
+            });
+            return;
+        }
+
+        let query = {attributes: ['id','title','website','description','deletedAt']};
 
         query.offset = 0;
         query.limit = 2;

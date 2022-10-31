@@ -3,6 +3,26 @@ import axios from 'axios';
 let cancelToken;
 
 export const MerchantService = {
+
+    getMerchantList: function() {
+        return new Promise((resolve, reject) => {
+            axios.get(`/api/merchants`, {
+                params: {
+                    list: true
+                }
+            }).then(res => {
+                if (res.status != 200) {
+                    const error = new Error(res.statusText);
+                    reject(error);
+                }
+                resolve(res.data.merchants.rows);
+            }).catch(err => {
+                //Pass error out through reject
+                reject(err);
+            });
+        });
+    },
+
     /**
      * Retrieves merchants from Localog API
      * @param {search flters and other parameters} options 
@@ -186,6 +206,42 @@ export const MerchantService = {
                     return;
                 }
                 resolve(res.statusText);
+            })
+            .catch(err => {
+                reject(err);
+            })
+        });
+    },
+
+    getMerchantProductCategories: function(id, textOnly = false, pretty = true) {
+        const url = `/api/merchants/${id}/productcategories`;
+        return new Promise((resolve, reject) => {
+            axios.get(url)
+            .then((res) => {
+                if (res.status != 200) {
+                    reject(res.statusText);
+                    return;
+                }
+                if (textOnly) {
+                    if (pretty) {
+                        resolve(
+                            res.data.categories.map((cat) => cat.category)
+                            .map((cat) => {
+                                let words = cat.split(" ");
+                                return words
+                                    .map(
+                                    (word) =>
+                                        word[0].toUpperCase() + word.toLowerCase().substring(1)
+                                    )
+                                    .join(" ");
+                                })
+                        );
+                    }else{
+                        resolve(res.data.categories.map((cat) => cat.category));
+                    }
+                }else{
+                    resolve(res.data.categories);
+                }
             })
             .catch(err => {
                 reject(err);
@@ -438,7 +494,7 @@ export const MerchantService = {
         });
     },
 
-    getProducts: function(merchantId, perpage = 25, page = 1, searchQuery = '') {
+    getProducts: function(merchantId, perpage = 25, page = 1, searchQuery = '', categories = []) {
         const url = `/api/merchants/${merchantId}/products`;
         let params = {
             perpage,
@@ -446,6 +502,9 @@ export const MerchantService = {
         }
         if (searchQuery && searchQuery.length) {
             params.q = searchQuery;
+        }
+        if (categories && categories.length) {
+            params.c = categories.join(",");
         }
         return new Promise((resolve, reject) => {
             axios.get(url, {

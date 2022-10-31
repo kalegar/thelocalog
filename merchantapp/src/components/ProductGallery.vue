@@ -26,10 +26,17 @@
                 </v-text-field>
             </v-responsive>
             <v-spacer></v-spacer>
-            <v-btn
-            fab
-            small
-            ><v-icon>mdi-filter</v-icon></v-btn>
+            <v-autocomplete
+                v-if="categories && categories.length"
+                v-model="filterCategories"
+                :items="categories"
+                rounded
+                solo
+                multiple
+                clearable
+                dense
+                label="Product Categories"
+            ></v-autocomplete>
         </v-row>
         <v-row v-if="loading" class="ma-4">
             <v-progress-linear indeterminate></v-progress-linear>
@@ -138,6 +145,7 @@ export default {
             immediate: true,
             handler: function () {
                 this.getProductsForMerchant(this.merchantId);
+                this.getProductCategories(this.merchantId);
             }
         },
         page: function() {
@@ -150,6 +158,9 @@ export default {
                 this.getProductsForMerchant(this.merchantId);
             }
         },
+        filterCategories: function() {
+            this.search();
+        }
     },
     data: () => {
         return {
@@ -160,12 +171,19 @@ export default {
             internal_showAll: false,
             searchQuery: '',
             loading: false,
+            categories: [],
+            filterCategories: []
         };
     },
     methods: {
         search: function() {
             this.loading = true;
             this.internal_search();
+        },
+        getProductCategories: function(merchantId) {
+            MerchantService.getMerchantProductCategories(merchantId,true,true).then(res => {
+                this.categories = res;
+            })
         },
         internal_search: _debounce(function() {
             this.internal_showAll = true;
@@ -177,7 +195,7 @@ export default {
                 return;
             }
             this.loading = true;
-            MerchantService.getProducts(id,this.internal_perpage,this.page,this.searchQuery)
+            MerchantService.getProducts(id,this.internal_perpage,this.page,this.searchQuery,this.filterCategories)
             .then(res => {
                 this.internal_products = res.products;
                 this.pages = res.pages;

@@ -140,11 +140,14 @@
                                             </v-card-text>
                                             <v-divider class="mx-4"></v-divider>
                                             <v-card-text>
-                                                <v-text-field
+                                                <v-autocomplete
                                                 v-model="bulkProductsMerchantID" 
-                                                label="Merchant ID"
+                                                :items="merchantList"
+                                                item-text="title"
+                                                item-value="id"
+                                                label="Merchant"
                                                 prepend-icon="mdi-storefront"
-                                                ></v-text-field>
+                                                ></v-autocomplete>
                                             </v-card-text>
                                             <v-card-text>
                                                 <v-file-input
@@ -294,6 +297,7 @@ export default {
             bulkProductsLoading: false,
             bulkProductsMerchantID: '',
             bulkProductsJSON: null,
+            merchantList: []
         }
     },
     methods: {
@@ -511,7 +515,12 @@ export default {
                     if (res.status != 201) {
                         this.makeToast(`Error uploading products: ${res.statusText} ${res.data.message}`,'danger',5000);
                     }
-                    this.makeToast('Uploaded Products Successfully!','success');
+                    if (res.data.message) {
+                        this.makeToast(res.data.message,'success');
+                    }else{
+                        this.makeToast('Uploaded Products Successfully!','success');
+                    }
+                    
                 })
                 .catch(err => {
                     const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
@@ -570,8 +579,13 @@ export default {
         getCategories: function() {
             this.categoryLoading = true;
             this.$auth.getTokenSilently().then((authToken) => {
-            MerchantService.getCategories(true,'',authToken).then(res => this.categories = res, err => console.log(err)).then(() => this.categoryLoading = false);
+            MerchantService.getCategories(true,'',authToken).then(res => this.categories = res, err => console.log(err)).finally(() => this.categoryLoading = false);
             });
+        },
+        getMerchantList: function() {
+            MerchantService.getMerchantList().then(res => {
+                this.merchantList = res;
+            }, err => console.log(err));
         }
     },
     updated: function() {
@@ -602,6 +616,7 @@ export default {
         });
         this.getPopulateGeometryCount();
         this.getCategories();
+        this.getMerchantList();
     },
     created: function() {
         this.loading = true;

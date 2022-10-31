@@ -160,7 +160,7 @@ router.post("/", checkJwt, userOwnsMerchant, upload.single('image'), async (req,
 router.get("/", async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
-        const {perpage,page,q} = req.query;
+        const {perpage,page,q,c: categoriesStr} = req.query;
 
         let query = {attributes: ['id','title','description','url','inStock','price','imageListing','imageUrl']};
 
@@ -188,6 +188,20 @@ router.get("/", async (req, res) => {
             }else{
                 query.where.title = {
                     [Op.iLike]: `%${q}%`
+                }
+            }
+        }
+
+        if (categoriesStr && categoriesStr.length) {
+            const categories = categoriesStr.split(",").map(cat => cat.toUpperCase().trim());
+            query.include = {
+                model: Category,
+                attributes: [],
+                through: { attributes: [] },
+                where: {
+                    category: {
+                        [Op.in]: categories
+                    }
                 }
             }
         }
