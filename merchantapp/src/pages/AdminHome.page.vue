@@ -19,7 +19,7 @@
                             <v-tabs v-model="tab">
                                 <v-tab>Claims</v-tab>
                                 <v-tab>Tools</v-tab>
-                                <v-tab>Categories</v-tab>
+                                <v-tab>Shop Categories</v-tab>
                                 <v-tab>Suggestions</v-tab>
                             </v-tabs>
                             <v-tabs-items v-model="tab" style="width: 100%; min-height: 300px;">
@@ -63,11 +63,14 @@
                                             </v-card-text>
                                             <v-divider class="mx-4"></v-divider>
                                             <v-card-text>
-                                                <v-text-field
+                                                <v-autocomplete
                                                 v-model="uploadedLogoMerchantId" 
-                                                label="Merchant ID"
+                                                :items="merchantList"
+                                                item-text="title"
+                                                item-value="id"
+                                                label="Merchant"
                                                 prepend-icon="mdi-storefront"
-                                                ></v-text-field>
+                                                ></v-autocomplete>
                                             </v-card-text>
                                             <v-card-text>
                                                 <v-file-input
@@ -579,7 +582,7 @@ export default {
         getCategories: function() {
             this.categoryLoading = true;
             this.$auth.getTokenSilently().then((authToken) => {
-            MerchantService.getCategories(true,'',authToken).then(res => this.categories = res, err => console.log(err)).finally(() => this.categoryLoading = false);
+            MerchantService.getCategories(true,'merchants',authToken).then(res => this.categories = res, err => console.log(err)).finally(() => this.categoryLoading = false);
             });
         },
         getMerchantList: function() {
