@@ -34,6 +34,7 @@ router.get("/claims", async (req, res) => {
         // const tags = await merchant.getTags({through: {attributes: []}});
         return res.status(200).json({ claims });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -51,6 +52,7 @@ router.get("/claims/:claimId", async (req, res) => {
         });
         return res.status(200).json({ claim });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -109,6 +111,7 @@ router.get("/hours/clearcache", async (req, res) => {
             return res.status(200).json({ message: `Cleared ${count} keys.` });
         });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -126,20 +129,25 @@ router.get("/merchants/clearcache", async (req, res) => {
             return res.status(200).json({ message: `Cleared ${count} keys.` });
         });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
 
 router.get("/categories/clearcache", async (req, res) => {
     try {
-        redisClient.DEL(redisPrefixCategory + 'ALL', async (err, reply) => {
+        redisClient.KEYS(`${redisPrefixCategory}*`, function (err, result) {
             if (err) {
-                return res.status(500).json({ message: 'Redis Server Error.' });
-            }else{
-                return res.status(200).json({ message: `Cleared ${reply} keys.` });
+                return res.status(500).json({ message: err.message });
             }
+            const count = result.length;
+            for (const key of result) {
+                redisClient.DEL(key);
+            }
+            return res.status(200).json({ message: `Cleared ${count} keys.` });
         });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 })
@@ -154,6 +162,7 @@ router.get("/neighbourhoods/clearcache", async(req, res) => {
             }
         });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -215,6 +224,7 @@ router.get("/populategeo", async (req, res) => {
         return res.status(200).json({ message: responseMessage });
 
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ message: error.message });
     }
 });
