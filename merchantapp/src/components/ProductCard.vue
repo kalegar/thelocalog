@@ -26,6 +26,12 @@
                 <v-btn
                     fab
                     icon
+                    small
+                    @click.prevent="onEditPressed"
+                ><v-icon>mdi-pencil</v-icon></v-btn>
+                <v-btn
+                    fab
+                    icon
                     color="danger"
                     small
                     @click.prevent="onDeletePressed"
@@ -46,6 +52,10 @@ export default {
             default: null
         },
         canDelete: {
+            type: Boolean,
+            default: false
+        },
+        canEdit: {
             type: Boolean,
             default: false
         }
@@ -77,6 +87,9 @@ export default {
     methods: {
         onDeletePressed: function() {
             this.$emit('delete',this.product);
+        },
+        onEditPressed: function() {
+            this.$emit('edit',this.product);
         }
     },
     data: function() {

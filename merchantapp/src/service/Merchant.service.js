@@ -465,15 +465,26 @@ export const MerchantService = {
         });
     },
 
-    createProduct: function(authToken, merchantId, title, price, description, url, image = null) {
-        const _url = `/api/merchants/${merchantId}/products`;
+    createOrUpdateProduct: function(authToken, merchantId, productId, title, price, description, url, inStock, image = null, imageUrl = '', externalId = '' ) {
+        let prodId = '';
+        if (productId && productId.length) {
+            prodId = productId;
+        }
+        const _url = `/api/merchants/${merchantId}/products/${prodId}`;
         return new Promise((resolve, reject) => {
             let formData = new FormData();
             formData.append('title',title);
             formData.append('price',price);
             formData.append('description',description);
             formData.append('url',url);
+            formData.append('inStock',inStock);
             formData.append('image',image);
+            if (imageUrl && imageUrl.length) {
+                formData.append('imageUrl',imageUrl);
+            }
+            if (externalId && externalId.length) {
+                formData.append('externalId',externalId);
+            }
             axios.post(_url, formData,
             {
                 headers: {
@@ -482,10 +493,15 @@ export const MerchantService = {
                 },
             })
             .then(res => {
-                if (res.status != 201) {
-                    reject(`Error creating product: ${res.statusText} ${res.data.message}`);
+                if (res.status != 201 && res.status != 200) {
+                    reject(`Error creating/updating product: ${res.statusText} ${res.data.message}`);
                 }
-                resolve('Created Product Successfully!');
+                if (res.status == 200) {
+                    resolve('Updated Product');
+                }
+                if (res.status == 201) {
+                    resolve('Created Product');
+                }
             })
             .catch(err => {
                 const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');

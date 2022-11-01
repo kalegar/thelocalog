@@ -104,11 +104,74 @@ router.post("/bulk", checkJwt, userOwnsMerchant, upload.single('data'), async (r
     }
 });
 
+// Update an existing product.
+router.post("/:productId", checkJwt, userOwnsMerchant, upload.single('image'), async (req, res) => {
+    try {
+        const merchantId = req.params.merchantId;
+        const productId = req.params.productId;
+        const { title, price, description, url, imageUrl, inStock, externalId } = req.body;
+        const userId = req.user.sub;
+
+        const merchant = await Merchant.findOne({
+            where: {id : merchantId },
+            paranoid: false
+        });
+        const user = await User.findOne({
+            where: {id : userId}
+        });
+        const product = await Product.findOne({
+            where: {id: productId},
+            paranoid: false
+        })
+
+        if (!merchant) {
+            return res.status(404).json({message: `Merchant with id ${merchantId} not found.`});
+        }
+        if (!user) {
+            return res.status(404).json({message: `User with id ${userId} not found.`});
+        }
+        if (!product) {
+            return res.status(404).json({message: `Product with id ${productId} not found.`});
+        }
+
+        const img = req.file;
+        let image = null;
+        if (img) {
+            if (img.mimetype !== 'image/png') {
+                return res.status(400).json({ message: 'Must be image/png.'});
+            }
+            image = await Image.create({
+                title: 'ProductImage',
+                type: 'PRODUCTIMAGE',
+                image: img.buffer
+            });
+        }
+
+        const result = await product.update({
+            title,
+            MerchantId : merchant.id,
+            price,
+            description,
+            url,
+            imageUrl,
+            inStock,
+            externalId
+        });
+        if (image)
+            await image.addProduct(product);
+
+        return res.status(200).json({ result });
+    } catch (error) {
+        logger.error(error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Create a new product for this merchant.
 router.post("/", checkJwt, userOwnsMerchant, upload.single('image'), async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
-        const { title, price, description, url } = req.body;
+        const { title, price, description, url, imageUrl, inStock, externalId } = req.body;
         const userId = req.user.sub;
 
         const merchant = await Merchant.findOne({
@@ -144,7 +207,10 @@ router.post("/", checkJwt, userOwnsMerchant, upload.single('image'), async (req,
             MerchantId : merchant.id,
             price,
             description,
-            url
+            url,
+            imageUrl,
+            inStock,
+            externalId
         });
         if (image)
             await image.addProduct(product);
@@ -179,9 +245,8 @@ router.get("/", async (req, res) => {
         }
 
         if (q && q.length) {
-            let words = q.split(" ").map(s => `%${s.trim()}%`);
+            let words = q.split(" ").map(s => s.trim()).filter(s => s.length).map(s => `%${s}%`);
             if (words.length > 1) {
-                console.log(words);
                 query.where.title = {
                     [Op.iLike]: { [Op.any]: words}
                 }

@@ -46,7 +46,9 @@
                 <product-card
                     :product="product"
                     :canDelete="canDelete"
+                    :canEdit="canEdit"
                     v-on:delete="deleteProduct(product)"
+                    v-on:edit="editProduct(product)"
                 ></product-card>
             </v-col>
         </v-row>
@@ -101,6 +103,10 @@ export default {
             default: 4
         },
         canDelete: {
+            type: Boolean,
+            default: false
+        },
+        canEdit: {
             type: Boolean,
             default: false
         },
@@ -215,6 +221,11 @@ export default {
                 });
             });
         },
+        editProduct: function(product) {
+            this.$auth.getTokenSilently().then(() => {
+                this.$router.push({ name: 'ProductEdit', params: { productId: String(product.id), merchantId: String(this.merchantId), merchantWebsite: this.merchantWebsite }});
+            });
+        }
     }
 }
 </script>

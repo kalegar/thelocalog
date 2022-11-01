@@ -25,7 +25,7 @@ const routes = [
   { path: '/', redirect: '/merchants' },
   { path: '/merchants', component: MerchantsPage, name: 'Merchants', props: route => ({ query: route.query.q }) },
   { path: '/merchants/:merchantId/product/', component: ProductEdit, name: 'ProductNew', beforeEnter: authGuard, props: true },
-  { path: '/merchants/:merchantId/product/:productId', component: ProductEdit, name: 'ProductEdit', props: true },
+  { path: '/merchants/:merchantId/product/:productId', component: ProductEdit, name: 'ProductEdit', beforeEnter: authGuard, props: true },
   { path: '/merchants/:merchantId', component: MerchantDetail, name: 'MerchantDetail', props: true },
   { path: '/profile', name: "profile", component: ProfilePage, beforeEnter: authGuard},
   { path: '/claim/:id', component: MerchantClaim, name: 'MerchantClaim', beforeEnter: authGuard, props: true},

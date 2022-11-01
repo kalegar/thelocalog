@@ -84,4 +84,26 @@ export const ProductService = {
             });
         });
     },
+
+    getProduct: function(productId) {
+        const url = `/api/products/${productId}`;
+        return new Promise((resolve, reject) => {
+            axios.get(url)
+            .then(res => {
+                if (res.status != 200) {
+                    reject('Status != 200');
+                    return;
+                }
+                if (!res.data || !res.data.product) {
+                    reject('Product not found.');
+                    return;
+                }
+                resolve(res.data.product);
+            })
+            .catch(err => {
+                const msg = (err.response.data && err.response.data.message ? ' ' + err.response.data.message : '');
+                reject(`Error getting product: ${err}${msg}`);
+            });
+        });
+    }
 }
